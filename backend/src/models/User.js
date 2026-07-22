@@ -25,6 +25,14 @@ const userSchema = new mongoose.Schema({
   active: {
     type: Boolean,
     default: true
+  },
+  resetOtp: {
+    type: String,
+    default: ''
+  },
+  resetOtpExpiryAt: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true
@@ -33,6 +41,8 @@ const userSchema = new mongoose.Schema({
 userSchema.set('toJSON', {
   transform: (doc, ret) => {
     delete ret.passwordHash;
+    delete ret.resetOtp;
+    delete ret.resetOtpExpiryAt;
     delete ret.__v;
     return ret;
   }
