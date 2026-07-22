@@ -28,7 +28,6 @@ export const AuthProvider = ({ children }) => {
           const data = await response.json();
           setUser(data.user);
         } else {
-          // Token expired or invalid
           logout();
         }
       } catch (err) {
@@ -71,6 +70,35 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Self-Registration for Members
+  const register = async (name, email, password) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_BASE}/users/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, email, password, role: 'member' })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed');
+      }
+
+      // Automatically log the user in right after registering
+      return await login(email, password);
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('task_tracker_token');
     setToken(null);
@@ -78,7 +106,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, error, login, logout, setError }}>
+    <AuthContext.Provider value={{ user, token, loading, error, login, register, logout, setError }}>
       {children}
     </AuthContext.Provider>
   );

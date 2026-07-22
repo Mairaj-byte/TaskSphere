@@ -5,17 +5,54 @@ const { authenticate, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Apply auth middleware to all routes
+// ==========================================
+// PUBLIC ROUTES (No auth required)
+// ==========================================
+
+// POST /api/users/register - Self-registration endpoint for new members
+router.post('/register', async (req, res) => {
+  const { name, email, password } = req.body;
+
+  try {
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'Please provide name, email, and password.' });
+    }
+
+    const emailExists = await User.findOne({ email: email.toLowerCase() });
+    if (emailExists) {
+      return res.status(400).json({ error: 'Email already registered.' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    // Forces role to 'member' for public registration
+    const newUser = new User({
+      name,
+      email,
+      passwordHash,
+      role: 'member'
+    });
+
+    await newUser.save();
+    res.status(201).json({ message: 'Registration successful', user: newUser });
+  } catch (err) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// ==========================================
+// PROTECTED ROUTES (Authentication required)
+// ==========================================
 router.use(authenticate);
 
-// GET /api/users - List all users (Admins see all; Members see general profile metadata like ID/name for assignment selection)
+// GET /api/users - List all active users
 router.get('/', async (req, res) => {
   try {
     if (req.user.role === 'admin') {
       const users = await User.find().sort({ name: 1 });
       res.json(users);
     } else {
-      // Members can only see active user names, emails and IDs to help assign tasks or mention them
       const users = await User.find({ active: true }, '_id name email role').sort({ name: 1 });
       res.json(users);
     }
@@ -24,19 +61,21 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Admin-only endpoints below
+// ==========================================
+// ADMIN-ONLY ROUTES
+// ==========================================
 router.use(requireRole('admin'));
 
-// POST /api/users - Create a new user
+// POST /api/users - Admin creation of any role (Admin/Member)
 router.post('/', async (req, res) => {
   const { name, email, password, role } = req.body;
 
   try {
-    if (!name || !email || !password || !role) {
-      return res.status(400).json({ error: 'Please provide all required fields (name, email, password, role).' });
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'Please provide name, email, and password.' });
     }
 
-    const emailExists = await User.findOne({ email });
+    const emailExists = await User.findOne({ email: email.toLowerCase() });
     if (emailExists) {
       return res.status(400).json({ error: 'Email already registered.' });
     }
@@ -48,7 +87,7 @@ router.post('/', async (req, res) => {
       name,
       email,
       passwordHash,
-      role
+      role: role || 'member'
     });
 
     await newUser.save();
@@ -69,9 +108,8 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ error: 'User not found.' });
     }
 
-    // Check unique email if changing email
     if (email && email.toLowerCase() !== user.email.toLowerCase()) {
-      const emailExists = await User.findOne({ email });
+      const emailExists = await User.findOne({ email: email.toLowerCase() });
       if (emailExists) {
         return res.status(400).json({ error: 'Email already in use by another user.' });
       }
@@ -94,7 +132,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// PATCH /api/users/:id/toggle-active - Quick toggle user state
+// PATCH /api/users/:id/toggle-active - Quick toggle active status
 router.patch('/:id/toggle-active', async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -102,7 +140,6 @@ router.patch('/:id/toggle-active', async (req, res) => {
       return res.status(404).json({ error: 'User not found.' });
     }
 
-    // Cannot deactivate yourself
     if (user._id.toString() === req.user._id.toString()) {
       return res.status(400).json({ error: 'You cannot deactivate your own account.' });
     }

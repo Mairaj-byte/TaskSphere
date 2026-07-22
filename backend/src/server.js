@@ -4,7 +4,6 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
-// Load environment variables
 dotenv.config();
 
 const authRoutes = require('./routes/auth');
@@ -49,7 +48,6 @@ mongoose.connect(MONGODB_URI)
   .then(() => {
     console.log('Successfully connected to MongoDB.');
     
-    // Start Cron Reminders Scheduler
     startScheduler();
     console.log('Scheduler started.');
 
@@ -62,5 +60,4 @@ mongoose.connect(MONGODB_URI)
     process.exit(1);
   });
 
-// Export server/app for testing
 module.exports = { app, server };
