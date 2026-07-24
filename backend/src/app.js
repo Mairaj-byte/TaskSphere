@@ -1,59 +1,59 @@
-const express = require('express');
+// const express = require('express');
 
-const mongoose = require('mongoose');
-
-
-
-// Middlewares
-
-const setupMiddleware = require('./middleware'); // Your index.js middleware file
+// const mongoose = require('mongoose');
 
 
 
-// Routes
+// // Middlewares
 
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
-const taskRoutes = require('./routes/tasks');
-const notificationRoutes = require('./routes/notifications');
-
-const app = express();
+// const setupMiddleware = require('./middleware'); // Your index.js middleware file
 
 
 
-// 1. Setup global middleware
+// // Routes
 
-setupMiddleware(app);
+// const authRoutes = require('./routes/auth');
+// const userRoutes = require('./routes/users');
+// const taskRoutes = require('./routes/tasks');
+// const notificationRoutes = require('./routes/notifications');
 
-
-
-// 2. Health check endpoint
-
-app.get('/health', (req, res) => {
-
-  res.json({
-
-    status: 'OK',
-
-    database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
-
-  });
-
-});
+// const app = express();
 
 
 
-// 3. API Routes
+// // 1. Setup global middleware
 
-app.use('/api/auth', authRoutes);
-
-app.use('/api/users', userRoutes);
-
-app.use('/api/tasks', taskRoutes);
-
-app.use('/api/notifications', notificationRoutes);
+// setupMiddleware(app);
 
 
 
-module.exports = app; 
+// // 2. Health check endpoint
+
+// app.get('/health', (req, res) => {
+
+//   res.json({
+
+//     status: 'OK',
+
+//     database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
+
+//   });
+
+// });
+
+
+
+// // 3. API Routes
+
+// app.use('/api/auth', authRoutes);
+
+// app.use('/api/users', userRoutes);
+
+// app.use('/api/tasks', taskRoutes);
+
+// app.use('/api/notifications', notificationRoutes);
+
+
+
+// module.exports = app; 
 
