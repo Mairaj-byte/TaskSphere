@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { downloadReport } from "../utils/reportGenerator";
 import { useAuth, API_BASE } from '../context/AuthContext';
 import { 
   CheckSquare, Clock, AlertTriangle, Users, 
@@ -70,6 +71,24 @@ const Dashboard = () => {
 
   const getPercentage = (count) => (totalTasks === 0 ? 0 : Math.round((count / totalTasks) * 100));
 
+  const handleDownloadReport = () => {
+  downloadReport({
+    generatedBy: user.name,
+    role: user.role,
+
+    totalTasks,
+    approvedTasks,
+    pendingApprovals,
+    overdueTasks,
+    inProgressTasks,
+    todoTasks,
+    rejectedTasks,
+
+    activeMembers,
+    totalMembers: users.length
+  });
+};
+
   const formatLogAction = (log) => {
     const taskTitle = log.taskId ? log.taskId.title : 'Deleted Task';
     switch (log.action) {
@@ -95,13 +114,23 @@ const Dashboard = () => {
             <h2 className="font-heading text-2xl font-bold text-white">Manager Dashboard</h2>
             <p className="text-sm text-gray-400">Welcome back, {user.name}. Here is your team's workflow status.</p>
           </div>
-          <button
-            onClick={() => navigate('/tasks')}
-            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-500 transition-all active:scale-95 cursor-pointer w-fit"
-          >
-            <CheckSquare size={16} />
-            <span>Create New Task</span>
-          </button>
+          <div className="flex gap-3">
+
+    <button
+        onClick={handleDownloadReport}
+        className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition"
+    >
+        Download Report
+    </button>
+
+    <button
+        onClick={() => navigate('/tasks')}
+        className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition"
+    >
+        Create New Task
+    </button>
+
+</div>
         </div>
 
         {/* Metrics Grid */}
@@ -285,12 +314,23 @@ const Dashboard = () => {
           <h2 className="font-heading text-2xl font-bold text-white">My Workspace Dashboard</h2>
           <p className="text-sm text-gray-400">Hello, {user.name}. Here is a summary of your assigned tasks.</p>
         </div>
-        <button
-          onClick={() => navigate('/tasks')}
-          className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-500 transition-all cursor-pointer w-fit"
-        >
-          Go to Tasks Panel
-        </button>
+        <div className="flex gap-3">
+
+    <button
+        onClick={handleDownloadReport}
+        className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition"
+    >
+        Download Report
+    </button>
+
+    <button
+        onClick={() => navigate('/tasks')}
+        className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition"
+    >
+        Go to Tasks Panel
+    </button>
+
+</div>
       </div>
 
       {/* Member Metrics Grid */}
