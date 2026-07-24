@@ -10,11 +10,13 @@ import {
   Clock,
   Layers,
 } from 'lucide-react';
-import { useAuth, API_BASE } from '../context/AuthContext';
+import { API_BASE, useAuth } from "../context/AuthContext";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { user, logout, token } = useAuth();
   const navigate = useNavigate();
+  console.log("User Object:", user);
+  console.log("Profile Photo:", user?.profilePhoto);
 
   const handleCronTrigger = async () => {
     try {
@@ -292,11 +294,11 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           {/* Profile Picture */}
 
           {user?.profilePhoto ? (
-  <img
-    src={`${API_BASE}${user.profilePhoto}`}
-    alt={user.name}
-    className="h-14 w-14 rounded-full border-2 border-indigo-500 object-cover shadow-md"
-  />
+ <img
+  src={user.profilePhoto}
+  alt={user.name}
+  className="h-14 w-14 rounded-full object-cover"
+/>
 ) : (
   <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-xl font-bold text-white shadow-md">
     {user?.name?.charAt(0).toUpperCase() || "U"}
@@ -332,12 +334,11 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
           </div>
 
-        </button>
-
         <ChevronRight
   size={18}
   className="text-gray-500 transition-transform duration-300 group-hover:translate-x-1"
 />
+</button>
 
         {/* Logout */}
 

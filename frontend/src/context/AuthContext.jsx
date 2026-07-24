@@ -1,12 +1,15 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext } from "react";
 
 const AuthContext = createContext(null);
 
-export const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api';
+export const API_BASE =
+  import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('task_tracker_token') || null);
+  const [token, setToken] = useState(
+    localStorage.getItem("task_tracker_token") || null
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -20,8 +23,8 @@ export const AuthProvider = ({ children }) => {
       try {
         const response = await fetch(`${API_BASE}/auth/me`, {
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         if (response.ok) {
@@ -31,7 +34,7 @@ export const AuthProvider = ({ children }) => {
           logout();
         }
       } catch (err) {
-        console.error('Failed to verify token', err);
+        console.error("Failed to verify token", err);
       } finally {
         setLoading(false);
       }
@@ -43,24 +46,26 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     setLoading(true);
     setError(null);
+
     try {
       const response = await fetch(`${API_BASE}/auth/login`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Authentication failed');
+        throw new Error(data.error || "Authentication failed");
       }
 
-      localStorage.setItem('task_tracker_token', data.token);
+      localStorage.setItem("task_tracker_token", data.token);
       setToken(data.token);
       setUser(data.user);
+
       return data.user;
     } catch (err) {
       setError(err.message);
@@ -70,26 +75,30 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Self-Registration for Members
   const register = async (name, email, password) => {
     setLoading(true);
     setError(null);
+
     try {
       const response = await fetch(`${API_BASE}/users/register`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, password, role: 'member' })
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          role: "member",
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
+        throw new Error(data.error || "Registration failed");
       }
 
-      // Automatically log the user in right after registering
       return await login(email, password);
     } catch (err) {
       setError(err.message);
@@ -100,13 +109,25 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('task_tracker_token');
+    localStorage.removeItem("task_tracker_token");
     setToken(null);
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, error, login, register, logout, setError }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        setUser,
+        token,
+        loading,
+        error,
+        login,
+        register,
+        logout,
+        setError,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -114,8 +135,10 @@ export const AuthProvider = ({ children }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
+
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
+
   return context;
 };

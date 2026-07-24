@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { API_BASE, useAuth } from '../context/AuthContext';
+import { API_BASE, useAuth } from "../context/AuthContext";
 
 const ProfileSetup = ({ onCancel, onSuccess }) => {
-  const { token } = useAuth(); // Extract authentication token
+ const { token, setUser } = useAuth(); // Extract authentication token
 
   const [formData, setFormData] = useState({
     name: '',
@@ -91,14 +91,42 @@ const ProfileSetup = ({ onCancel, onSuccess }) => {
         data.append('profilePhoto', selectedFile);
       }
 
-      await axios.put(`${API_BASE}/users/profile`, data, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await axios.put(`${API_BASE}/users/profile`, data, {
+  headers: {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'multipart/form-data',
+  },
+});
 
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+// Get the latest logged-in user
+const me = await axios.get(`${API_BASE}/auth/me`, {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
+
+// Update the global AuthContext
+setUser(me.data.user);
+
+setMessage({
+  type: 'success',
+  text: 'Profile updated successfully!',
+});
+
+// Fetch the latest user details
+const meResponse = await axios.get(`${API_BASE}/auth/me`, {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
+
+// Update AuthContext
+setUser(meResponse.data.user);
+
+setMessage({
+  type: 'success',
+  text: 'Profile updated successfully!',
+});
 
       if (onSuccess) {
         setTimeout(() => onSuccess(), 1000);
