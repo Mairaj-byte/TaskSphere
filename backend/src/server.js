@@ -19,10 +19,9 @@ const startServer = async () => {
   await connectDB();
 
   startScheduler();
-  console.log('Scheduler started.');
 
   server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server Running On Port ${PORT}`);
   });
 };
 
