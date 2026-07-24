@@ -7,6 +7,7 @@ import {
   ArrowRight, MessageSquare, History, CheckCircle 
 } from 'lucide-react';
 
+// Dashboard
 const Dashboard = () => {
   const { user, token } = useAuth();
   const navigate = useNavigate();
