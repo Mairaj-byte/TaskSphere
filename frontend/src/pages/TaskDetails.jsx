@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth, API_BASE } from '../context/AuthContext';
 import { 
   ArrowLeft, Calendar, User, MessageSquare, History, FileText, 
-  Play, CheckCircle, XCircle, AlertCircle, ArrowUpCircle 
+  Play, CheckCircle, XCircle, AlertCircle, ArrowUpCircle, Send
 } from 'lucide-react';
 
 const TaskDetails = () => {
@@ -116,57 +116,101 @@ const TaskDetails = () => {
 
   const getStatusBadge = (status) => {
     if (!status) return null;
-    const slug = status.toLowerCase().replace(/ \(.+\)/g, '').replace(' ', '-');
-    return <span className={`badge badge-${slug}`}>{status}</span>;
+    const styles = {
+      'To Do': 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700',
+      'In Progress': 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+      'Completed (Pending Approval)': 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800',
+      'Approved': 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
+      'Rejected': 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 border-rose-200 dark:border-rose-800',
+    };
+    const defaultStyle = 'bg-slate-100 text-slate-700 border-slate-200';
+
+    return (
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${styles[status] || defaultStyle}`}>
+        {status}
+      </span>
+    );
+  };
+
+  const getPriorityBadge = (priority) => {
+    const styles = {
+      High: 'bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+      Medium: 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+      Low: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+    };
+    return (
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${styles[priority] || 'bg-slate-100 text-slate-800'}`}>
+        {priority} Priority
+      </span>
+    );
   };
 
   if (loading) {
-    return <div className="loading-container"><div className="loading-spinner"></div></div>;
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   if (!task) {
-    return <div className="error-container"><p>Task not found.</p></div>;
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] text-slate-500">
+        <p className="text-lg font-medium">Task not found.</p>
+      </div>
+    );
   }
 
   const isAssignee = task.assignedTo.some(u => u._id === user._id);
   const isAdmin = user.role === 'admin';
 
   return (
-    <div className="task-details-page">
-      <button onClick={() => navigate('/tasks')} className="btn-back btn btn-secondary">
-        <ArrowLeft size={16} />
-        <span>Back to Tasks</span>
-      </button>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Navigation Top Bar */}
+      <div>
+        <button 
+          onClick={() => navigate('/tasks')} 
+          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700/80 rounded-lg transition-colors"
+        >
+          <ArrowLeft size={16} />
+          <span>Back to Tasks</span>
+        </button>
+      </div>
 
+      {/* Global Error Alert Banner */}
       {actionError && (
-        <div className="form-error-msg error-banner">
-          <AlertCircle size={14} />
+        <div className="flex items-center gap-3 p-4 text-sm text-rose-800 bg-rose-50 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 rounded-xl">
+          <AlertCircle size={18} className="shrink-0" />
           <span>{actionError}</span>
         </div>
       )}
 
-      <div className="task-detail-grid">
-        {/* Left Side: Task Content & Actions */}
-        <div className="task-content-column">
-          <div className="glass-card task-card-details">
-            <div className="details-header">
-              <div className="header-titles">
-                <h2>{task.title}</h2>
-                <div className="badges-row">
+      {/* Main Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Left Column: Details & Discussion */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* Main Task Card */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-sm">
+            {/* Header Section */}
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
+              <div className="space-y-3">
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{task.title}</h2>
+                <div className="flex flex-wrap items-center gap-2">
                   {getStatusBadge(task.status)}
-                  <span className={`badge badge-${task.priority.toLowerCase()}`}>{task.priority} Priority</span>
+                  {getPriorityBadge(task.priority)}
                 </div>
               </div>
 
-              {/* Action Buttons Panel */}
-              <div className="details-actions">
-                {/* Member Workflow Actions */}
+              {/* Dynamic Action Buttons */}
+              <div className="flex items-center gap-2 shrink-0">
+                {/* Assignee Actions */}
                 {isAssignee && !isAdmin && (
                   <>
                     {task.status === 'To Do' && (
                       <button 
                         onClick={() => handleStatusChange('In Progress')} 
-                        className="btn btn-primary btn-action-grow"
+                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-lg shadow-sm transition-colors"
                       >
                         <Play size={16} />
                         <span>Start Work</span>
@@ -175,7 +219,7 @@ const TaskDetails = () => {
                     {(task.status === 'In Progress' || task.status === 'Rejected') && (
                       <button 
                         onClick={() => handleStatusChange('Completed (Pending Approval)')} 
-                        className="btn btn-success btn-action-grow"
+                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-lg shadow-sm transition-colors"
                       >
                         <ArrowUpCircle size={16} />
                         <span>Submit for Approval</span>
@@ -184,14 +228,13 @@ const TaskDetails = () => {
                   </>
                 )}
 
-                {/* Manager Workflow Actions */}
+                {/* Manager / Admin Actions */}
                 {isAdmin && (
                   <>
-                    {/* Admins can start tasks too */}
                     {task.status === 'To Do' && (
                       <button 
                         onClick={() => handleStatusChange('In Progress')} 
-                        className="btn btn-primary"
+                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-colors"
                       >
                         <Play size={16} />
                         <span>Start Work</span>
@@ -200,24 +243,24 @@ const TaskDetails = () => {
                     {task.status === 'In Progress' && (
                       <button 
                         onClick={() => handleStatusChange('Completed (Pending Approval)')} 
-                        className="btn btn-success"
+                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors"
                       >
                         <ArrowUpCircle size={16} />
                         <span>Submit for Approval</span>
                       </button>
                     )}
                     {task.status === 'Completed (Pending Approval)' && (
-                      <div className="manager-workflow-row">
+                      <div className="flex items-center gap-2">
                         <button 
                           onClick={() => setIsApproveConfirmOpen(true)} 
-                          className="btn btn-success"
+                          className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors"
                         >
                           <CheckCircle size={16} />
                           <span>Approve</span>
                         </button>
                         <button 
                           onClick={() => setIsRejectDialogOpen(true)} 
-                          className="btn btn-danger"
+                          className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm transition-colors"
                         >
                           <XCircle size={16} />
                           <span>Reject</span>
@@ -229,169 +272,205 @@ const TaskDetails = () => {
               </div>
             </div>
 
-            {/* Task Description */}
-            <div className="task-section-block">
-              <h4>Description</h4>
-              <p className="description-text">{task.description || 'No description provided.'}</p>
+            {/* Description Block */}
+            <div className="py-6 space-y-2">
+              <h4 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Description</h4>
+              <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">
+                {task.description || 'No description provided.'}
+              </p>
             </div>
 
-            {/* Rejection Feedback Alert */}
+            {/* Rejection Alert Box */}
             {task.status === 'Rejected' && task.feedback && (
-              <div className="feedback-alert-card">
-                <AlertCircle size={20} className="alert-icon-reject" />
-                <div className="feedback-alert-content">
-                  <h5>Manager Rejection Feedback</h5>
-                  <p>"{task.feedback}"</p>
+              <div className="mb-6 p-4 flex gap-3 bg-rose-50/70 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-xl">
+                <AlertCircle size={20} className="text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <h5 className="text-xs font-bold text-rose-800 dark:text-rose-300 uppercase tracking-wider">Manager Rejection Feedback</h5>
+                  <p className="text-sm italic text-rose-900 dark:text-rose-200">"{task.feedback}"</p>
                 </div>
               </div>
             )}
 
             {/* Attachments Section */}
             {task.attachments && task.attachments.length > 0 && (
-              <div className="task-section-block attachments-section">
-                <h4>Attachments</h4>
-                <div className="attachments-grid">
+              <div className="py-4 space-y-3">
+                <h4 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Attachments</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {task.attachments.map((url, i) => (
-                    <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="attachment-card-link glass-card">
-                      <FileText size={18} className="attachment-icon" />
-                      <span className="attachment-title" title={url}>{url.substring(0, 45)}...</span>
+                    <a 
+                      key={i} 
+                      href={url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="flex items-center gap-3 p-3 text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 transition-colors group"
+                    >
+                      <FileText size={18} className="text-indigo-600 dark:text-indigo-400 shrink-0 group-hover:scale-110 transition-transform" />
+                      <span className="truncate" title={url}>{url}</span>
                     </a>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Meta Properties (Dates, Assignees) */}
-            <div className="details-metadata-grid border-top-glass">
-              <div className="meta-item">
-                <Calendar size={18} className="meta-icon" />
+            {/* Task Metadata Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400">
+                  <Calendar size={18} />
+                </div>
                 <div>
-                  <span className="meta-label">Due Date</span>
-                  <span className="meta-value">{new Date(task.dueDate).toLocaleString()}</span>
+                  <span className="block text-xs font-medium text-slate-400 dark:text-slate-500">Due Date</span>
+                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{new Date(task.dueDate).toLocaleString()}</span>
                 </div>
               </div>
 
-              <div className="meta-item">
-                <User size={18} className="meta-icon" />
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400">
+                  <User size={18} />
+                </div>
                 <div>
-                  <span className="meta-label">Created By</span>
-                  <span className="meta-value">{task.createdBy ? task.createdBy.name : 'Unknown'}</span>
+                  <span className="block text-xs font-medium text-slate-400 dark:text-slate-500">Created By</span>
+                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{task.createdBy ? task.createdBy.name : 'Unknown'}</span>
                 </div>
               </div>
 
-              <div className="meta-item full-width">
-                <div className="assignees-meta-container">
-                  <span className="meta-label">Assigned Team Members</span>
-                  <div className="assignee-avatars-row">
-                    {task.assignedTo.map(u => (
-                      <div key={u._id} className="assignee-tag-badge glass-card">
-                        <span className="avatar-tag">{u.name.charAt(0).toUpperCase()}</span>
-                        <span>{u.name}</span>
-                      </div>
-                    ))}
-                  </div>
+              <div className="sm:col-span-2 pt-2">
+                <span className="block text-xs font-medium text-slate-400 dark:text-slate-500 mb-2">Assigned Team Members</span>
+                <div className="flex flex-wrap gap-2">
+                  {task.assignedTo.map(u => (
+                    <div key={u._id} className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200">
+                      <span className="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] font-bold uppercase">
+                        {u.name.charAt(0)}
+                      </span>
+                      <span>{u.name}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Comments Section */}
-          <div className="glass-card comments-card-container">
-            <h3 className="section-title">
-              <MessageSquare size={18} />
+          {/* Discussion / Comments Section */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <MessageSquare size={20} className="text-indigo-600 dark:text-indigo-400" />
               <span>Discussion ({comments.length})</span>
             </h3>
 
-            <div className="comments-list">
+            {/* Comments List */}
+            <div className="space-y-4 max-h-[420px] overflow-y-auto pr-2">
               {comments.length === 0 ? (
-                <p className="empty-text">No comments yet. Start the conversation!</p>
+                <p className="text-sm text-slate-400 text-center py-6">No comments yet. Start the conversation!</p>
               ) : (
                 comments.map(c => (
-                  <div key={c._id} className="comment-item">
-                    <div className="comment-avatar">
+                  <div key={c._id} className="flex gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-500 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
                       {c.userId?.name.charAt(0).toUpperCase()}
                     </div>
-                    <div className="comment-bubble-container">
-                      <div className="comment-meta">
-                        <span className="comment-author">{c.userId?.name}</span>
-                        <span className="comment-author-role">{c.userId?.role === 'admin' ? 'Manager' : 'Team Member'}</span>
-                        <span className="comment-time">{new Date(c.createdAt).toLocaleString()}</span>
+                    <div className="flex-1 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-xl p-3.5 space-y-1">
+                      <div className="flex items-center gap-2 text-xs flex-wrap">
+                        <span className="font-bold text-slate-800 dark:text-slate-200">{c.userId?.name}</span>
+                        <span className="px-1.5 py-0.5 text-[10px] font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded">
+                          {c.userId?.role === 'admin' ? 'Manager' : 'Team Member'}
+                        </span>
+                        <span className="text-slate-400 ml-auto">{new Date(c.createdAt).toLocaleString()}</span>
                       </div>
-                      <p className="comment-message-text">{c.message}</p>
+                      <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">{c.message}</p>
                     </div>
                   </div>
                 ))
               )}
             </div>
 
-            <form onSubmit={handleAddComment} className="comment-form-row border-top-glass">
+            {/* Comment Box */}
+            <form onSubmit={handleAddComment} className="pt-4 border-t border-slate-100 dark:border-slate-800 flex gap-2">
               <input 
                 type="text" 
-                className="form-input" 
+                className="flex-1 px-4 py-2.5 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" 
                 placeholder="Type your message here..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 required
               />
-              <button type="submit" className="btn btn-primary">Post Message</button>
+              <button 
+                type="submit" 
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm transition-colors"
+              >
+                <span>Post</span>
+                <Send size={14} />
+              </button>
             </form>
           </div>
         </div>
 
-        {/* Right Side: Timeline History Log */}
-        <div className="history-timeline-column">
-          <div className="glass-card timeline-card">
-            <h3 className="section-title">
-              <History size={18} />
-              <span>Audit Trail / History</span>
-            </h3>
+        {/* Right Column: Audit Trail / History */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-sm">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4 mb-6">
+            <History size={20} className="text-indigo-600 dark:text-indigo-400" />
+            <span>Audit Trail / History</span>
+          </h3>
 
-            <div className="timeline-trail">
-              {history.length === 0 ? (
-                <p className="empty-text">No history events logged.</p>
-              ) : (
-                history.map((log, idx) => (
-                  <div key={log._id} className="timeline-node">
-                    <div className="timeline-line"></div>
-                    <div className="timeline-dot"></div>
-                    
-                    <div className="timeline-content">
-                      <div className="timeline-meta">
-                        <span className="timeline-actor">{log.userId ? log.userId.name : 'System'}</span>
-                        <span className="timeline-time">{new Date(log.createdAt).toLocaleString()}</span>
-                      </div>
-                      <p className="timeline-action">
-                        <strong>{log.action}</strong>
-                      </p>
-                      {log.oldValue && (
-                        <p className="timeline-values">
-                          <span>From: <del className="val-old">{log.oldValue}</del></span>
-                          <span> To: <ins className="val-new">{log.newValue}</ins></span>
-                        </p>
-                      )}
-                      {!log.oldValue && log.newValue && (
-                        <p className="timeline-values">
-                          <span>Info: <span className="val-new">{log.newValue}</span></span>
-                        </p>
-                      )}
+          <div className="relative pl-4 border-l-2 border-slate-100 dark:border-slate-800 space-y-6">
+            {history.length === 0 ? (
+              <p className="text-sm text-slate-400">No history events logged.</p>
+            ) : (
+              history.map((log) => (
+                <div key={log._id} className="relative group">
+                  {/* Timeline Dot */}
+                  <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-indigo-600 ring-4 ring-white dark:ring-slate-900" />
+                  
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                      <span className="font-semibold text-slate-700 dark:text-slate-300">{log.userId ? log.userId.name : 'System'}</span>
+                      <span>•</span>
+                      <span>{new Date(log.createdAt).toLocaleString()}</span>
                     </div>
+
+                    <p className="text-xs font-medium text-slate-800 dark:text-slate-200 leading-snug">
+                      {log.action}
+                    </p>
+
+                    {log.oldValue && (
+                      <div className="p-2 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-xs space-y-0.5 border border-slate-100 dark:border-slate-800">
+                        <div className="text-slate-400">From: <span className="line-through text-rose-500 font-medium">{log.oldValue}</span></div>
+                        <div className="text-slate-400">To: <span className="text-emerald-500 font-medium">{log.newValue}</span></div>
+                      </div>
+                    )}
+
+                    {!log.oldValue && log.newValue && (
+                      <div className="p-2 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-xs text-slate-500 border border-slate-100 dark:border-slate-800">
+                        Info: <span className="text-slate-700 dark:text-slate-300 font-medium">{log.newValue}</span>
+                      </div>
+                    )}
                   </div>
-                ))
-              )}
-            </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
 
-      {/* APPROVE CONFIRMATION DIALOG */}
+      {/* APPROVE CONFIRMATION DIALOG MODAL */}
       {isApproveConfirmOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content glass-card dialog-confirm">
-            <h3>Approve Completed Task</h3>
-            <p>Are you sure you want to mark this task as approved? The task status will move to "Approved" and the assigned team members will be notified.</p>
-            <div className="modal-footer-actions">
-              <button className="btn btn-secondary" onClick={() => setIsApproveConfirmOpen(false)}>Cancel</button>
-              <button className="btn btn-success" onClick={() => handleStatusChange('Approved')}>Approve Task</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Approve Completed Task</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              Are you sure you want to mark this task as approved? The task status will move to "Approved" and the assigned team members will be notified.
+            </p>
+            <div className="flex justify-end gap-3 pt-2">
+              <button 
+                className="px-4 py-2 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors" 
+                onClick={() => setIsApproveConfirmOpen(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors" 
+                onClick={() => handleStatusChange('Approved')}
+              >
+                Approve Task
+              </button>
             </div>
           </div>
         </div>
@@ -399,25 +478,30 @@ const TaskDetails = () => {
 
       {/* REJECT FEEDBACK MODAL */}
       {isRejectDialogOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content glass-card dialog-confirm">
-            <h3>Reject Completed Task</h3>
-            <p className="dialog-warning-text">Provide comments or feedback to guide the team member on required edits. Feedback is required.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Reject Completed Task</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Provide feedback to guide the team member on required edits. Feedback is required.
+            </p>
             
-            <div className="form-group text-left">
-              <textarea 
-                className="form-textarea"
-                placeholder="Ex. Exon coordinate translations are missing. Please complete section 3 of the checklist..."
-                value={feedbackText}
-                onChange={(e) => setFeedbackText(e.target.value)}
-                required
-              />
-            </div>
+            <textarea 
+              className="w-full p-3 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 dark:text-white min-h-[100px]"
+              placeholder="Ex. Coordinates translation missing. Please complete section 3..."
+              value={feedbackText}
+              onChange={(e) => setFeedbackText(e.target.value)}
+              required
+            />
 
-            <div className="modal-footer-actions">
-              <button className="btn btn-secondary" onClick={() => setIsRejectDialogOpen(false)}>Cancel</button>
+            <div className="flex justify-end gap-3 pt-2">
               <button 
-                className="btn btn-danger" 
+                className="px-4 py-2 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors" 
+                onClick={() => setIsRejectDialogOpen(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="px-4 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:hover:bg-rose-600 rounded-lg shadow-sm transition-colors" 
                 onClick={() => handleStatusChange('Rejected', feedbackText)}
                 disabled={!feedbackText.trim()}
               >
@@ -427,421 +511,6 @@ const TaskDetails = () => {
           </div>
         </div>
       )}
-
-      <style>{`
-        .btn-back {
-          margin-bottom: 1.5rem;
-        }
-
-        .error-banner {
-          margin-bottom: 1.5rem;
-        }
-
-        .task-detail-grid {
-          display: grid;
-          grid-template-columns: 2fr 1fr;
-          gap: 1.5rem;
-          align-items: start;
-        }
-
-        @media (max-width: 992px) {
-          .task-detail-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-
-        .task-card-details {
-          padding: 2rem;
-          margin-bottom: 1.5rem;
-        }
-
-        .details-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 1.5rem;
-          margin-bottom: 1.5rem;
-          border-bottom: 1px solid var(--border-glass);
-          padding-bottom: 1.25rem;
-        }
-
-        @media (max-width: 576px) {
-          .details-header {
-            flex-direction: column;
-            align-items: stretch;
-          }
-        }
-
-        .header-titles {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        .header-titles h2 {
-          font-size: 1.6rem;
-          line-height: 1.2;
-        }
-
-        .manager-workflow-row {
-          display: flex;
-          gap: 0.5rem;
-        }
-
-        .task-section-block {
-          margin-bottom: 1.5rem;
-        }
-
-        .task-section-block h4 {
-          font-size: 0.95rem;
-          color: var(--text-muted);
-          margin-bottom: 0.5rem;
-          font-weight: 600;
-        }
-
-        .description-text {
-          font-size: 0.95rem;
-          line-height: 1.6;
-          color: var(--text-main);
-          white-space: pre-wrap;
-        }
-
-        .feedback-alert-card {
-          display: flex;
-          gap: 1rem;
-          background: rgba(239, 68, 68, 0.08);
-          border: 1px solid rgba(239, 68, 68, 0.2);
-          padding: 1.25rem;
-          border-radius: var(--border-radius-md);
-          margin-bottom: 1.5rem;
-        }
-
-        .alert-icon-reject {
-          color: var(--color-rejected);
-          flex-shrink: 0;
-        }
-
-        .feedback-alert-content h5 {
-          color: var(--color-rejected);
-          font-size: 0.9rem;
-          margin-bottom: 0.25rem;
-        }
-
-        .feedback-alert-content p {
-          font-size: 0.85rem;
-          font-style: italic;
-          color: var(--text-main);
-        }
-
-        .attachments-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          gap: 0.75rem;
-        }
-
-        .attachment-card-link {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.75rem;
-          font-size: 0.8rem;
-          border-color: var(--border-glass);
-        }
-
-        .attachment-card-link:hover {
-          border-color: var(--color-primary);
-          background: rgba(99, 102, 241, 0.05);
-        }
-
-        .attachment-icon {
-          color: var(--color-primary);
-        }
-
-        .attachment-title {
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .details-metadata-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1.5rem;
-          padding-top: 1.5rem;
-          margin-top: 1.5rem;
-        }
-
-        .border-top-glass {
-          border-top: 1px solid var(--border-glass);
-        }
-
-        .meta-item {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-        }
-
-        .meta-item.full-width {
-          grid-column: span 2;
-        }
-
-        @media (max-width: 576px) {
-          .details-metadata-grid {
-            grid-template-columns: 1fr;
-          }
-          .meta-item.full-width {
-            grid-column: span 1;
-          }
-        }
-
-        .meta-icon {
-          color: var(--text-muted);
-        }
-
-        .meta-label {
-          display: block;
-          font-size: 0.75rem;
-          color: var(--text-muted);
-          margin-bottom: 0.15rem;
-        }
-
-        .meta-value {
-          font-size: 0.85rem;
-          font-weight: 600;
-        }
-
-        .assignees-meta-container {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-          width: 100%;
-        }
-
-        .assignee-avatars-row {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.5rem;
-        }
-
-        .assignee-tag-badge {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.4rem 0.75rem;
-          font-size: 0.8rem;
-          border-radius: var(--border-radius-sm);
-        }
-
-        .avatar-tag {
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          background: var(--color-primary);
-          color: #fff;
-          font-size: 0.65rem;
-          font-weight: 800;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        /* Discussion panel styling */
-        .comments-card-container {
-          padding: 2rem;
-        }
-
-        .section-title {
-          font-size: 1.15rem;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          margin-bottom: 1.5rem;
-          padding-bottom: 0.5rem;
-          border-bottom: 1px solid var(--border-glass);
-        }
-
-        .comments-list {
-          display: flex;
-          flex-direction: column;
-          gap: 1.25rem;
-          max-height: 400px;
-          overflow-y: auto;
-          margin-bottom: 1.5rem;
-          padding-right: 0.25rem;
-        }
-
-        .comment-item {
-          display: flex;
-          gap: 0.75rem;
-        }
-
-        .comment-avatar {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-          color: #fff;
-          font-weight: 700;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-          box-shadow: 0 4px 8px rgba(99, 102, 241, 0.2);
-        }
-
-        .comment-bubble-container {
-          background: rgba(255,255,255,0.03);
-          border: 1px solid var(--border-glass);
-          padding: 0.75rem 1rem;
-          border-radius: var(--border-radius-sm);
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          gap: 0.35rem;
-        }
-
-        .comment-meta {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-size: 0.75rem;
-          flex-wrap: wrap;
-        }
-
-        .comment-author {
-          font-weight: 600;
-        }
-
-        .comment-author-role {
-          background: rgba(255,255,255,0.07);
-          padding: 0.1rem 0.35rem;
-          border-radius: 3px;
-          color: var(--text-muted);
-          font-size: 0.65rem;
-        }
-
-        .comment-time {
-          color: var(--text-muted);
-          font-size: 0.7rem;
-        }
-
-        .comment-message-text {
-          font-size: 0.85rem;
-          line-height: 1.4;
-          white-space: pre-wrap;
-        }
-
-        .comment-form-row {
-          display: flex;
-          gap: 0.75rem;
-          padding-top: 1.5rem;
-        }
-
-        .comment-form-row input {
-          flex: 1;
-        }
-
-        /* Timeline styles */
-        .timeline-card {
-          padding: 2rem;
-        }
-
-        .timeline-trail {
-          display: flex;
-          flex-direction: column;
-          position: relative;
-        }
-
-        .timeline-node {
-          display: flex;
-          position: relative;
-          padding-left: 2rem;
-          padding-bottom: 1.5rem;
-        }
-
-        .timeline-node:last-child {
-          padding-bottom: 0;
-        }
-
-        .timeline-line {
-          position: absolute;
-          left: 6px;
-          top: 8px;
-          bottom: -22px;
-          width: 2px;
-          background: var(--border-glass);
-        }
-
-        .timeline-node:last-child .timeline-line {
-          display: none;
-        }
-
-        .timeline-dot {
-          position: absolute;
-          left: 2px;
-          top: 4px;
-          width: 10px;
-          height: 10px;
-          border-radius: 50%;
-          background: var(--color-primary);
-          box-shadow: 0 0 6px var(--color-primary);
-          z-index: 1;
-        }
-
-        .timeline-content {
-          display: flex;
-          flex-direction: column;
-          gap: 0.2rem;
-        }
-
-        .timeline-meta {
-          display: flex;
-          gap: 0.5rem;
-          align-items: center;
-          font-size: 0.7rem;
-          color: var(--text-muted);
-        }
-
-        .timeline-actor {
-          font-weight: 600;
-        }
-
-        .timeline-action {
-          font-size: 0.8rem;
-          line-height: 1.3;
-        }
-
-        .timeline-values {
-          font-size: 0.75rem;
-          color: var(--text-muted);
-          background: rgba(0,0,0,0.15);
-          padding: 0.25rem 0.5rem;
-          border-radius: 4px;
-          margin-top: 0.2rem;
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.4rem;
-        }
-
-        .val-old {
-          color: var(--color-rejected);
-          text-decoration: line-through;
-        }
-
-        .val-new {
-          color: var(--color-approved);
-        }
-
-        .dialog-warning-text {
-          font-size: 0.85rem;
-          color: var(--text-muted);
-          margin-bottom: 1rem;
-        }
-
-        .text-left {
-          text-align: left;
-        }
-      `}</style>
     </div>
   );
 };

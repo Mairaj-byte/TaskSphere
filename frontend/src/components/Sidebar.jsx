@@ -22,211 +22,127 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     }
   };
 
+  const handleNavClick = () => {
+    if (window.innerWidth < 1024 && toggleSidebar) {
+      toggleSidebar();
+    }
+  };
+
   return (
-    <aside className={`sidebar glass-card ${isOpen ? 'open' : ''}`}>
-      <div className="sidebar-brand">
-        <Layers className="brand-icon" size={24} />
-        <h2>TaskSphere</h2>
+    <aside className="flex h-screen w-full flex-col justify-between overflow-hidden border-r border-white/10 bg-[#0a0f1e]/95 p-5 text-gray-200 backdrop-blur-xl select-none">
+      {/* Top Section: Brand & Navigation */}
+      <div className="flex flex-col gap-6 overflow-hidden">
+        {/* Brand Logo Header */}
+        <div className="flex items-center gap-3 px-2 pt-1">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 shadow-lg shadow-indigo-500/10">
+            <Layers size={22} />
+          </div>
+          <h2 className="font-heading text-xl font-extrabold tracking-wide bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">
+            TaskSphere
+          </h2>
+        </div>
+
+        {/* Navigation Links */}
+        <nav className="flex flex-col gap-1.5 overflow-y-auto">
+          <NavLink
+            to="/"
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              `flex items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200 ${
+                isActive
+                  ? 'border-l-3 border-indigo-500 bg-gradient-to-r from-indigo-500/20 to-transparent text-white shadow-sm'
+                  : 'text-gray-400 hover:bg-white/5 hover:text-gray-100'
+              }`
+            }
+          >
+            <LayoutDashboard size={19} />
+            <span>Dashboard</span>
+          </NavLink>
+
+          <NavLink
+            to="/profile"
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              `flex items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200 ${
+                isActive
+                  ? 'border-l-3 border-indigo-500 bg-gradient-to-r from-indigo-500/20 to-transparent text-white shadow-sm'
+                  : 'text-gray-400 hover:bg-white/5 hover:text-gray-100'
+              }`
+            }
+          >
+            <LayoutDashboard size={19} />
+            <span>My Profile </span>
+          </NavLink>
+
+          <NavLink
+            to="/tasks"
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              `flex items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200 ${
+                isActive
+                  ? 'border-l-3 border-indigo-500 bg-gradient-to-r from-indigo-500/20 to-transparent text-white shadow-sm'
+                  : 'text-gray-400 hover:bg-white/5 hover:text-gray-100'
+              }`
+            }
+          >
+            <CheckSquare size={19} />
+            <span>Tasks</span>
+          </NavLink>
+
+          {user && user.role === 'admin' && (
+            <NavLink
+              to="/users"
+              onClick={handleNavClick}
+              className={({ isActive }) =>
+                `flex items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? 'border-l-3 border-indigo-500 bg-gradient-to-r from-indigo-500/20 to-transparent text-white shadow-sm'
+                    : 'text-gray-400 hover:bg-white/5 hover:text-gray-100'
+                }`
+              }
+            >
+              <Users size={19} />
+              <span>Manage Team</span>
+            </NavLink>
+          )}
+        </nav>
       </div>
 
-      <nav className="sidebar-nav">
-        <NavLink 
-          to="/" 
-          className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-          onClick={() => window.innerWidth < 992 && toggleSidebar()}
-        >
-          <LayoutDashboard size={20} />
-          <span>Dashboard</span>
-        </NavLink>
-
-        <NavLink 
-          to="/tasks" 
-          className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-          onClick={() => window.innerWidth < 992 && toggleSidebar()}
-        >
-          <CheckSquare size={20} />
-          <span>Tasks</span>
-        </NavLink>
-
+      {/* Bottom Section: Actions & User Info */}
+      <div className="flex flex-col gap-4 border-t border-white/10 pt-4">
+        {/* Admin Run Due Check Button */}
         {user && user.role === 'admin' && (
-          <NavLink 
-            to="/users" 
-            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            onClick={() => window.innerWidth < 992 && toggleSidebar()}
+          <button
+            onClick={handleCronTrigger}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-2 text-xs font-semibold text-indigo-300 transition-all hover:bg-indigo-500/20 hover:border-indigo-500/50 active:scale-98 cursor-pointer"
           >
-            <Users size={20} />
-            <span>Manage Team</span>
-          </NavLink>
-        )}
-      </nav>
-
-      <div className="sidebar-footer">
-        {user && user.role === 'admin' && (
-          <button onClick={handleCronTrigger} className="btn-cron-trigger btn btn-secondary">
-            <Clock size={16} />
+            <Clock size={15} />
             <span>Run Due Check</span>
           </button>
         )}
 
-        <div className="sidebar-user">
-          <div className="user-avatar">
-            {user?.name.charAt(0).toUpperCase()}
+        {/* User Card */}
+        <div className="flex items-center gap-3 rounded-xl bg-white/5 p-2.5 border border-white/5">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-sm font-bold text-white shadow-md shadow-indigo-500/20">
+            {user?.name?.charAt(0).toUpperCase() || 'U'}
           </div>
-          <div className="user-details">
-            <p className="user-name">{user?.name}</p>
-            <p className="user-role">{user?.role === 'admin' ? 'Manager' : 'Team Member'}</p>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-semibold text-white">{user?.name}</p>
+            <p className="truncate text-[11px] text-gray-400">
+              {user?.role === 'admin' ? 'Manager' : 'Team Member'}
+            </p>
           </div>
         </div>
 
-        <button onClick={logout} className="logout-btn nav-link">
-          <LogOut size={20} />
+        {/* Logout Button */}
+        <button
+          onClick={logout}
+          className="flex w-full items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-sm font-medium text-gray-400 hover:bg-rose-500/10 hover:text-rose-400 transition-all cursor-pointer"
+        >
+          <LogOut size={19} />
           <span>Logout</span>
         </button>
       </div>
-
-      <style>{`
-        .sidebar {
-          width: var(--sidebar-width);
-          height: 100vh;
-          position: fixed;
-          top: 0;
-          left: 0;
-          z-index: 100;
-          display: flex;
-          flex-direction: column;
-          border-radius: 0;
-          border-right: 1px solid var(--border-glass);
-          border-top: none;
-          border-bottom: none;
-          border-left: none;
-          padding: 1.5rem;
-          background: rgba(10, 15, 30, 0.95);
-          transition: transform var(--transition-normal);
-        }
-
-        .sidebar-brand {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          margin-bottom: 2.5rem;
-          padding-left: 0.5rem;
-        }
-
-        .brand-icon {
-          color: var(--color-primary);
-        }
-
-        .sidebar-brand h2 {
-          font-size: 1.25rem;
-          font-weight: 800;
-          background: linear-gradient(135deg, var(--text-main), var(--color-secondary));
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-
-        .sidebar-nav {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-          flex: 1;
-        }
-
-        .nav-link {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          padding: 0.75rem 1rem;
-          border-radius: var(--border-radius-sm);
-          color: var(--text-muted);
-          font-weight: 500;
-          transition: all var(--transition-fast);
-          cursor: pointer;
-        }
-
-        .nav-link:hover, .nav-link.active {
-          color: var(--text-main);
-          background: rgba(99, 102, 241, 0.1);
-        }
-
-        .nav-link.active {
-          border-left: 3px solid var(--color-primary);
-          padding-left: calc(1rem - 3px);
-          background: linear-gradient(90deg, rgba(99, 102, 241, 0.15), transparent);
-        }
-
-        .sidebar-footer {
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-          border-top: 1px solid var(--border-glass);
-          padding-top: 1.5rem;
-        }
-
-        .btn-cron-trigger {
-          width: 100%;
-          justify-content: center;
-          font-size: 0.8rem;
-          padding: 0.5rem;
-          border-color: rgba(99, 102, 241, 0.3);
-        }
-
-        .btn-cron-trigger:hover {
-          border-color: var(--color-primary);
-        }
-
-        .sidebar-user {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          padding: 0.5rem;
-        }
-
-        .user-avatar {
-          width: 38px;
-          height: 38px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-          color: #fff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 700;
-          box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
-        }
-
-        .user-name {
-          font-size: 0.85rem;
-          font-weight: 600;
-          color: var(--text-main);
-        }
-
-        .user-role {
-          font-size: 0.75rem;
-          color: var(--text-muted);
-        }
-
-        .logout-btn {
-          margin-top: 0.5rem;
-          border: none;
-          background: none;
-          text-align: left;
-          width: 100%;
-        }
-
-        .logout-btn:hover {
-          color: var(--color-rejected);
-          background: rgba(239, 68, 68, 0.1);
-        }
-
-        @media (max-width: 992px) {
-          .sidebar {
-            transform: translateX(-100%);
-          }
-          .sidebar.open {
-            transform: translateX(0);
-          }
-        }
-      `}</style>
     </aside>
   );
 };
