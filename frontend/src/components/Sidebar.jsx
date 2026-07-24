@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CheckSquare, Users, LogOut, Clock, Layers } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, Users, LogOut, Clock, Layers, User } from 'lucide-react';
 import { useAuth, API_BASE } from '../context/AuthContext';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
@@ -70,7 +70,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               }`
             }
           >
-            <LayoutDashboard size={19} />
+            <User size={19} />
             <span>My Profile </span>
           </NavLink>
 
