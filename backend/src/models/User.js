@@ -26,6 +26,43 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+
+  // --- Optional Profile Fields ---
+  profilePhoto: {
+    type: String, // URL or file path
+    default: ''
+  },
+  employeeId: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  dob: {
+    type: Date,
+    default: null
+  },
+  gender: {
+    type: String,
+    enum: ['Male', 'Female', 'Other', 'Prefer not to say', ''],
+    default: ''
+  },
+  department: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  workLocation: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  designationRole: { // Work job title (distinct from access level 'role')
+    type: String,
+    trim: true,
+    default: ''
+  },
+
+  // --- Reset Password Credentials ---
   resetOtp: {
     type: String,
     default: ''

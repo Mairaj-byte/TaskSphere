@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard';
 import Tasks from './pages/Tasks';
 import TaskDetails from './pages/TaskDetails';
 import Users from './pages/Users';
+import ProfileView from './pages/ProfileView';
+import ProfileSetup from './components/ProfileSetup';
 
 // Helper component for admin-only pages
 const AdminRoute = ({ children }) => {
@@ -20,18 +22,20 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      
+
       <Route path="/" element={<Layout />}>
         <Route index element={<Dashboard />} />
         <Route path="tasks" element={<Tasks />} />
+        <Route path="profile" element={<ProfileView />} />
+        <Route path="/profile/edit" element={<ProfileSetup />} />
         <Route path="tasks/:id" element={<TaskDetails />} />
-        <Route 
-          path="users" 
+        <Route
+          path="users"
           element={
             <AdminRoute>
               <Users />
             </AdminRoute>
-          } 
+          }
         />
       </Route>
 

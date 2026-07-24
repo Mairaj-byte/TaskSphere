@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Trash2, BellOff, X } from 'lucide-react';
+import { Check, Trash2, BellOff, X, Sparkles } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 
 const NotificationCenter = ({ onClose }) => {
@@ -26,64 +26,108 @@ const NotificationCenter = ({ onClose }) => {
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   };
 
-  const getBadgeClass = (type) => {
+  const getBadgeStyle = (type) => {
     switch (type) {
-      case 'assignment': return 'notif-assignment';
-      case 'approval': return 'notif-approval';
-      case 'rejection': return 'notif-rejection';
-      case 'overdue': return 'notif-overdue';
-      case 'completed': return 'notif-completed';
-      default: return 'notif-default';
+      case 'assignment':
+        return 'bg-purple-500/15 text-purple-300 border-purple-500/30';
+      case 'approval':
+        return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30';
+      case 'rejection':
+        return 'bg-rose-500/15 text-rose-300 border-rose-500/30';
+      case 'overdue':
+        return 'bg-red-500/15 text-red-300 border-red-500/30';
+      case 'completed':
+        return 'bg-amber-500/15 text-amber-300 border-amber-500/30';
+      default:
+        return 'bg-slate-500/15 text-slate-300 border-slate-500/30';
     }
   };
 
   return (
-    <div className="notif-center glass-card">
-      <div className="notif-header">
-        <div className="notif-title-section">
-          <h4>Notifications</h4>
-          <button className="notif-close-mobile" onClick={onClose}>
-            <X size={16} />
+    <div className="lg:absolute lg:right-0 lg:top-12 lg:w-96 w-full fixed inset-x-0 top-16 lg:h-auto h-[calc(100vh-4rem)] max-h-[520px] flex flex-col rounded-2xl border border-slate-800 bg-slate-950/95 shadow-2xl backdrop-blur-2xl z-50 overflow-hidden">
+      
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-800/80 bg-slate-900/40 shrink-0">
+        <div className="flex items-center gap-2">
+          <h4 className="text-sm font-bold text-slate-100 tracking-tight">Notifications</h4>
+          {notifications.some(n => !n.read) && (
+            <span className="flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {notifications.length > 0 && (
+            <button
+              onClick={markAllAsRead}
+              className="flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors px-2 py-1 rounded-md hover:bg-indigo-500/10 active:scale-95"
+            >
+              <Check size={13} />
+              <span>Mark read</span>
+            </button>
+          )}
+
+          {/* Close button for mobile views */}
+          <button
+            onClick={onClose}
+            className="lg:hidden p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+          >
+            <X size={18} />
           </button>
         </div>
-        {notifications.length > 0 && (
-          <button className="btn-text" onClick={markAllAsRead}>
-            <Check size={14} />
-            <span>Mark all read</span>
-          </button>
-        )}
       </div>
 
-      <div className="notif-body">
+      {/* Body List */}
+      <div className="flex-1 overflow-y-auto divide-y divide-slate-800/50 scrollbar-thin scrollbar-thumb-slate-800">
         {notifications.length === 0 ? (
-          <div className="notif-empty">
-            <BellOff size={32} className="notif-empty-icon" />
-            <p>No notifications yet</p>
+          <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-slate-600 border border-slate-800 mb-3">
+              <BellOff size={22} />
+            </div>
+            <p className="text-xs font-medium text-slate-400">All caught up!</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">No notifications right now.</p>
           </div>
         ) : (
-          <div className="notif-list">
+          <div className="flex flex-col">
             {notifications.map((notif) => (
-              <div 
-                key={notif._id} 
-                className={`notif-item ${!notif.read ? 'unread' : ''}`}
+              <div
+                key={notif._id}
                 onClick={() => !notif.read && markAsRead(notif._id)}
+                className={`group relative flex flex-col gap-1.5 p-3.5 transition-all cursor-pointer hover:bg-slate-900/60 ${
+                  !notif.read ? 'bg-indigo-950/20' : 'bg-transparent'
+                }`}
               >
-                <div className="notif-item-header">
-                  <span className={`notif-indicator ${getBadgeClass(notif.type)}`}>
+                {/* Unread Accent Bar */}
+                {!notif.read && (
+                  <span className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 rounded-r-full shadow-sm shadow-indigo-500/50" />
+                )}
+
+                <div className="flex items-center justify-between gap-2">
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider uppercase border ${getBadgeStyle(
+                      notif.type
+                    )}`}
+                  >
                     {notif.type}
                   </span>
-                  <span className="notif-time">{formatTime(notif.createdAt)}</span>
+                  <span className="text-[10px] text-slate-500 font-medium">
+                    {formatTime(notif.createdAt)}
+                  </span>
                 </div>
-                <p className="notif-message">{notif.message}</p>
-                <button 
-                  className="notif-delete-btn" 
+
+                <p className="text-xs text-slate-300 leading-relaxed pr-6 font-normal">
+                  {notif.message}
+                </p>
+
+                {/* Single Notification Action / Delete Button */}
+                <button
                   onClick={(e) => {
-                    e.stopPropagation(); // prevent markAsRead trigger
+                    e.stopPropagation();
                     deleteNotification(notif._id);
                   }}
                   title="Delete notification"
+                  className="absolute bottom-2.5 right-2.5 p-1 text-slate-500 opacity-0 group-hover:opacity-100 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-all duration-150"
                 >
-                  <Trash2 size={12} />
+                  <Trash2 size={13} />
                 </button>
               </div>
             ))}
@@ -91,224 +135,21 @@ const NotificationCenter = ({ onClose }) => {
         )}
       </div>
 
+      {/* Footer */}
       {notifications.length > 0 && (
-        <div className="notif-footer">
-          <button className="btn-text btn-clear-all" onClick={clearAllNotifications}>
-            <Trash2 size={14} />
+        <div className="px-4 py-2.5 border-t border-slate-800/80 bg-slate-950/80 flex justify-between items-center shrink-0">
+          <span className="text-[11px] text-slate-500 font-medium">
+            {notifications.length} {notifications.length === 1 ? 'notification' : 'notifications'}
+          </span>
+          <button
+            onClick={clearAllNotifications}
+            className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-rose-400 transition-colors px-2.5 py-1 rounded-lg hover:bg-rose-500/10 active:scale-95"
+          >
+            <Trash2 size={13} />
             <span>Clear all</span>
           </button>
         </div>
       )}
-
-      <style>{`
-        .notif-center {
-          position: absolute;
-          top: 50px;
-          right: 0;
-          width: 360px;
-          max-height: 485px;
-          display: flex;
-          flex-direction: column;
-          z-index: 1000;
-          border-radius: var(--border-radius-md);
-          overflow: hidden;
-          background: rgba(13, 20, 38, 0.98);
-          border: 1px solid var(--border-glass);
-          box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-        }
-
-        .notif-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 1rem;
-          border-bottom: 1px solid var(--border-glass);
-        }
-
-        .notif-title-section {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-        }
-
-        .notif-close-mobile {
-          display: none;
-          background: none;
-          border: none;
-          color: var(--text-muted);
-          cursor: pointer;
-        }
-
-        .notif-header h4 {
-          font-size: 1rem;
-          font-weight: 700;
-        }
-
-        .btn-text {
-          background: none;
-          border: none;
-          color: var(--color-primary);
-          font-size: 0.75rem;
-          font-weight: 600;
-          display: flex;
-          align-items: center;
-          gap: 0.25rem;
-          cursor: pointer;
-          transition: opacity var(--transition-fast);
-        }
-
-        .btn-text:hover {
-          opacity: 0.8;
-          text-decoration: underline;
-        }
-
-        .notif-body {
-          flex: 1;
-          overflow-y: auto;
-          max-height: 380px;
-        }
-
-        .notif-empty {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 3rem 1rem;
-          color: var(--text-muted);
-          gap: 0.75rem;
-        }
-
-        .notif-empty-icon {
-          opacity: 0.3;
-        }
-
-        .notif-list {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .notif-item {
-          padding: 1rem;
-          border-bottom: 1px solid var(--border-glass);
-          cursor: pointer;
-          transition: background-color var(--transition-fast);
-          position: relative;
-          display: flex;
-          flex-direction: column;
-          gap: 0.35rem;
-        }
-
-        .notif-item:hover {
-          background: rgba(255, 255, 255, 0.03);
-        }
-
-        .notif-item.unread {
-          background: rgba(99, 102, 241, 0.05);
-        }
-
-        .notif-item.unread::before {
-          content: '';
-          position: absolute;
-          left: 6px;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: var(--color-primary);
-          box-shadow: 0 0 8px var(--color-primary);
-        }
-
-        .notif-item-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .notif-indicator {
-          font-size: 0.65rem;
-          font-weight: 700;
-          text-transform: uppercase;
-          padding: 0.15rem 0.4rem;
-          border-radius: 4px;
-        }
-
-        .notif-assignment { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
-        .notif-approval { background: rgba(16, 185, 129, 0.15); color: #34d399; }
-        .notif-rejection { background: rgba(239, 68, 68, 0.15); color: #f87171; }
-        .notif-overdue { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
-        .notif-completed { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-        .notif-default { background: rgba(139, 155, 180, 0.15); color: #9ca3af; }
-
-        .notif-time {
-          font-size: 0.7rem;
-          color: var(--text-muted);
-        }
-
-        .notif-message {
-          font-size: 0.8rem;
-          line-height: 1.4;
-          color: var(--text-main);
-          padding-right: 1.5rem;
-        }
-
-        .notif-delete-btn {
-          position: absolute;
-          bottom: 10px;
-          right: 10px;
-          background: none;
-          border: none;
-          color: var(--text-muted);
-          cursor: pointer;
-          opacity: 0;
-          transition: opacity var(--transition-fast), color var(--transition-fast);
-        }
-
-        .notif-item:hover .notif-delete-btn {
-          opacity: 1;
-        }
-
-        .notif-delete-btn:hover {
-          color: var(--color-rejected);
-        }
-
-        .notif-footer {
-          border-top: 1px solid var(--border-glass);
-          padding: 0.75rem 1rem;
-          display: flex;
-          justify-content: center;
-          background: rgba(10, 15, 30, 0.9);
-        }
-
-        .btn-clear-all {
-          color: var(--text-muted);
-        }
-        .btn-clear-all:hover {
-          color: var(--color-rejected);
-        }
-
-        @media (max-width: 992px) {
-          .notif-center {
-            position: fixed;
-            top: var(--navbar-height);
-            left: 0;
-            right: 0;
-            width: 100%;
-            height: calc(100vh - var(--navbar-height));
-            max-height: none;
-            border-radius: 0;
-            border-left: none;
-            border-right: none;
-            border-bottom: none;
-          }
-          .notif-body {
-            max-height: none;
-          }
-          .notif-close-mobile {
-            display: flex;
-          }
-        }
-      `}</style>
     </div>
   );
 };

@@ -2,6 +2,66 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const transporter = require('../utils/nodemailer');
 
+// --- SELF PROFILE CONTROLLERS ---
+
+// Get current user's profile
+exports.getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ error: 'User profile not found.' });
+    }
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+// Update current user's profile
+// Update current user's profile
+exports.updateProfile = async (req, res) => {
+  const {
+    name,
+    employeeId,
+    dob,
+    gender,
+    department,
+    workLocation,
+    designationRole
+  } = req.body;
+
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    // If a image file was uploaded via Cloudinary, save its secure URL
+    if (req.file && req.file.path) {
+      user.profilePhoto = req.file.path;
+    }
+
+    // Update remaining profile text fields
+    if (name !== undefined) user.name = name;
+    if (employeeId !== undefined) user.employeeId = employeeId;
+    if (dob !== undefined) user.dob = dob;
+    if (gender !== undefined) user.gender = gender;
+    if (department !== undefined) user.department = department;
+    if (workLocation !== undefined) user.workLocation = workLocation;
+    if (designationRole !== undefined) user.designationRole = designationRole;
+
+    await user.save();
+    res.json({ message: 'Profile updated successfully', user });
+  } catch (err) {
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ error: err.message });
+    }
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+// --- AUTH CONTROLLERS ---
+
 // Send Password Reset OTP
 exports.sendResetOtp = async (req, res) => {
   const { email } = req.body;
@@ -113,7 +173,7 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-// Self-registration endpoint for new members
+// Self-registration endpoint
 exports.registerUser = async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -144,14 +204,16 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-// List all active users
+// --- USER MANAGEMENT CONTROLLERS ---
+
+// List users
 exports.getUsers = async (req, res) => {
   try {
     if (req.user.role === 'admin') {
       const users = await User.find().sort({ name: 1 });
       res.json(users);
     } else {
-      const users = await User.find({ active: true }, '_id name email role').sort({ name: 1 });
+      const users = await User.find({ active: true }, '_id name email role profilePhoto designationRole department').sort({ name: 1 });
       res.json(users);
     }
   } catch (err) {
@@ -159,10 +221,9 @@ exports.getUsers = async (req, res) => {
   }
 };
 
-// Admin creation of any role
+// Admin user creation
 exports.createUser = async (req, res) => {
-  // Destructure 'roles' (or 'role' for backward compatibility)
-  const { name, email, password, roles, role } = req.body;
+  const { name, email, password, role } = req.body;
 
   try {
     if (!name || !email || !password) {
@@ -174,17 +235,6 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ error: 'Email already registered.' });
     }
 
-    // Normalizing roles: accept an array, a single string, or fallback to default
-    const rawRoles = roles || role;
-    let formattedRoles = ['member'];
-
-    if (Array.isArray(rawRoles) && rawRoles.length > 0) {
-      // De-duplicate array values
-      formattedRoles = [...new Set(rawRoles)];
-    } else if (typeof rawRoles === 'string' && rawRoles.trim() !== '') {
-      formattedRoles = [rawRoles.trim()];
-    }
-
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
@@ -192,22 +242,22 @@ exports.createUser = async (req, res) => {
       name,
       email,
       passwordHash,
-      roles: formattedRoles
+      role: role || 'member'
     });
 
     await newUser.save();
     res.status(201).json(newUser);
   } catch (err) {
-    // Catch Mongoose enum validation errors gracefully
     if (err.name === 'ValidationError') {
       return res.status(400).json({ error: err.message });
     }
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-// Update user details
+
+// Admin user update
 exports.updateUser = async (req, res) => {
-  const { name, email, password, role, active } = req.body;
+  const { name, email, password, role, active, designationRole, department, workLocation } = req.body;
   const userId = req.params.id;
 
   try {
@@ -227,6 +277,9 @@ exports.updateUser = async (req, res) => {
     if (name) user.name = name;
     if (role) user.role = role;
     if (active !== undefined) user.active = active;
+    if (designationRole) user.designationRole = designationRole;
+    if (department) user.department = department;
+    if (workLocation) user.workLocation = workLocation;
 
     if (password) {
       const salt = await bcrypt.genSalt(10);
@@ -240,7 +293,7 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// Quick toggle active status
+// Toggle active status
 exports.toggleUserActive = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, Menu, X } from 'lucide-react';
+import { Bell, Menu, X, Sparkles } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import NotificationCenter from './NotificationCenter';
 
@@ -9,7 +9,7 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
   const notificationRef = useRef(null);
 
   const toggleNotifications = () => {
-    setShowNotifications(prev => !prev);
+    setShowNotifications((prev) => !prev);
   };
 
   // Close notifications dropdown when clicking outside
@@ -27,119 +27,65 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
   }, []);
 
   return (
-    <header className="navbar glass-card">
-      <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
-        {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-      </button>
+    <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-slate-800/80 bg-slate-950/80 px-4 backdrop-blur-md sm:px-6 lg:px-8">
+      {/* Left Section: Sidebar Toggle & Branding */}
+      <div className="flex items-center gap-3">
+        {/* Toggle Button - Visible below lg screen size */}
+        <button
+          onClick={toggleSidebar}
+          aria-label="Toggle Sidebar"
+          className="lg:hidden flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800 bg-slate-900/60 text-slate-300 transition-all duration-200 hover:border-slate-700 hover:bg-slate-800 hover:text-white active:scale-95"
+        >
+          {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
 
-      <div className="navbar-title">
-        <h3>Task Tracker Portal</h3>
+        {/* Title / Logo Area */}
+        <div className="flex items-center gap-2">
+          <div className="hidden sm:flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-500 text-white shadow-lg shadow-indigo-500/20">
+            <Sparkles size={16} />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold tracking-tight text-slate-100 sm:text-lg">
+              TaskSphere <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent font-bold">Portal</span>
+            </h3>
+          </div>
+        </div>
       </div>
 
-      <div className="navbar-actions" ref={notificationRef}>
-        <button className="notification-bell-btn" onClick={toggleNotifications}>
-          <Bell size={20} />
+      {/* Right Section: Notification Bell & Dropdown */}
+      <div className="relative" ref={notificationRef}>
+        <button
+          onClick={toggleNotifications}
+          aria-label="View Notifications"
+          className={`relative flex h-10 w-10 items-center justify-center rounded-xl border transition-all duration-200 active:scale-95 ${
+            showNotifications
+              ? 'border-indigo-500/50 bg-indigo-500/10 text-indigo-400 shadow-lg shadow-indigo-500/10'
+              : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700 hover:bg-slate-800 hover:text-slate-200'
+          }`}
+        >
+          <Bell size={19} className="transition-transform duration-200 group-hover:rotate-12" />
+
+          {/* Badge Glow & Indicator */}
           {unreadCount > 0 && (
-            <span className="bell-badge-glow">
-              <span className="bell-badge">{unreadCount}</span>
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center">
+              {/* Pulsing Backlight */}
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-500 opacity-75"></span>
+              
+              {/* Badge Content */}
+              <span className="relative flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-red-600 px-1 text-[10px] font-extrabold text-white shadow-md shadow-rose-950/80 ring-2 ring-slate-950">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
             </span>
           )}
         </button>
 
+        {/* Dropdown Container */}
         {showNotifications && (
-          <NotificationCenter onClose={() => setShowNotifications(false)} />
+          <div className="absolute right-0 mt-3 w-80 sm:w-96 rounded-2xl border border-slate-800 bg-slate-900/95 p-1 shadow-2xl shadow-slate-950/80 backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200">
+            <NotificationCenter onClose={() => setShowNotifications(false)} />
+          </div>
         )}
       </div>
-
-      <style>{`
-        .navbar {
-          height: var(--navbar-height);
-          width: 100%;
-          border-radius: 0;
-          border-top: none;
-          border-left: none;
-          border-right: none;
-          border-bottom: 1px solid var(--border-glass);
-          padding: 0 2rem;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          background: rgba(7, 10, 19, 0.85);
-          position: sticky;
-          top: 0;
-          z-index: 90;
-        }
-
-        .sidebar-toggle-btn {
-          display: none;
-          background: none;
-          border: none;
-          color: var(--text-main);
-          cursor: pointer;
-        }
-
-        .navbar-title h3 {
-          font-weight: 600;
-          font-size: 1.1rem;
-          color: var(--text-main);
-        }
-
-        .navbar-actions {
-          position: relative;
-        }
-
-        .notification-bell-btn {
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid var(--border-glass);
-          color: var(--text-muted);
-          width: 40px;
-          height: 40px;
-          border-radius: var(--border-radius-sm);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all var(--transition-fast);
-          position: relative;
-        }
-
-        .notification-bell-btn:hover {
-          color: var(--text-main);
-          background: rgba(255, 255, 255, 0.1);
-          border-color: rgba(99, 102, 241, 0.4);
-        }
-
-        .bell-badge-glow {
-          position: absolute;
-          top: -4px;
-          right: -4px;
-          display: flex;
-          height: 18px;
-          width: 18px;
-        }
-
-        .bell-badge {
-          background: linear-gradient(135deg, var(--color-rejected), #b91c1c);
-          color: #fff;
-          font-size: 0.65rem;
-          font-weight: 800;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex: 1;
-          box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
-        }
-
-        @media (max-width: 992px) {
-          .sidebar-toggle-btn {
-            display: flex;
-          }
-          .navbar {
-            padding: 0 1rem;
-          }
-        }
-      `}</style>
     </header>
   );
 };
