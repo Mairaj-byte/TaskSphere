@@ -42,9 +42,19 @@ router.post('/login', async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        active: user.active
+        active: user.active,
+
+        // Profile Fields
+        profilePhoto: user.profilePhoto,
+        employeeId: user.employeeId,
+        dob: user.dob,
+        gender: user.gender,
+        department: user.department,
+        workLocation: user.workLocation,
+        designationRole: user.designationRole
       }
     });
+
   } catch (err) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
@@ -52,15 +62,26 @@ router.post('/login', async (req, res) => {
 
 // GET /api/auth/me
 router.get('/me', authenticate, (req, res) => {
+
   res.json({
     user: {
       _id: req.user._id,
       name: req.user.name,
       email: req.user.email,
       role: req.user.role,
-      active: req.user.active
+      active: req.user.active,
+
+      // Profile Fields
+      profilePhoto: req.user.profilePhoto,
+      employeeId: req.user.employeeId,
+      dob: req.user.dob,
+      gender: req.user.gender,
+      department: req.user.department,
+      workLocation: req.user.workLocation,
+      designationRole: req.user.designationRole
     }
   });
+
 });
 
 module.exports = router;
