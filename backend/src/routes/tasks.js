@@ -14,6 +14,9 @@ const router = express.Router();
 
 router.use(authenticate);
 
+// Helper check for admin or manager privileges
+const isManagement = (role) => ['admin', 'manager'].includes(role);
+
 // GET /api/tasks - Search, Filter, Sort tasks
 router.get('/', async (req, res) => {
   const { status, priority, dueDate, assignedTo, search, sortBy } = req.query;
@@ -24,7 +27,7 @@ router.get('/', async (req, res) => {
   if (req.user.role === 'member') {
     query.assignedTo = req.user._id;
   } else if (assignedTo) {
-    // Admin can filter by assigned user
+    // Admin & Manager can filter by assigned user
     query.assignedTo = assignedTo;
   }
 
@@ -80,8 +83,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/tasks/audit/logs - Retrieve Global Audit Logs (Admin only)
-router.get('/audit/logs', requireRole('admin'), async (req, res) => {
+// GET /api/tasks/audit/logs - Retrieve Global Audit Logs (Admin & Manager)
+router.get('/audit/logs', requireRole(['admin', 'manager']), async (req, res) => {
   try {
     const logs = await AuditLog.find()
       .populate('userId', '_id name role')
@@ -136,6 +139,9 @@ isRecurring,
 recurringType,
 group
 } = req.body;
+// POST /api/tasks - Create Task (Admin & Manager)
+router.post('/', requireRole(['admin', 'manager']), async (req, res) => {
+  const { title, description, priority, dueDate, assignedTo, attachments } = req.body;
 
   try {
     if (!title || !dueDate || !assignedTo || !assignedTo.length) {
@@ -213,8 +219,8 @@ performedBy: req.user._id
   }
 });
 
-// PUT /api/tasks/:id - Full Update (Admin only)
-router.put('/:id', requireRole('admin'), async (req, res) => {
+// PUT /api/tasks/:id - Full Update (Admin & Manager)
+router.put('/:id', requireRole(['admin', 'manager']), async (req, res) => {
   const { title, description, priority, dueDate, assignedTo, attachments } = req.body;
   const taskId = req.params.id;
 
@@ -280,7 +286,6 @@ router.put('/:id', requireRole('admin'), async (req, res) => {
 
     // Notify all assigned users about details update
     for (const userId of task.assignedTo) {
-      // Don't duplicate if they were just newly added (they already got a notification)
       if (newlyAdded.includes(userId.toString())) continue;
       const notification = new Notification({
         userId,
@@ -302,8 +307,8 @@ router.put('/:id', requireRole('admin'), async (req, res) => {
   }
 });
 
-// DELETE /api/tasks/:id - Delete Task (Admin only)
-router.delete('/:id', requireRole('admin'), async (req, res) => {
+// DELETE /api/tasks/:id - Delete Task (Admin & Manager)
+router.delete('/:id', requireRole(['admin', 'manager']), async (req, res) => {
   try {
     const task = await Task.findByIdAndDelete(req.params.id);
     if (!task) {
@@ -314,7 +319,7 @@ router.delete('/:id', requireRole('admin'), async (req, res) => {
     for (const userId of task.assignedTo) {
       const notification = new Notification({
         userId,
-        message: `Task "${task.title}" has been deleted by an administrator.`,
+        message: `Task "${task.title}" has been deleted.`,
         type: 'update'
       });
       await notification.save();
@@ -331,7 +336,7 @@ router.delete('/:id', requireRole('admin'), async (req, res) => {
   }
 });
 
-// PATCH /api/tasks/:id/status - Status Transition Workflows (Admins & Assignees)
+// PATCH /api/tasks/:id/status - Status Transition Workflows (Admins, Managers & Assignees)
 router.patch('/:id/status', async (req, res) => {
   const { status, feedback } = req.body;
   const taskId = req.params.id;
@@ -368,25 +373,24 @@ if (
 
     const oldStatus = task.status;
     const isAssignee = task.assignedTo.some(userId => userId.toString() === req.user._id.toString());
-    const isAdmin = req.user.role === 'admin';
+    const hasMgmtPrivilege = isManagement(req.user.role);
 
-    if (!isAdmin && !isAssignee) {
+    if (!hasMgmtPrivilege && !isAssignee) {
       return res.status(403).json({ error: 'Forbidden. You are not authorized to update this task status.' });
     }
 
     // Validate workflow state machine:
     if (status === 'Approved' || status === 'Rejected') {
-      // Only admins can approve or reject
-      if (!isAdmin) {
-        return res.status(403).json({ error: 'Forbidden. Only administrators can approve or reject tasks.' });
+      // Admins and Managers can approve or reject
+      if (!hasMgmtPrivilege) {
+        return res.status(403).json({ error: 'Forbidden. Only managers and administrators can approve or reject tasks.' });
       }
       if (status === 'Rejected' && (!feedback || !feedback.trim())) {
         return res.status(400).json({ error: 'Feedback is required when rejecting a task.' });
       }
     }
 
-    if (status === 'Completed (Pending Approval)' && !isAssignee && !isAdmin) {
-      // Typically assigned members mark complete
+    if (status === 'Completed (Pending Approval)' && !isAssignee && !hasMgmtPrivilege) {
       return res.status(403).json({ error: 'Forbidden. Only assigned members should submit for approval.' });
     }
 
@@ -416,7 +420,6 @@ if (
     timestamp: new Date()
 });
     } else {
-      // Clear fields if returning to To Do / In Progress
       task.approvedBy = null;
       task.feedback = '';
     }
@@ -443,6 +446,7 @@ if (
 
     // Handle Notifications:
     if (status === 'Completed (Pending Approval)') {
+<<<<<<< HEAD
 
       task.activityLogs.push({
     action: "Submitted for Approval",
@@ -452,13 +456,18 @@ if (
       // Notify all admins
       const admins = await User.find({ role: 'admin', active: true });
       for (const admin of admins) {
+=======
+      // Notify all management roles (Admins and Managers)
+      const mgmtUsers = await User.find({ role: { $in: ['admin', 'manager'] }, active: true });
+      for (const user of mgmtUsers) {
+>>>>>>> a4aee9d0cbfe0ad0cfdd88b119a89958d6961992
         const notification = new Notification({
-          userId: admin._id,
+          userId: user._id,
           message: `${req.user.name} has submitted task "${task.title}" for approval.`,
           type: 'completed'
         });
         await notification.save();
-        sendInAppNotification(admin._id, notification);
+        sendInAppNotification(user._id, notification);
       }
     } else if (status === 'Approved') {
       // Notify all assigned users
@@ -482,9 +491,6 @@ if (
         await notification.save();
         sendInAppNotification(userId, notification);
       }
-    } else if (oldStatus === 'Overdue' && (status === 'To Do' || status === 'In Progress')) {
-      // Task moved back from Overdue
-      // No special alerts needed, standard workflow
     }
 
     const populatedTask = await Task.findById(taskId)
@@ -539,9 +545,9 @@ router.post('/:id/comments', async (req, res) => {
 
     // Check visibility permissions
     const isAssignee = task.assignedTo.some(userId => userId.toString() === req.user._id.toString());
-    const isAdmin = req.user.role === 'admin';
+    const hasMgmtPrivilege = isManagement(req.user.role);
 
-    if (!isAdmin && !isAssignee) {
+    if (!hasMgmtPrivilege && !isAssignee) {
       return res.status(403).json({ error: 'Forbidden. You do not have access to this task.' });
     }
 
@@ -561,13 +567,12 @@ router.post('/:id/comments', async (req, res) => {
     });
 
     // Notify other users:
-    // If Admin comments, notify all assigned users
-    if (isAdmin) {
+    if (hasMgmtPrivilege) {
       for (const userId of task.assignedTo) {
         if (userId.toString() === req.user._id.toString()) continue;
         const notification = new Notification({
           userId,
-          message: `Admin ${req.user.name} commented on task "${task.title}".`,
+          message: `${req.user.name} (${req.user.role}) commented on task "${task.title}".`,
           type: 'update'
         });
         await notification.save();
@@ -576,9 +581,9 @@ router.post('/:id/comments', async (req, res) => {
     } else {
       // If Member comments, notify creator and other assigned members
       const notifyList = new Set();
-      notifyList.add(task.createdBy.toString());
+      if (task.createdBy) notifyList.add(task.createdBy.toString());
       task.assignedTo.forEach(id => notifyList.add(id.toString()));
-      notifyList.delete(req.user._id.toString()); // don't notify self
+      notifyList.delete(req.user._id.toString());
 
       for (const userId of notifyList) {
         const notification = new Notification({

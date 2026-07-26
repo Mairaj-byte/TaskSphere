@@ -35,6 +35,7 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (err) {
         console.error("Failed to verify token", err);
+        logout();
       } finally {
         setLoading(false);
       }
@@ -42,6 +43,10 @@ export const AuthProvider = ({ children }) => {
 
     fetchMe();
   }, [token]);
+
+  // ===========================
+  // Email Login
+  // ===========================
 
   const login = async (email, password) => {
     setLoading(true);
@@ -59,7 +64,7 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Authentication failed");
+        throw new Error(data.message || data.error || "Authentication failed");
       }
 
       localStorage.setItem("task_tracker_token", data.token);
@@ -74,6 +79,47 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
+  // ===========================
+  // Google Login
+  // ===========================
+
+  const googleLogin = async (credential) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${API_BASE}/auth/google`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token: credential }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Google Authentication failed.");
+      }
+
+      localStorage.setItem("task_tracker_token", data.token);
+      setToken(data.token);
+      setUser(data.user);
+
+      return data.user;
+    } catch (err) {
+      console.error("Google Auth Failed:", err);
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ===========================
+  // Register
+  // ===========================
 
   const register = async (name, email, password) => {
     setLoading(true);
@@ -96,7 +142,7 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Registration failed");
+        throw new Error(data.message || data.error || "Registration failed");
       }
 
       return await login(email, password);
@@ -107,6 +153,10 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
+  // ===========================
+  // Logout
+  // ===========================
 
   const logout = () => {
     localStorage.removeItem("task_tracker_token");
@@ -123,6 +173,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         error,
         login,
+        googleLogin,
         register,
         logout,
         setError,
