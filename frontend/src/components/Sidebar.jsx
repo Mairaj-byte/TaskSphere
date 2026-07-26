@@ -5,16 +5,22 @@ import {
   CheckSquare,
   ChevronRight,
   Users,
+  UserCircle,
   LogOut,
   Search,
   Clock,
-  Layers,
-} from 'lucide-react';
+  FolderKanban,
+  Layers
+} from "lucide-react";
 import { API_BASE, useAuth } from "../context/AuthContext";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { user, logout, token } = useAuth();
   const navigate = useNavigate();
+  const [stats, setStats] = React.useState({
+  dashboard: 0,
+  tasks: 0,
+});
   console.log("User Object:", user);
   console.log("Profile Photo:", user?.profilePhoto);
 
@@ -42,6 +48,33 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       toggleSidebar();
     }
   };
+
+     React.useEffect(() => {
+  const fetchSidebarStats = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/tasks/sidebar-stats`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+
+      setStats({
+        dashboard: data.dashboardCount || 0,
+        tasks: data.taskCount || 0,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  if (token) {
+    fetchSidebarStats();
+  }
+}, [token]);
 
   return (
     <aside className="flex h-screen w-full flex-col border-r border-white/10 bg-[#0a0f1e]/95 p-5 text-gray-200 backdrop-blur-xl overflow-y-auto">
@@ -142,8 +175,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     <span>Dashboard</span>
 
     <span className="rounded-full bg-indigo-500 px-2 py-0.5 text-[10px] font-semibold text-white">
-      4
-    </span>
+  {stats.dashboard}
+</span>
   </div>
 </NavLink>
 
@@ -158,31 +191,46 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               }`
             }
           >
-            <LayoutDashboard size={18} />
-            My Profile
+           <UserCircle size={18} />
+<span>My Profile</span>
           </NavLink>
 
           <NavLink
-  to="/tasks"
-  onClick={handleNavClick}
-  className={({ isActive }) =>
-    `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-      isActive
-        ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
-        : 'text-gray-400 hover:bg-white/10 hover:text-white hover:translate-x-1'
-    }`
-  }
->
-  <CheckSquare size={18} />
+            to="/groups"
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
+                isActive
+                  ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
+                  : 'text-gray-400 hover:bg-white/10 hover:text-white hover:translate-x-1'
+              }`
+            }
+          >
+            <FolderKanban size={18} />
+            <span>Projects</span>
+          </NavLink>
 
-  <div className="flex w-full items-center justify-between">
-    <span>Tasks</span>
+          <NavLink
+            to="/tasks"
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
+                isActive
+                  ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
+                  : 'text-gray-400 hover:bg-white/10 hover:text-white hover:translate-x-1'
+              }`
+            }
+          >
+             
 
-    <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-white">
-      12
-    </span>
-  </div>
-</NavLink>
+            <CheckSquare size={18} />
+            <div className="flex w-full items-center justify-between">
+              <span>Tasks</span>
+              <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-white">
+               {stats.tasks}
+              </span>
+            </div>
+          </NavLink>
 
           {user?.role === 'admin' && (
             <NavLink

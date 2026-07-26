@@ -8,6 +8,7 @@ const { authenticate, requireRole } = require('../middleware/auth');
 const { logAction } = require('../utils/audit');
 const { sendInAppNotification, sendAdminNotification } = require('../utils/socket');
 const { checkReminders } = require('../utils/reminders');
+const Group=require("../models/Group");
 
 const router = express.Router();
 
@@ -70,6 +71,7 @@ router.get('/', async (req, res) => {
       .populate('assignedTo', '_id name email role active')
       .populate('createdBy', '_id name email role')
       .populate('approvedBy', '_id name email role')
+      .populate("dependencies", "title status")
       .sort(sortOptions);
       
     res.json(tasks);
@@ -117,22 +119,65 @@ router.get('/:id', async (req, res) => {
 
 // POST /api/tasks - Create Task (Admin only)
 router.post('/', requireRole('admin'), async (req, res) => {
-  const { title, description, priority, dueDate, assignedTo, attachments } = req.body;
+  const {
+title,
+description,
+priority,
+status,
+startDate,
+dueDate,
+estimatedHours,
+assignedTo,
+attachments,
+tags,
+checklist,
+dependencies,
+isRecurring,
+recurringType
+} = req.body;
 
   try {
     if (!title || !dueDate || !assignedTo || !assignedTo.length) {
       return res.status(400).json({ error: 'Title, due date, and at least one assignee are required.' });
     }
 
-    const task = new Task({
-      title,
-      description,
-      priority,
-      dueDate,
-      assignedTo,
-      createdBy: req.user._id,
-      attachments: attachments || []
-    });
+   const task = new Task({
+title,
+description,
+
+priority,
+
+status,
+
+startDate,
+
+dueDate,
+
+estimatedHours,
+
+assignedTo,
+
+attachments: attachments || [],
+
+tags: tags || [],
+
+checklist: checklist || [],
+
+dependencies: dependencies || [],
+
+isRecurring: isRecurring || false,
+
+recurringType: recurringType || null,
+
+createdBy: req.user._id,
+
+activityLogs: [
+{
+action: "Task Created",
+performedBy: req.user._id
+}
+]
+});
 
     await task.save();
 
@@ -155,8 +200,9 @@ router.post('/', requireRole('admin'), async (req, res) => {
     }
 
     const populatedTask = await Task.findById(task._id)
-      .populate('assignedTo', '_id name email role active')
-      .populate('createdBy', '_id name email role');
+  .populate('assignedTo', '_id name email role active')
+  .populate('createdBy', '_id name email role')
+  .populate('dependencies', 'title status');
 
     res.status(201).json(populatedTask);
   } catch (err) {
@@ -186,6 +232,18 @@ router.put('/:id', requireRole('admin'), async (req, res) => {
     if (dueDate) task.dueDate = dueDate;
     if (assignedTo && assignedTo.length) task.assignedTo = assignedTo;
     if (attachments) task.attachments = attachments;
+
+    task.activityLogs.push({
+    action: "Task Updated",
+    performedBy: req.user._id,
+    timestamp: new Date()
+});
+        
+     task.activityLogs.push({
+  action: "Task Updated",
+  performedBy: req.user._id,
+  timestamp: new Date()
+});
 
     await task.save();
 
@@ -280,6 +338,30 @@ router.patch('/:id/status', async (req, res) => {
     if (!task) {
       return res.status(404).json({ error: 'Task not found.' });
     }
+    // ================= Dependency Validation =================
+
+if (
+  status === "In Progress" &&
+  task.dependencies &&
+  task.dependencies.length > 0
+) {
+
+  const dependencyTasks = await Task.find({
+    _id: { $in: task.dependencies }
+  });
+
+  const incomplete = dependencyTasks.filter(
+    t => t.status !== "Approved"
+  );
+
+  if (incomplete.length > 0) {
+    return res.status(400).json({
+      error:
+        "Complete all dependency tasks before starting this task."
+    });
+  }
+
+}
 
     const oldStatus = task.status;
     const isAssignee = task.assignedTo.some(userId => userId.toString() === req.user._id.toString());
@@ -308,12 +390,28 @@ router.patch('/:id/status', async (req, res) => {
     // Update status
     task.status = status;
 
+    task.activityLogs.push({
+    action: `Status changed to ${status}`,
+    performedBy: req.user._id,
+    timestamp: new Date()
+});
+
     if (status === 'Approved') {
       task.approvedBy = req.user._id;
+      task.activityLogs.push({
+    action: "Task Approved",
+    performedBy: req.user._id,
+    timestamp: new Date()
+});
       task.feedback = '';
     } else if (status === 'Rejected') {
       task.approvedBy = null;
       task.feedback = feedback;
+      task.activityLogs.push({
+    action: "Task Rejected",
+    performedBy: req.user._id,
+    timestamp: new Date()
+});
     } else {
       // Clear fields if returning to To Do / In Progress
       task.approvedBy = null;
@@ -342,6 +440,12 @@ router.patch('/:id/status', async (req, res) => {
 
     // Handle Notifications:
     if (status === 'Completed (Pending Approval)') {
+
+      task.activityLogs.push({
+    action: "Submitted for Approval",
+    performedBy: req.user._id,
+    timestamp: new Date()
+});
       // Notify all admins
       const admins = await User.find({ role: 'admin', active: true });
       for (const admin of admins) {
@@ -383,7 +487,8 @@ router.patch('/:id/status', async (req, res) => {
     const populatedTask = await Task.findById(taskId)
       .populate('assignedTo', '_id name email role active')
       .populate('createdBy', '_id name email role')
-      .populate('approvedBy', '_id name email role');
+      .populate('approvedBy', '_id name email role')
+.populate('dependencies', 'title status');
 
     res.json(populatedTask);
   } catch (err) {

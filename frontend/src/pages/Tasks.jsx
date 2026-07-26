@@ -12,6 +12,7 @@ const Tasks = () => {
 
   // Tasks & View State
   const [tasks, setTasks] = useState([]);
+  const [allTasks, setAllTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
 
@@ -37,6 +38,21 @@ const Tasks = () => {
   const [formAttachment, setFormAttachment] = useState('');
   const [formAttachmentsList, setFormAttachmentsList] = useState([]);
   const [formError, setFormError] = useState('');
+  const [formStatus, setFormStatus] = useState('To Do');
+
+  const [formStartDate, setFormStartDate] = useState('');
+
+  const [formEstimatedHours, setFormEstimatedHours] = useState(0);
+
+  const [formTags, setFormTags] = useState([]);
+
+  const [formTagInput, setFormTagInput] = useState('');
+
+  const [formChecklist, setFormChecklist] = useState([]);
+
+  const [formChecklistInput, setFormChecklistInput] = useState('');
+  const [formDependencies, setFormDependencies] = useState([]);
+
 
   // Confirm Delete State
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -55,8 +71,12 @@ const Tasks = () => {
       const res = await fetch(`${API_BASE}/tasks?${params.toString()}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const data = await res.json();
-      setTasks(Array.isArray(data) ? data : []);
+     const data = await res.json();
+
+const taskList = Array.isArray(data) ? data : [];
+
+setTasks(taskList);
+setAllTasks(taskList);
     } catch (err) {
       console.error('Error fetching tasks:', err);
     } finally {
@@ -101,7 +121,35 @@ const Tasks = () => {
     resetForm();
     setModalMode('create');
     setIsModalOpen(true);
+    setFormStatus('To Do');
+
+setFormStartDate('');
+
+setFormEstimatedHours(0);
+
+setFormTags([]);
+
+setFormTagInput('');
+
+setFormChecklist([]);
+
+setFormChecklistInput('');
+setFormDependencies([]);
   };
+
+  const addChecklistItem = () => {
+  if (!formChecklistInput.trim()) return;
+
+  setFormChecklist([
+    ...formChecklist,
+    {
+      title: formChecklistInput.trim(),
+      completed: false,
+    },
+  ]);
+
+  setFormChecklistInput("");
+};
 
   const openEditModal = (task, e) => {
     e.stopPropagation();
@@ -110,6 +158,20 @@ const Tasks = () => {
     setFormTitle(task.title);
     setFormDesc(task.description || '');
     setFormPriority(task.priority);
+    setFormStatus(task.status);
+
+if (task.startDate) {
+  setFormStartDate(
+    new Date(task.startDate).toISOString().slice(0,16)
+  );
+}
+
+setFormEstimatedHours(task.estimatedHours || 0);
+
+setFormTags(task.tags || []);
+
+setFormChecklist(task.checklist || []);
+setFormDependencies(task.dependencies || []);
     const formattedDate = new Date(task.dueDate).toISOString().slice(0, 16);
     setFormDueDate(formattedDate);
     setFormAssignedTo(task.assignedTo.map(u => u._id));
@@ -146,14 +208,32 @@ const Tasks = () => {
     if (!formDueDate) return setFormError('Due date is required');
     if (formAssignedTo.length === 0) return setFormError('Please assign at least one team member');
 
-    const payload = {
-      title: formTitle.trim(),
-      description: formDesc.trim(),
-      priority: formPriority,
-      dueDate: new Date(formDueDate).toISOString(),
-      assignedTo: formAssignedTo,
-      attachments: formAttachmentsList
-    };
+   const payload = {
+  title: formTitle.trim(),
+
+  description: formDesc.trim(),
+
+  priority: formPriority,
+
+  status: formStatus,
+
+  startDate: formStartDate
+    ? new Date(formStartDate).toISOString()
+    : null,
+
+  dueDate: new Date(formDueDate).toISOString(),
+
+  estimatedHours: Number(formEstimatedHours),
+
+  assignedTo: formAssignedTo,
+
+  attachments: formAttachmentsList,
+
+  tags: formTags,
+
+  checklist: formChecklist,
+  dependencies: formDependencies
+};
 
     try {
       const url = modalMode === 'create' ? `${API_BASE}/tasks` : `${API_BASE}/tasks/${currentTaskId}`;
@@ -588,35 +668,280 @@ const Tasks = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Priority
-                </label>
-                <select
-                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                  value={formPriority}
-                  onChange={(e) => setFormPriority(e.target.value)}
-                >
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                </select>
-              </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Due Date & Time *
-                </label>
-                <input
-                  type="datetime-local"
-                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                  value={formDueDate}
-                  onChange={(e) => setFormDueDate(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-          </div>
+  {/* Priority */}
+
+  <div>
+
+    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+      Priority
+    </label>
+
+    <select
+      value={formPriority}
+      onChange={(e)=>setFormPriority(e.target.value)}
+      className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg"
+    >
+      <option>Low</option>
+      <option>Medium</option>
+      <option>High</option>
+      <option>Urgent</option>
+    </select>
+
+  </div>
+
+  {/* Status */}
+
+  <div>
+
+    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+      Status
+    </label>
+
+    <select
+      value={formStatus}
+      onChange={(e)=>setFormStatus(e.target.value)}
+      className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg"
+    >
+      <option>To Do</option>
+      <option>In Progress</option>
+      <option>In Review</option>
+      <option>Blocked</option>
+    </select>
+
+  </div>
+
+</div>
+
+         <div className="grid grid-cols-2 gap-4 mt-4">
+
+  {/* Start Date */}
+
+  <div>
+
+    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+      Start Date
+    </label>
+
+    <input
+      type="datetime-local"
+      value={formStartDate}
+      onChange={(e)=>setFormStartDate(e.target.value)}
+      className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg"
+    />
+
+  </div>
+
+  {/* Due Date */}
+
+  <div>
+
+    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+      Due Date
+    </label>
+
+    <input
+      type="datetime-local"
+      value={formDueDate}
+      onChange={(e)=>setFormDueDate(e.target.value)}
+      className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg"
+    />
+
+  </div>
+
+</div>
+
+  <div className="mt-4">
+
+<label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+Estimated Hours
+</label>
+
+<input
+type="number"
+min="0"
+value={formEstimatedHours}
+onChange={(e)=>setFormEstimatedHours(e.target.value)}
+className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg"
+/>
+
+</div>
+
+ <div className="mt-4">
+
+<label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+Tags
+</label>
+
+<div className="flex gap-2">
+
+<input
+type="text"
+value={formTagInput}
+placeholder="Enter Tag"
+onChange={(e)=>setFormTagInput(e.target.value)}
+className="flex-1 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
+/>
+
+<button
+type="button"
+onClick={()=>{
+if(!formTagInput.trim()) return;
+
+setFormTags([
+...formTags,
+formTagInput.trim()
+]);
+
+setFormTagInput("");
+}}
+className="px-4 rounded-lg bg-indigo-600 text-white"
+>
+
+Add
+
+</button>
+
+</div>
+
+</div>
+
+<div className="flex flex-wrap gap-2 mt-3">
+
+{formTags.map((tag,index)=>(
+
+<div
+key={index}
+className="flex items-center gap-2 rounded-full bg-indigo-100 dark:bg-indigo-900 px-3 py-1 text-xs"
+>
+
+{tag}
+
+<button
+type="button"
+onClick={()=>{
+
+setFormTags(
+formTags.filter((_,i)=>i!==index)
+)
+
+}}
+>
+
+✕
+
+</button>
+
+</div>
+
+))}
+
+</div>
+
+      <div className="mt-6">
+
+  <label className="block text-sm font-semibold mb-2">
+    Checklist
+  </label>
+
+  <div className="flex gap-2">
+
+    <input
+      type="text"
+      value={formChecklistInput}
+      onChange={(e) => setFormChecklistInput(e.target.value)}
+      placeholder="Checklist Item"
+      className="flex-1 rounded-lg border px-3 py-2"
+    />
+
+    <button
+      type="button"
+      onClick={addChecklistItem}
+      className="rounded-lg bg-indigo-600 px-4 text-white"
+    >
+      Add
+    </button>
+
+  </div>
+
+</div>
+       <div className="space-y-2 mt-4">
+
+  {formChecklist.map((item, index) => (
+
+    <div
+      key={index}
+      className="flex items-center justify-between rounded-lg border p-2"
+    >
+
+      <div className="flex items-center gap-2">
+
+        <input
+          type="checkbox"
+          checked={item.completed}
+          onChange={() => {
+
+            const updated = [...formChecklist];
+
+            updated[index].completed =
+              !updated[index].completed;
+
+            setFormChecklist(updated);
+
+          }}
+        />
+
+        <span>{item.title}</span>
+
+      </div>
+
+      <button
+        type="button"
+        onClick={() =>
+          setFormChecklist(
+            formChecklist.filter((_, i) => i !== index)
+          )
+        }
+        className="text-red-500"
+      >
+        ✕
+      </button>
+
+    </div>
+
+  ))}
+
+</div>
+
+      <div className="mt-6">
+
+  <label className="block text-sm font-semibold mb-2">
+    Task Dependencies
+  </label>
+
+  <select
+    multiple
+    value={formDependencies}
+    onChange={(e) => {
+      const values = [...e.target.selectedOptions].map(
+        option => option.value
+      );
+      setFormDependencies(values);
+    }}
+    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 p-2 bg-slate-50 dark:bg-slate-800"
+  >
+    {allTasks
+      .filter(task => task._id !== currentTaskId)
+      .map(task => (
+        <option key={task._id} value={task._id}>
+          {task.title}
+        </option>
+      ))}
+  </select>
+
+</div>
+
+    </div>
 
           {/* Right Column: People & Attachments */}
           <div className="space-y-4 flex flex-col justify-between">

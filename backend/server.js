@@ -14,6 +14,7 @@ const { startScheduler } = require('./src/utils/reminders');
 
 // Routes
 const authRoutes = require('./src/routes/auth');
+const groupRoutes = require('./src/routes/groups');
 const userRoutes = require('./src/routes/users');
 const taskRoutes = require('./src/routes/tasks');
 const notificationRoutes = require('./src/routes/notifications');
@@ -40,6 +41,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use("/api/groups", groupRoutes);
 
 // 4. Initialize Socket.io
 initSocket(server);
