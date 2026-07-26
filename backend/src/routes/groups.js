@@ -90,8 +90,6 @@ const groupsWithStats = await Promise.all(
 
 res.json(groupsWithStats);
 
-      res.json(groups);
-
     } catch (err) {
       res.status(500).json({
         error: err.message
@@ -110,9 +108,15 @@ router.get(
   async (req, res) => {
     try {
 
-      const group = await Group.findById(req.params.id)
-        .populate("members")
-        .populate("createdBy");
+     const group = await Group.findById(req.params.id)
+  .populate(
+    "members",
+    "name email role profilePhoto department designationRole"
+  )
+  .populate(
+    "createdBy",
+    "name email profilePhoto"
+  );
 
       if (!group) {
         return res.status(404).json({
@@ -217,7 +221,17 @@ router.post(
 
       await group.save();
 
-      res.json(group);
+     const updatedGroup = await Group.findById(group._id)
+  .populate(
+    "members",
+    "name email role profilePhoto department designationRole"
+  )
+  .populate(
+    "createdBy",
+    "name email profilePhoto"
+  );
+
+res.json(updatedGroup);
 
     } catch (err) {
 
@@ -255,7 +269,17 @@ router.delete(
 
       await group.save();
 
-      res.json(group);
+const updatedGroup = await Group.findById(group._id)
+  .populate(
+    "members",
+    "name email role profilePhoto designationRole department"
+  )
+  .populate(
+    "createdBy",
+    "name email profilePhoto"
+  );
+
+res.json(updatedGroup);
 
     } catch (err) {
 

@@ -10,6 +10,7 @@ import Users from './pages/Users';
 import ProfileView from './pages/ProfileView';
 import ProfileSetup from './components/ProfileSetup';
 import Groups from "./pages/Groups";
+import GroupDetails from "./pages/GroupDetails";
 
 // Helper component for admin-only pages
 const AdminRoute = ({ children }) => {
@@ -27,6 +28,10 @@ function App() {
       <Route path="/" element={<Layout />}>
         <Route index element={<Dashboard />} />
         <Route path="/groups" element={<Groups />} />
+        <Route
+  path="/groups/:id"
+  element={<GroupDetails />}
+/>
         <Route path="/groups" element={<Groups />} />
         <Route path="tasks" element={<Tasks />} />
         <Route path="profile" element={<ProfileView />} />

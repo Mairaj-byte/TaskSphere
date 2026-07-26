@@ -9,17 +9,10 @@ import {
   LogOut,
   Search,
   Clock,
-<<<<<<< HEAD
   FolderKanban,
   Layers
 } from "lucide-react";
 import { API_BASE, useAuth } from "../context/AuthContext";
-=======
-  Layers,
-  User,
-} from 'lucide-react';
-import { useAuth, API_BASE } from '../context/AuthContext';
->>>>>>> 6c8076ce66690bea01249adcb65967afcc9f7c07
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { user, logout, token } = useAuth();
@@ -181,19 +174,11 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             <div className="flex w-full items-center justify-between">
               <span>Dashboard</span>
 
-<<<<<<< HEAD
     <span className="rounded-full bg-indigo-500 px-2 py-0.5 text-[10px] font-semibold text-white">
   {stats.dashboard}
 </span>
   </div>
 </NavLink>
-=======
-              <span className="rounded-full bg-indigo-500 px-2 py-0.5 text-[10px] font-semibold text-white">
-                4
-              </span>
-            </div>
-          </NavLink>
->>>>>>> 6c8076ce66690bea01249adcb65967afcc9f7c07
 
           <NavLink
             to="/profile"
@@ -206,21 +191,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               }`
             }
           >
-<<<<<<< HEAD
            <UserCircle size={18} />
 <span>My Profile</span>
           </NavLink>
 
           <NavLink
             to="/groups"
-=======
-            <User size={19} />
-            <span>My Profile</span>
-          </NavLink>
-
-          <NavLink
-            to="/tasks"
->>>>>>> 6c8076ce66690bea01249adcb65967afcc9f7c07
             onClick={handleNavClick}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
@@ -230,7 +206,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               }`
             }
           >
-<<<<<<< HEAD
             <FolderKanban size={18} />
             <span>Projects</span>
           </NavLink>
@@ -253,15 +228,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               <span>Tasks</span>
               <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-white">
                {stats.tasks}
-=======
-            <CheckSquare size={18} />
-
-            <div className="flex w-full items-center justify-between">
-              <span>Tasks</span>
-
-              <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-white">
-                12
->>>>>>> 6c8076ce66690bea01249adcb65967afcc9f7c07
               </span>
             </div>
           </NavLink>
@@ -376,7 +342,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           {/* Profile Picture */}
 
           {user?.profilePhoto ? (
-<<<<<<< HEAD
  <img
   src={user.profilePhoto}
   alt={user.name}
@@ -387,18 +352,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     {user?.name?.charAt(0).toUpperCase() || "U"}
   </div>
 )}
-=======
-            <img
-              src={`${API_BASE}${user.profilePhoto}`}
-              alt={user.name}
-              className="h-14 w-14 rounded-full border-2 border-indigo-500 object-cover shadow-md"
-            />
-          ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-xl font-bold text-white shadow-md">
-              {user?.name?.charAt(0).toUpperCase() || "U"}
-            </div>
-          )}
->>>>>>> 6c8076ce66690bea01249adcb65967afcc9f7c07
 
           {/* User Info */}
 
@@ -429,20 +382,11 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
           </div>
 
-<<<<<<< HEAD
         <ChevronRight
   size={18}
   className="text-gray-500 transition-transform duration-300 group-hover:translate-x-1"
 />
 </button>
-=======
-          <ChevronRight
-            size={18}
-            className="text-gray-500 transition-transform duration-300 group-hover:translate-x-1"
-          />
-
-        </button>
->>>>>>> 6c8076ce66690bea01249adcb65967afcc9f7c07
 
         {/* Logout */}
 

@@ -119,10 +119,11 @@ const Groups = () => {
 
             groups.map((group) => (
 
-              <div
-                key={group._id}
-                className="rounded-2xl border border-gray-700 bg-slate-900 p-6 shadow"
-              >
+             <div
+  key={group._id}
+  onClick={() => navigate(`/groups/${group._id}`)}
+  className="cursor-pointer rounded-2xl border border-gray-700 bg-slate-900 p-6 shadow transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500 hover:shadow-lg hover:shadow-indigo-500/20"
+>
 
                 <h2 className="mb-2 text-xl font-bold text-white">
                   {group.name}

@@ -119,7 +119,7 @@ router.get('/:id', async (req, res) => {
 
 // POST /api/tasks - Create Task (Admin only)
 router.post('/', requireRole('admin'), async (req, res) => {
-  const {
+ const {
 title,
 description,
 priority,
@@ -133,7 +133,8 @@ tags,
 checklist,
 dependencies,
 isRecurring,
-recurringType
+recurringType,
+group
 } = req.body;
 
   try {
@@ -156,6 +157,8 @@ dueDate,
 estimatedHours,
 
 assignedTo,
+
+group,
 
 attachments: attachments || [],
 
