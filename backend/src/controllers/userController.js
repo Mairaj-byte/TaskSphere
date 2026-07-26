@@ -1,10 +1,11 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const transporter = require('../utils/nodemailer');
+const csv = require('csv-parser');
+const { Readable } = require('stream'); // Core Node.js module
 
 // --- SELF PROFILE CONTROLLERS ---
 
-// Get current user's profile
 exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -17,8 +18,6 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-// Update current user's profile
-// Update current user's profile
 exports.updateProfile = async (req, res) => {
   const {
     name,
@@ -36,12 +35,10 @@ exports.updateProfile = async (req, res) => {
       return res.status(404).json({ error: 'User not found.' });
     }
 
-    // If a image file was uploaded via Cloudinary, save its secure URL
     if (req.file && req.file.path) {
       user.profilePhoto = req.file.path;
     }
 
-    // Update remaining profile text fields
     if (name !== undefined) user.name = name;
     if (employeeId !== undefined) user.employeeId = employeeId;
     if (dob !== undefined) user.dob = dob;
@@ -62,29 +59,21 @@ exports.updateProfile = async (req, res) => {
 
 // --- AUTH CONTROLLERS ---
 
-// Send Password Reset OTP
 exports.sendResetOtp = async (req, res) => {
   const { email } = req.body;
 
   if (!email) {
-    return res.status(400).json({
-      success: false,
-      message: 'Email is required'
-    });
+    return res.status(400).json({ success: false, message: 'Email is required' });
   }
 
   try {
     const user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
 
     const otp = String(Math.floor(100000 + Math.random() * 900000));
-
     user.resetOtp = otp;
     user.resetOtpExpiryAt = Date.now() + 15 * 60 * 1000;
 
@@ -97,52 +86,30 @@ exports.sendResetOtp = async (req, res) => {
       text: `Hi ${user.name || ''},\n\nYour password reset OTP is: ${otp}\n\nThis OTP is valid for 15 minutes.\n\nBest regards,\nCollabZoneX Team`
     });
 
-    return res.json({
-      success: true,
-      message: 'OTP sent to your email'
-    });
-
+    return res.json({ success: true, message: 'OTP sent to your email' });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message
-    });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// Verify OTP and Reset Password
 exports.resetPassword = async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
   if (!email || !otp || !newPassword) {
-    return res.status(400).json({
-      success: false,
-      message: 'Email, OTP, and new password are required'
-    });
+    return res.status(400).json({ success: false, message: 'Email, OTP, and new password are required' });
   }
 
   try {
     const user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
-
     if (!user.resetOtp || user.resetOtp !== otp) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid OTP'
-      });
+      return res.status(400).json({ success: false, message: 'Invalid OTP' });
     }
-
     if (user.resetOtpExpiryAt < Date.now()) {
-      return res.status(400).json({
-        success: false,
-        message: 'OTP Expired'
-      });
+      return res.status(400).json({ success: false, message: 'OTP Expired' });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -159,21 +126,12 @@ exports.resetPassword = async (req, res) => {
       text: `Hi ${user.name || ''},\n\nYour password has been reset successfully for email: ${user.email}\n\nBest regards,\nCollabZoneX Team`
     });
 
-    return res.json({
-      success: true,
-      message: 'Password reset successfully'
-    });
-
+    return res.json({ success: true, message: 'Password reset successfully' });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: 'Error resetting password',
-      error: error.message
-    });
+    return res.status(500).json({ success: false, message: 'Error resetting password', error: error.message });
   }
 };
 
-// Self-registration endpoint
 exports.registerUser = async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -206,10 +164,9 @@ exports.registerUser = async (req, res) => {
 
 // --- USER MANAGEMENT CONTROLLERS ---
 
-// List users
 exports.getUsers = async (req, res) => {
   try {
-    if (req.user.role === 'admin') {
+    if (req.user.role === 'admin' || req.user.role === 'manager') {
       const users = await User.find().sort({ name: 1 });
       res.json(users);
     } else {
@@ -221,7 +178,6 @@ exports.getUsers = async (req, res) => {
   }
 };
 
-// Admin user creation
 exports.createUser = async (req, res) => {
   const { name, email, password, role } = req.body;
 
@@ -255,7 +211,6 @@ exports.createUser = async (req, res) => {
   }
 };
 
-// Admin user update
 exports.updateUser = async (req, res) => {
   const { name, email, password, role, active, designationRole, department, workLocation } = req.body;
   const userId = req.params.id;
@@ -293,7 +248,6 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// Toggle active status
 exports.toggleUserActive = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -310,5 +264,63 @@ exports.toggleUserActive = async (req, res) => {
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+// --- NEW: BULK IMPORT CONTROLLER ---
+
+exports.bulkImportUsers = async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Please upload a CSV file.' });
+  }
+
+  const results = [];
+  try {
+    // Pre-hash a default password for all imported users
+    const salt = await bcrypt.genSalt(10);
+    const defaultPasswordHash = await bcrypt.hash('Welcome@123', salt); 
+
+    // Convert the memory buffer from Multer into a readable stream
+    const stream = Readable.from(req.file.buffer);
+
+    stream
+      .pipe(csv())
+      .on('data', (data) => {
+        // Map the CSV headers directly to data variables
+        if (data.name && data.email) {
+          results.push({
+            name: data.name,
+            email: data.email.toLowerCase(),
+            passwordHash: defaultPasswordHash,
+            role: data.role || 'member',
+            department: data.department || '',
+            designationRole: data.designationRole || ''
+          });
+        }
+      })
+      .on('end', async () => {
+        try {
+          if (results.length === 0) {
+            return res.status(400).json({ error: 'CSV file is empty or missing required name/email columns.' });
+          }
+
+          // ordered: false ensures that if an email already exists, 
+          // Mongoose will skip it but still insert the rest of the valid rows
+          await User.insertMany(results, { ordered: false });
+          
+          res.status(200).json({ message: `Successfully processed ${results.length} users.` });
+        } catch (dbError) {
+          console.error('Bulk Import DB Error:', dbError);
+          // 11000 is MongoDB's duplicate key error code
+          if (dbError.code === 11000) {
+             res.status(200).json({ message: 'Import finished. Duplicate emails were skipped.', totalProcessed: results.length });
+          } else {
+             res.status(500).json({ error: 'An error occurred while saving users to the database.' });
+          }
+        }
+      });
+  } catch (err) {
+    console.error('CSV Parsing Error:', err);
+    res.status(500).json({ error: 'Failed to parse the CSV file.' });
   }
 };

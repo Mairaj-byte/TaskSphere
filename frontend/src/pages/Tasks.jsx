@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, API_BASE } from '../context/AuthContext';
-import { 
+import {
   Plus, Search, Filter, RefreshCw, Edit2, Trash2, Calendar, AlertCircle,
   LayoutGrid, List, X, Paperclip, UserCheck
 } from 'lucide-react';
@@ -27,7 +27,7 @@ const Tasks = () => {
   const [usersList, setUsersList] = useState([]);
   const [modalMode, setModalMode] = useState('create'); // 'create' | 'edit'
   const [currentTaskId, setCurrentTaskId] = useState(null);
-  
+
   // Form State
   const [formTitle, setFormTitle] = useState('');
   const [formDesc, setFormDesc] = useState('');
@@ -81,7 +81,7 @@ const Tasks = () => {
   }, [search, statusFilter, priorityFilter, dateFilter, sortBy]);
 
   useEffect(() => {
-    if (user && user.role === 'admin') {
+    if (user && user.role === 'admin' || 'manager') {
       fetchUsers();
     }
   }, [user]);
@@ -131,9 +131,9 @@ const Tasks = () => {
   };
 
   const toggleAssignee = (userId) => {
-    setFormAssignedTo(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId) 
+    setFormAssignedTo(prev =>
+      prev.includes(userId)
+        ? prev.filter(id => id !== userId)
         : [...prev, userId]
     );
   };
@@ -172,6 +172,7 @@ const Tasks = () => {
       if (res.ok) {
         setIsModalOpen(false);
         fetchTasks();
+        toast.success(modalMode === 'create' ? 'Task created successfully!' : 'Task updated successfully!');
       } else {
         setFormError(data.error || 'Operation failed');
       }
@@ -246,7 +247,7 @@ const Tasks = () => {
             Search, filter, and track tasks across team members.
           </p>
         </div>
-        {user?.role === 'admin' && (
+        {['admin', 'manager'].includes(user?.role) && (
           <button
             onClick={openCreateModal}
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
@@ -406,7 +407,7 @@ const Tasks = () => {
                     <h3 className="font-semibold text-base text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">
                       {task.title}
                     </h3>
-                    {user?.role === 'admin' && (
+                    {['admin', 'manager'].includes(user?.role) && (
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={(e) => openEditModal(task, e)}
@@ -470,7 +471,7 @@ const Tasks = () => {
                   <th className="py-3.5 px-4">Priority</th>
                   <th className="py-3.5 px-4">Due Date</th>
                   <th className="py-3.5 px-4">Assignees</th>
-                  {user?.role === 'admin' && <th className="py-3.5 px-4 text-right">Actions</th>}
+                  {['admin', 'manager'].includes(user?.role) && <th className="py-3.5 px-4 text-right">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-xs sm:text-sm">
@@ -504,7 +505,7 @@ const Tasks = () => {
                         ))}
                       </div>
                     </td>
-                    {user?.role === 'admin' && (
+                    {['admin', 'manager'].includes(user?.role) && (
                       <td className="py-3.5 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="inline-flex items-center gap-1">
                           <button
@@ -531,222 +532,220 @@ const Tasks = () => {
       )}
 
       {/* CREATE / EDIT MODAL */}
-{isModalOpen && (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm overflow-y-auto">
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl max-w-4xl lg:max-w-5xl w-full p-6 shadow-xl my-8 max-h-[90vh] flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
-        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-          {modalMode === 'create' ? 'Create New Task' : 'Edit Task Details'}
-        </h3>
-        <button
-          onClick={() => setIsModalOpen(false)}
-          className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg"
-        >
-          <X size={18} />
-        </button>
-      </div>
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl max-w-4xl lg:max-w-5xl w-full p-6 shadow-xl my-8 max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                {modalMode === 'create' ? 'Create New Task' : 'Edit Task Details'}
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
-      {formError && (
-        <div className="mt-4 p-3 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2 shrink-0">
-          <AlertCircle size={16} />
-          <span>{formError}</span>
+            {formError && (
+              <div className="mt-4 p-3 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2 shrink-0">
+                <AlertCircle size={16} />
+                <span>{formError}</span>
+              </div>
+            )}
+
+            {/* Form Body - Split into a 2-Column Horizontal Layout on Medium+ screens */}
+            <form onSubmit={handleFormSubmit} className="mt-4 flex-1 overflow-y-auto pr-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Left Column: Core Task Details */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Task Title *
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      value={formTitle}
+                      onChange={(e) => setFormTitle(e.target.value)}
+                      placeholder="e.g., Update Landing Page Header"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      rows={4}
+                      className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      value={formDesc}
+                      onChange={(e) => setFormDesc(e.target.value)}
+                      placeholder="Provide scope, targets, and notes..."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        Priority
+                      </label>
+                      <select
+                        className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                        value={formPriority}
+                        onChange={(e) => setFormPriority(e.target.value)}
+                      >
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        Due Date & Time *
+                      </label>
+                      <input
+                        type="datetime-local"
+                        className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                        value={formDueDate}
+                        onChange={(e) => setFormDueDate(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column: People & Attachments */}
+                <div className="space-y-4 flex flex-col justify-between">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Assign Team Members *
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-800/20">
+                      {usersList.map((member) => {
+                        const isSelected = formAssignedTo.includes(member._id);
+                        return (
+                          <div
+                            key={member._id}
+                            onClick={() => toggleAssignee(member._id)}
+                            className={`flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-all ${
+                              isSelected
+                                ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-500'
+                                : 'border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                          >
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                              {member.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="overflow-hidden">
+                              <p className="text-xs font-semibold truncate">{member.name}</p>
+                              <p className="text-[10px] text-slate-400 truncate">{member.email}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Attachments (URLs)
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        className="flex-1 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                        placeholder="https://..."
+                        value={formAttachment}
+                        onChange={(e) => setFormAttachment(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddAttachment}
+                        className="px-3 py-2 text-xs font-medium bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg transition-colors"
+                      >
+                        Add
+                      </button>
+                    </div>
+
+                    {formAttachmentsList.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2 max-h-24 overflow-y-auto">
+                        {formAttachmentsList.map((url, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300"
+                          >
+                            <Paperclip size={12} />
+                            <span className="max-w-[150px] truncate">{url}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveAttachment(index)}
+                              className="hover:text-rose-500 font-bold ml-1"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-4 mt-6 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors shadow-sm"
+                >
+                  {modalMode === 'create' ? 'Create Task' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
-      {/* Form Body - Split into a 2-Column Horizontal Layout on Medium+ screens */}
-      <form onSubmit={handleFormSubmit} className="mt-4 flex-1 overflow-y-auto pr-1">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          
-          {/* Left Column: Core Task Details */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Task Title *
-              </label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                value={formTitle}
-                onChange={(e) => setFormTitle(e.target.value)}
-                placeholder="e.g., Update Landing Page Header"
-                required
-              />
+      {/* DELETE CONFIRMATION DIALOG */}
+      {isDeleteConfirmOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl max-w-sm w-full p-6 text-center shadow-xl">
+            <div className="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-950/50 text-rose-600 flex items-center justify-center mx-auto mb-4">
+              <Trash2 size={24} />
             </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Description
-              </label>
-              <textarea
-                rows={4}
-                className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                value={formDesc}
-                onChange={(e) => setFormDesc(e.target.value)}
-                placeholder="Provide scope, targets, and notes..."
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Priority
-                </label>
-                <select
-                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                  value={formPriority}
-                  onChange={(e) => setFormPriority(e.target.value)}
-                >
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Due Date & Time *
-                </label>
-                <input
-                  type="datetime-local"
-                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                  value={formDueDate}
-                  onChange={(e) => setFormDueDate(e.target.value)}
-                  required
-                />
-              </div>
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Delete Task</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+              Are you sure you want to permanently delete this task? This action cannot be undone.
+            </p>
+            <div className="flex justify-center gap-3 mt-6">
+              <button
+                onClick={() => setIsDeleteConfirmOpen(false)}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteTask}
+                className="px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors shadow-sm"
+              >
+                Delete Task
+              </button>
             </div>
           </div>
-
-          {/* Right Column: People & Attachments */}
-          <div className="space-y-4 flex flex-col justify-between">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Assign Team Members *
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-800/20">
-                {usersList.map((member) => {
-                  const isSelected = formAssignedTo.includes(member._id);
-                  return (
-                    <div
-                      key={member._id}
-                      onClick={() => toggleAssignee(member._id)}
-                      className={`flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-all ${
-                        isSelected
-                          ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-500'
-                          : 'border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
-                      }`}
-                    >
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>
-                        {member.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="overflow-hidden">
-                        <p className="text-xs font-semibold truncate">{member.name}</p>
-                        <p className="text-[10px] text-slate-400 truncate">{member.email}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Attachments (URLs)
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  className="flex-1 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
-                  placeholder="https://..."
-                  value={formAttachment}
-                  onChange={(e) => setFormAttachment(e.target.value)}
-                />
-                <button
-                  type="button"
-                  onClick={handleAddAttachment}
-                  className="px-3 py-2 text-xs font-medium bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg transition-colors"
-                >
-                  Add
-                </button>
-              </div>
-
-              {formAttachmentsList.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2 max-h-24 overflow-y-auto">
-                  {formAttachmentsList.map((url, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300"
-                    >
-                      <Paperclip size={12} />
-                      <span className="max-w-[150px] truncate">{url}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveAttachment(index)}
-                        className="hover:text-rose-500 font-bold ml-1"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
         </div>
-
-        {/* Action Buttons */}
-        <div className="pt-4 mt-6 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(false)}
-            className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors shadow-sm"
-          >
-            {modalMode === 'create' ? 'Create Task' : 'Save Changes'}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-)}
-
-{/* DELETE CONFIRMATION DIALOG */}
-{isDeleteConfirmOpen && (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl max-w-sm w-full p-6 text-center shadow-xl">
-      <div className="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-950/50 text-rose-600 flex items-center justify-center mx-auto mb-4">
-        <Trash2 size={24} />
-      </div>
-      <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Delete Task</h3>
-      <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
-        Are you sure you want to permanently delete this task? This action cannot be undone.
-      </p>
-      <div className="flex justify-center gap-3 mt-6">
-        <button
-          onClick={() => setIsDeleteConfirmOpen(false)}
-          className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleDeleteTask}
-          className="px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors shadow-sm"
-        >
-          Delete Task
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-      
+      )}
     </div>
   );
 };
