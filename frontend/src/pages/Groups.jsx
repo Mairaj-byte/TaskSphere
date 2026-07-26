@@ -7,6 +7,7 @@ const Groups = () => {
 
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const [showModal, setShowModal] = useState(false);
   const [projectName, setProjectName] = useState("");
