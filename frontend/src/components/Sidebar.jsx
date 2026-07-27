@@ -10,6 +10,7 @@ import {
   Clock,
   Layers,
   User,
+  MessageSquare
 } from 'lucide-react';
 import { useAuth, API_BASE } from '../context/AuthContext';
 
@@ -169,7 +170,24 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               <UsersRound size={18} />
               Manage Team
             </NavLink>
+
           )}
+
+
+          <NavLink
+            to="/groupchat"
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
+                isActive
+                  ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
+                  : 'text-gray-400 hover:bg-white/10 hover:translate-x-1 hover:text-white'
+              }`
+            }
+          >
+            <MessageSquare size={19} />
+            <span>Group Discussion</span>
+          </NavLink>
         </nav>
       </div>
 

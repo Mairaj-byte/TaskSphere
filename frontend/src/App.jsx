@@ -10,6 +10,7 @@ import TaskDetails from './pages/TaskDetails';
 import Users from './pages/Users';
 import ProfileView from './pages/ProfileView';
 import ProfileSetup from './components/ProfileSetup';
+import GroupChat from './pages/GroupChat';
 
 const AdminRoute = ({ children }) => {
   const { user } = useAuth();
@@ -61,6 +62,7 @@ function App() {
           <Route path="profile" element={<ProfileView />} />
           <Route path="/profile/edit" element={<ProfileSetup />} />
           <Route path="tasks/:id" element={<TaskDetails />} />
+          <Route path="/groupchat" element={<GroupChat />} />
           <Route
             path="users"
             element={
