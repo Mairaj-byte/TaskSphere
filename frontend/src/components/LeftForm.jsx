@@ -152,6 +152,8 @@ const LeftForm = () => {
   return (
     <div className="lg:col-span-6 p-6 sm:p-12 lg:p-16 flex flex-col justify-between bg-slate-900 border-r border-slate-800/80 h-full">
       <div className="w-full max-w-md mx-auto lg:mx-0 mt-10">
+
+        
         
         {/* Dynamic Headers */}
         <div className="mb-6">
