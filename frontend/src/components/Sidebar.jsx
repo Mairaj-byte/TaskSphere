@@ -10,7 +10,8 @@ import {
   Search,
   Clock,
   FolderKanban,
-  Layers
+  Layers,
+  MessageSquare // <--- ADDED THIS IMPORT
 } from "lucide-react";
 import { API_BASE, useAuth } from "../context/AuthContext";
 
@@ -74,11 +75,11 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     }
   }, [token]);
 
-  // Resolve profile photo URL (absolute vs relative to API host)
+  // Cleaned up profile photo URL resolution
   const profilePhotoUrl = user?.profilePhoto
-    ? user.profilePhoto.startsWith('http')
-      ? user.profilePhoto
-      : `${API_BASE.replace(/\/api$/, '')}${user.profilePhoto}`
+    ? (user.profilePhoto.startsWith('http') 
+        ? user.profilePhoto 
+        : `${API_BASE.replace(/\/api$/, '')}${user.profilePhoto}`)
     : null;
 
   return (
@@ -159,6 +160,21 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           </NavLink>
 
           <NavLink
+            to="/chat"
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
+                isActive
+                  ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
+                  : 'text-gray-400 hover:bg-white/10 hover:translate-x-1 hover:text-white'
+              }`
+            }
+          >
+            <MessageSquare size={19} />
+            <span>Discussion</span>
+          </NavLink>
+
+          <NavLink
             to="/profile"
             onClick={handleNavClick}
             className={({ isActive }) =>
@@ -224,6 +240,11 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               Manage Team
             </NavLink>
           )}
+
+          
+
+
+          
         </nav>
       </div>
 
@@ -289,7 +310,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           className="group flex w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 p-3 transition-all duration-300 hover:border-indigo-500 hover:bg-white/10 hover:shadow-lg hover:shadow-indigo-500/20"
         >
           <div className="flex items-center gap-3 min-w-0">
-            {/* Profile Picture with graceful fallback to initials */}
             {profilePhotoUrl ? (
               <img
                 src={profilePhotoUrl}

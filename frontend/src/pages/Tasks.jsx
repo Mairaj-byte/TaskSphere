@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth, API_BASE } from '../context/AuthContext';
 import {
   Plus, Search, Filter, RefreshCw, Edit2, Trash2, Calendar, AlertCircle,
-  LayoutGrid, List, X, Paperclip, UserCheck
+  LayoutGrid, List, X, Paperclip, CheckCircle2
 } from 'lucide-react';
 
 const Tasks = () => {
@@ -33,30 +33,31 @@ const Tasks = () => {
   const [formTitle, setFormTitle] = useState('');
   const [formDesc, setFormDesc] = useState('');
   const [formPriority, setFormPriority] = useState('Medium');
+  const [formStatus, setFormStatus] = useState('To Do');
+  const [formStartDate, setFormStartDate] = useState('');
   const [formDueDate, setFormDueDate] = useState('');
+  const [formEstimatedHours, setFormEstimatedHours] = useState(0);
   const [formAssignedTo, setFormAssignedTo] = useState([]);
   const [formAttachment, setFormAttachment] = useState('');
   const [formAttachmentsList, setFormAttachmentsList] = useState([]);
-  const [formError, setFormError] = useState('');
-  const [formStatus, setFormStatus] = useState('To Do');
-
-  const [formStartDate, setFormStartDate] = useState('');
-
-  const [formEstimatedHours, setFormEstimatedHours] = useState(0);
-
   const [formTags, setFormTags] = useState([]);
-
   const [formTagInput, setFormTagInput] = useState('');
-
   const [formChecklist, setFormChecklist] = useState([]);
-
   const [formChecklistInput, setFormChecklistInput] = useState('');
   const [formDependencies, setFormDependencies] = useState([]);
-
+  const [formError, setFormError] = useState('');
 
   // Confirm Delete State
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [deleteTaskId, setDeleteTaskId] = useState(null);
+
+  // Lightweight built-in toast (no external dependency required)
+  const [toastMsg, setToastMsg] = useState(null);
+  useEffect(() => {
+    if (!toastMsg) return;
+    const t = setTimeout(() => setToastMsg(null), 3000);
+    return () => clearTimeout(t);
+  }, [toastMsg]);
 
   const fetchTasks = async () => {
     setLoading(true);
@@ -71,12 +72,11 @@ const Tasks = () => {
       const res = await fetch(`${API_BASE}/tasks?${params.toString()}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-     const data = await res.json();
+      const data = await res.json();
 
-const taskList = Array.isArray(data) ? data : [];
-
-setTasks(taskList);
-setAllTasks(taskList);
+      const taskList = Array.isArray(data) ? data : [];
+      setTasks(taskList);
+      setAllTasks(taskList);
     } catch (err) {
       console.error('Error fetching tasks:', err);
     } finally {
@@ -98,10 +98,13 @@ setAllTasks(taskList);
 
   useEffect(() => {
     fetchTasks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, statusFilter, priorityFilter, dateFilter, sortBy]);
 
   useEffect(() => {
-    if (user && user.role === 'admin' || 'manager') {
+    // FIX: previous condition was `user && user.role === 'admin' || 'manager'`
+    // which always evaluated truthy due to operator precedence.
+    if (user && (user.role === 'admin' || user.role === 'manager')) {
       fetchUsers();
     }
   }, [user]);
@@ -110,10 +113,18 @@ setAllTasks(taskList);
     setFormTitle('');
     setFormDesc('');
     setFormPriority('Medium');
+    setFormStatus('To Do');
+    setFormStartDate('');
     setFormDueDate('');
+    setFormEstimatedHours(0);
     setFormAssignedTo([]);
     setFormAttachment('');
     setFormAttachmentsList([]);
+    setFormTags([]);
+    setFormTagInput('');
+    setFormChecklist([]);
+    setFormChecklistInput('');
+    setFormDependencies([]);
     setFormError('');
   };
 
@@ -121,35 +132,7 @@ setAllTasks(taskList);
     resetForm();
     setModalMode('create');
     setIsModalOpen(true);
-    setFormStatus('To Do');
-
-setFormStartDate('');
-
-setFormEstimatedHours(0);
-
-setFormTags([]);
-
-setFormTagInput('');
-
-setFormChecklist([]);
-
-setFormChecklistInput('');
-setFormDependencies([]);
   };
-
-  const addChecklistItem = () => {
-  if (!formChecklistInput.trim()) return;
-
-  setFormChecklist([
-    ...formChecklist,
-    {
-      title: formChecklistInput.trim(),
-      completed: false,
-    },
-  ]);
-
-  setFormChecklistInput("");
-};
 
   const openEditModal = (task, e) => {
     e.stopPropagation();
@@ -160,18 +143,17 @@ setFormDependencies([]);
     setFormPriority(task.priority);
     setFormStatus(task.status);
 
-if (task.startDate) {
-  setFormStartDate(
-    new Date(task.startDate).toISOString().slice(0,16)
-  );
-}
+    if (task.startDate) {
+      setFormStartDate(new Date(task.startDate).toISOString().slice(0, 16));
+    } else {
+      setFormStartDate('');
+    }
 
-setFormEstimatedHours(task.estimatedHours || 0);
+    setFormEstimatedHours(task.estimatedHours || 0);
+    setFormTags(task.tags || []);
+    setFormChecklist(task.checklist || []);
+    setFormDependencies(task.dependencies || []);
 
-setFormTags(task.tags || []);
-
-setFormChecklist(task.checklist || []);
-setFormDependencies(task.dependencies || []);
     const formattedDate = new Date(task.dueDate).toISOString().slice(0, 16);
     setFormDueDate(formattedDate);
     setFormAssignedTo(task.assignedTo.map(u => u._id));
@@ -179,6 +161,32 @@ setFormDependencies(task.dependencies || []);
     setFormAttachment('');
     setFormError('');
     setIsModalOpen(true);
+  };
+
+  const addChecklistItem = () => {
+    if (!formChecklistInput.trim()) return;
+    setFormChecklist(prev => [...prev, { title: formChecklistInput.trim(), completed: false }]);
+    setFormChecklistInput('');
+  };
+
+  const toggleChecklistItem = (index) => {
+    setFormChecklist(prev =>
+      prev.map((item, i) => (i === index ? { ...item, completed: !item.completed } : item))
+    );
+  };
+
+  const removeChecklistItem = (index) => {
+    setFormChecklist(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddTag = () => {
+    if (!formTagInput.trim()) return;
+    setFormTags(prev => [...prev, formTagInput.trim()]);
+    setFormTagInput('');
+  };
+
+  const handleRemoveTag = (index) => {
+    setFormTags(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleAddAttachment = () => {
@@ -208,32 +216,20 @@ setFormDependencies(task.dependencies || []);
     if (!formDueDate) return setFormError('Due date is required');
     if (formAssignedTo.length === 0) return setFormError('Please assign at least one team member');
 
-   const payload = {
-  title: formTitle.trim(),
-
-  description: formDesc.trim(),
-
-  priority: formPriority,
-
-  status: formStatus,
-
-  startDate: formStartDate
-    ? new Date(formStartDate).toISOString()
-    : null,
-
-  dueDate: new Date(formDueDate).toISOString(),
-
-  estimatedHours: Number(formEstimatedHours),
-
-  assignedTo: formAssignedTo,
-
-  attachments: formAttachmentsList,
-
-  tags: formTags,
-
-  checklist: formChecklist,
-  dependencies: formDependencies
-};
+    const payload = {
+      title: formTitle.trim(),
+      description: formDesc.trim(),
+      priority: formPriority,
+      status: formStatus,
+      startDate: formStartDate ? new Date(formStartDate).toISOString() : null,
+      dueDate: new Date(formDueDate).toISOString(),
+      estimatedHours: Number(formEstimatedHours),
+      assignedTo: formAssignedTo,
+      attachments: formAttachmentsList,
+      tags: formTags,
+      checklist: formChecklist,
+      dependencies: formDependencies
+    };
 
     try {
       const url = modalMode === 'create' ? `${API_BASE}/tasks` : `${API_BASE}/tasks/${currentTaskId}`;
@@ -252,7 +248,7 @@ setFormDependencies(task.dependencies || []);
       if (res.ok) {
         setIsModalOpen(false);
         fetchTasks();
-        toast.success(modalMode === 'create' ? 'Task created successfully!' : 'Task updated successfully!');
+        setToastMsg(modalMode === 'create' ? 'Task created successfully!' : 'Task updated successfully!');
       } else {
         setFormError(data.error || 'Operation failed');
       }
@@ -288,6 +284,8 @@ setFormDependencies(task.dependencies || []);
     const statusMap = {
       'To Do': 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
       'In Progress': 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800',
+      'In Review': 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/50 dark:text-violet-400 dark:border-violet-800',
+      'Blocked': 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/50 dark:text-orange-400 dark:border-orange-800',
       'Completed (Pending Approval)': 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800',
       'Approved': 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800',
       'Rejected': 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/50 dark:text-rose-400 dark:border-rose-800',
@@ -307,7 +305,8 @@ setFormDependencies(task.dependencies || []);
     const priorityMap = {
       Low: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400',
       Medium: 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400',
-      High: 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400'
+      High: 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400',
+      Urgent: 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400'
     };
 
     return (
@@ -319,6 +318,14 @@ setFormDependencies(task.dependencies || []);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8">
+      {/* Inline toast */}
+      {toastMsg && (
+        <div className="fixed bottom-6 right-6 z-[200] flex items-center gap-2 px-4 py-3 rounded-lg bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-lg text-sm">
+          <CheckCircle2 size={16} className="text-emerald-400 dark:text-emerald-600" />
+          {toastMsg}
+        </div>
+      )}
+
       {/* Header Row */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
@@ -394,6 +401,8 @@ setFormDependencies(task.dependencies || []);
               <option value="">All Statuses</option>
               <option value="To Do">To Do</option>
               <option value="In Progress">In Progress</option>
+              <option value="In Review">In Review</option>
+              <option value="Blocked">Blocked</option>
               <option value="Completed (Pending Approval)">Pending Approval</option>
               <option value="Approved">Approved</option>
               <option value="Rejected">Rejected</option>
@@ -411,6 +420,7 @@ setFormDependencies(task.dependencies || []);
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
               <option value="High">High</option>
+              <option value="Urgent">Urgent</option>
             </select>
           </div>
 
@@ -511,6 +521,16 @@ setFormDependencies(task.dependencies || []);
                     {getStatusBadge(task.status)}
                     {getPriorityBadge(task.priority)}
                   </div>
+
+                  {task.tags?.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {task.tags.map((tag, i) => (
+                        <span key={i} className="px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 text-[10px] font-medium">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
                   <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 leading-relaxed">
                     {task.description || 'No description provided.'}
@@ -635,10 +655,10 @@ setFormDependencies(task.dependencies || []);
               </div>
             )}
 
-            {/* Form Body - Split into a 2-Column Horizontal Layout on Medium+ screens */}
+            {/* Form Body */}
             <form onSubmit={handleFormSubmit} className="mt-4 flex-1 overflow-y-auto pr-1">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
+
                 {/* Left Column: Core Task Details */}
                 <div className="space-y-4">
                   <div>
@@ -681,7 +701,38 @@ setFormDependencies(task.dependencies || []);
                         <option value="Low">Low</option>
                         <option value="Medium">Medium</option>
                         <option value="High">High</option>
+                        <option value="Urgent">Urgent</option>
                       </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        Status
+                      </label>
+                      <select
+                        className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                        value={formStatus}
+                        onChange={(e) => setFormStatus(e.target.value)}
+                      >
+                        <option value="To Do">To Do</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="In Review">In Review</option>
+                        <option value="Blocked">Blocked</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        Start Date
+                      </label>
+                      <input
+                        type="datetime-local"
+                        className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                        value={formStartDate}
+                        onChange={(e) => setFormStartDate(e.target.value)}
+                      />
                     </div>
 
                     <div>
@@ -696,6 +747,19 @@ setFormDependencies(task.dependencies || []);
                         required
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Estimated Hours
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      value={formEstimatedHours}
+                      onChange={(e) => setFormEstimatedHours(e.target.value)}
+                    />
                   </div>
                 </div>
 
@@ -773,8 +837,129 @@ setFormDependencies(task.dependencies || []);
                       </div>
                     )}
                   </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Tags
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={formTagInput}
+                        placeholder="e.g., frontend"
+                        onChange={(e) => setFormTagInput(e.target.value)}
+                        className="flex-1 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddTag}
+                        className="px-3 py-2 text-xs font-medium bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg transition-colors"
+                      >
+                        Add
+                      </button>
+                    </div>
+
+                    {formTags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {formTags.map((tag, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 text-xs"
+                          >
+                            {tag}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveTag(index)}
+                              className="hover:text-rose-500 font-bold"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Full-width extras: Checklist + Dependencies */}
+              <div className="mt-6 space-y-6">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Subtasks / Checklist
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={formChecklistInput}
+                      onChange={(e) => setFormChecklistInput(e.target.value)}
+                      placeholder="e.g., Write unit tests"
+                      className="flex-1 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={addChecklistItem}
+                      className="px-3 py-2 text-xs font-medium bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
+
+                  {formChecklist.length > 0 && (
+                    <div className="space-y-1.5 mt-2 max-h-32 overflow-y-auto">
+                      {formChecklist.map((item, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-700 p-2 text-xs"
+                        >
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={item.completed}
+                              onChange={() => toggleChecklistItem(index)}
+                            />
+                            <span className={item.completed ? 'line-through text-slate-400' : ''}>
+                              {item.title}
+                            </span>
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => removeChecklistItem(index)}
+                            className="text-rose-500 hover:text-rose-600 font-bold"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Task Dependencies (must be completed first)
+                  </label>
+                  <select
+                    multiple
+                    value={formDependencies}
+                    onChange={(e) => {
+                      const values = [...e.target.selectedOptions].map(option => option.value);
+                      setFormDependencies(values);
+                    }}
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 p-2 text-sm bg-slate-50 dark:bg-slate-800/50 outline-none focus:border-indigo-500 max-h-32"
+                  >
+                    {allTasks
+                      .filter(task => task._id !== currentTaskId)
+                      .map(task => (
+                        <option key={task._id} value={task._id}>
+                          {task.title}
+                        </option>
+                      ))}
+                  </select>
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Hold Ctrl (Cmd on Mac) to select multiple tasks.
+                  </p>
+                </div>
               </div>
 
               {/* Action Buttons */}
@@ -805,372 +990,6 @@ setFormDependencies(task.dependencies || []);
             <div className="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-950/50 text-rose-600 flex items-center justify-center mx-auto mb-4">
               <Trash2 size={24} />
             </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Description
-              </label>
-              <textarea
-                rows={4}
-                className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                value={formDesc}
-                onChange={(e) => setFormDesc(e.target.value)}
-                placeholder="Provide scope, targets, and notes..."
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-
-  {/* Priority */}
-
-  <div>
-
-    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-      Priority
-    </label>
-
-    <select
-      value={formPriority}
-      onChange={(e)=>setFormPriority(e.target.value)}
-      className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg"
-    >
-      <option>Low</option>
-      <option>Medium</option>
-      <option>High</option>
-      <option>Urgent</option>
-    </select>
-
-  </div>
-
-  {/* Status */}
-
-  <div>
-
-    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-      Status
-    </label>
-
-    <select
-      value={formStatus}
-      onChange={(e)=>setFormStatus(e.target.value)}
-      className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg"
-    >
-      <option>To Do</option>
-      <option>In Progress</option>
-      <option>In Review</option>
-      <option>Blocked</option>
-    </select>
-
-  </div>
-
-</div>
-
-         <div className="grid grid-cols-2 gap-4 mt-4">
-
-  {/* Start Date */}
-
-  <div>
-
-    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-      Start Date
-    </label>
-
-    <input
-      type="datetime-local"
-      value={formStartDate}
-      onChange={(e)=>setFormStartDate(e.target.value)}
-      className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg"
-    />
-
-  </div>
-
-  {/* Due Date */}
-
-  <div>
-
-    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-      Due Date
-    </label>
-
-    <input
-      type="datetime-local"
-      value={formDueDate}
-      onChange={(e)=>setFormDueDate(e.target.value)}
-      className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg"
-    />
-
-  </div>
-
-</div>
-
-  <div className="mt-4">
-
-<label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-Estimated Hours
-</label>
-
-<input
-type="number"
-min="0"
-value={formEstimatedHours}
-onChange={(e)=>setFormEstimatedHours(e.target.value)}
-className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg"
-/>
-
-</div>
-
- <div className="mt-4">
-
-<label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
-Tags
-</label>
-
-<div className="flex gap-2">
-
-<input
-type="text"
-value={formTagInput}
-placeholder="Enter Tag"
-onChange={(e)=>setFormTagInput(e.target.value)}
-className="flex-1 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
-/>
-
-<button
-type="button"
-onClick={()=>{
-if(!formTagInput.trim()) return;
-
-setFormTags([
-...formTags,
-formTagInput.trim()
-]);
-
-setFormTagInput("");
-}}
-className="px-4 rounded-lg bg-indigo-600 text-white"
->
-
-Add
-
-</button>
-
-</div>
-
-</div>
-
-<div className="flex flex-wrap gap-2 mt-3">
-
-{formTags.map((tag,index)=>(
-
-<div
-key={index}
-className="flex items-center gap-2 rounded-full bg-indigo-100 dark:bg-indigo-900 px-3 py-1 text-xs"
->
-
-{tag}
-
-<button
-type="button"
-onClick={()=>{
-
-setFormTags(
-formTags.filter((_,i)=>i!==index)
-)
-
-}}
->
-
-✕
-
-</button>
-
-</div>
-
-))}
-
-</div>
-
-      <div className="mt-6">
-
-  <label className="block text-sm font-semibold mb-2">
-    Checklist
-  </label>
-
-  <div className="flex gap-2">
-
-    <input
-      type="text"
-      value={formChecklistInput}
-      onChange={(e) => setFormChecklistInput(e.target.value)}
-      placeholder="Checklist Item"
-      className="flex-1 rounded-lg border px-3 py-2"
-    />
-
-    <button
-      type="button"
-      onClick={addChecklistItem}
-      className="rounded-lg bg-indigo-600 px-4 text-white"
-    >
-      Add
-    </button>
-
-  </div>
-
-</div>
-       <div className="space-y-2 mt-4">
-
-  {formChecklist.map((item, index) => (
-
-    <div
-      key={index}
-      className="flex items-center justify-between rounded-lg border p-2"
-    >
-
-      <div className="flex items-center gap-2">
-
-        <input
-          type="checkbox"
-          checked={item.completed}
-          onChange={() => {
-
-            const updated = [...formChecklist];
-
-            updated[index].completed =
-              !updated[index].completed;
-
-            setFormChecklist(updated);
-
-          }}
-        />
-
-        <span>{item.title}</span>
-
-      </div>
-
-      <button
-        type="button"
-        onClick={() =>
-          setFormChecklist(
-            formChecklist.filter((_, i) => i !== index)
-          )
-        }
-        className="text-red-500"
-      >
-        ✕
-      </button>
-
-    </div>
-
-  ))}
-
-</div>
-
-      <div className="mt-6">
-
-  <label className="block text-sm font-semibold mb-2">
-    Task Dependencies
-  </label>
-
-  <select
-    multiple
-    value={formDependencies}
-    onChange={(e) => {
-      const values = [...e.target.selectedOptions].map(
-        option => option.value
-      );
-      setFormDependencies(values);
-    }}
-    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 p-2 bg-slate-50 dark:bg-slate-800"
-  >
-    {allTasks
-      .filter(task => task._id !== currentTaskId)
-      .map(task => (
-        <option key={task._id} value={task._id}>
-          {task.title}
-        </option>
-      ))}
-  </select>
-
-</div>
-
-    </div>
-
-          {/* Right Column: People & Attachments */}
-          <div className="space-y-4 flex flex-col justify-between">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Assign Team Members *
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-800/20">
-                {usersList.map((member) => {
-                  const isSelected = formAssignedTo.includes(member._id);
-                  return (
-                    <div
-                      key={member._id}
-                      onClick={() => toggleAssignee(member._id)}
-                      className={`flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-all ${
-                        isSelected
-                          ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-500'
-                          : 'border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
-                      }`}
-                    >
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>
-                        {member.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="overflow-hidden">
-                        <p className="text-xs font-semibold truncate">{member.name}</p>
-                        <p className="text-[10px] text-slate-400 truncate">{member.email}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Attachments (URLs)
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  className="flex-1 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
-                  placeholder="https://..."
-                  value={formAttachment}
-                  onChange={(e) => setFormAttachment(e.target.value)}
-                />
-                <button
-                  type="button"
-                  onClick={handleAddAttachment}
-                  className="px-3 py-2 text-xs font-medium bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg transition-colors"
-                >
-                  Add
-                </button>
-              </div>
-
-              {formAttachmentsList.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2 max-h-24 overflow-y-auto">
-                  {formAttachmentsList.map((url, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300"
-                    >
-                      <Paperclip size={12} />
-                      <span className="max-w-[150px] truncate">{url}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveAttachment(index)}
-                        className="hover:text-rose-500 font-bold ml-1"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
             <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Delete Task</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
               Are you sure you want to permanently delete this task? This action cannot be undone.
@@ -1191,7 +1010,7 @@ formTags.filter((_,i)=>i!==index)
             </div>
           </div>
         </div>
-         )}
+      )}
     </div>
   );
 };

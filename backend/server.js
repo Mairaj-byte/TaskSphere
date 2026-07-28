@@ -1,63 +1,72 @@
-const http = require('http');
-const express = require('express');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+const http = require("http");
+const express = require("express");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
 
-// Load environment variables
+// Load Environment Variables
 dotenv.config();
 
-// Local modules & config
-const connectDB = require('./src/config/db');
-const setupMiddleware = require('./src/middleware');
-const { init: initSocket } = require('./src/utils/socket');
-const { startScheduler } = require('./src/utils/reminders');
+// Config
+const connectDB = require("./src/config/db");
+const setupMiddleware = require("./src/middleware");
+const { init: initSocket } = require("./src/utils/socket");
+const { startScheduler } = require("./src/utils/reminders");
 
 // Routes
-const authRoutes = require('./src/routes/auth');
-const groupRoutes = require('./src/routes/groups');
-const userRoutes = require('./src/routes/users');
-const taskRoutes = require('./src/routes/tasks');
-const notificationRoutes = require('./src/routes/notifications');
+const authRoutes = require("./src/routes/auth");
+const userRoutes = require("./src/routes/users");
+const taskRoutes = require("./src/routes/tasks");
+const notificationRoutes = require("./src/routes/notifications");
+const groupRoutes = require("./src/routes/groups");
+const chatRoutes = require("./src/routes/chatRoutes"); // NEW
 
-// Initialize Express App & HTTP Server
+// Express App
 const app = express();
 const server = http.createServer(app);
 
 const PORT = process.env.PORT || 5000;
 
-// 1. Setup Global Middleware
+// Global Middleware
 setupMiddleware(app);
 
-// 2. Health Check Endpoint
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
+// Health Check
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "OK",
+    database:
+      mongoose.connection.readyState === 1
+        ? "Connected"
+        : "Disconnected",
+    timestamp: new Date(),
   });
 });
 
-// 3. API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/tasks', taskRoutes);
-app.use('/api/notifications', notificationRoutes);
+// API Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/tasks", taskRoutes);
 app.use("/api/groups", groupRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/chat", chatRoutes); // NEW
 
-// 4. Initialize Socket.io
+// Initialize Socket.IO
 initSocket(server);
 
-// 5. Start Server
+// Start Server
 const startServer = async () => {
   try {
     await connectDB();
 
+    // Start Reminder Scheduler
     startScheduler();
 
     server.listen(PORT, () => {
-      console.log(`Server Running On Port ${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📡 Socket.IO initialized`);
+      console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
     });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error("Failed to start server:", error);
     process.exit(1);
   }
 };

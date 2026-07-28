@@ -180,7 +180,7 @@ const Auth = () => {
       <div className="w-full grid grid-cols-1 lg:grid-cols-12 min-h-screen items-stretch z-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 
         {/* LEFT SECTION: Authentication Form (Full width on mobile) */}
-        <div className="lg:col-span-6 p-6 sm:p-10 lg:p-16 flex flex-col justify-between bg-slate-900/40 backdrop-blur-md border-r-0 lg:border-r border-slate-800/80 min-h-screen lg:min-h-0 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="lg:col-span-6 p-6 sm:p-10 lg:p-16 flex flex-col justify-between bg-slate-950/40 backdrop-blur-md min-h-screen lg:min-h-0 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <div className="w-full max-w-md mx-auto mt-4 sm:mt-10 mb-auto">
 
             {/* Mobile Branding (Visible on mobile/tablet screens only) */}
