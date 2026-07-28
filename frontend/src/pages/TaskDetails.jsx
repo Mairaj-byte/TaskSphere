@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth, API_BASE } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
 import { 
   ArrowLeft, Calendar, User, MessageSquare, History, FileText, 
   Play, CheckCircle, XCircle, AlertCircle, ArrowUpCircle, Send
@@ -10,6 +11,7 @@ const TaskDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, token } = useAuth();
+  const { socket } = useSocket();
 
   // Task & Sub-states
   const [task, setTask] = useState(null);
@@ -61,6 +63,25 @@ const TaskDetails = () => {
   useEffect(() => {
     fetchTaskDetails();
   }, [id]);
+
+  useEffect(() => {
+    if (!socket) {
+      console.log("Socket not available");
+      return;}
+    console.log("Socket connected, listener registered");
+    const handleTaskUpdate = (data) => {
+      if (data.taskId === id) {
+        console.log("Fetching latest task...");
+        fetchTaskDetails();
+      }
+    };
+
+    socket.on('taskUpdated', handleTaskUpdate);
+
+    return () => {
+      socket.off('taskUpdated', handleTaskUpdate);
+    };
+  }, [socket, id]);
 
   const handleStatusChange = async (newStatus, feedback = '') => {
     setActionError('');

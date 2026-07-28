@@ -8,6 +8,7 @@ import {
 
 const Tasks = () => {
   const { user, token } = useAuth();
+  const { socket } = useSocket();
   const navigate = useNavigate();
 
   // Tasks & View State
@@ -108,6 +109,8 @@ const Tasks = () => {
       fetchUsers();
     }
   }, [user]);
+
+
 
   const resetForm = () => {
     setFormTitle('');
@@ -246,6 +249,7 @@ const Tasks = () => {
 
       const data = await res.json();
       if (res.ok) {
+        await fetchTasks();
         setIsModalOpen(false);
         fetchTasks();
         setToastMsg(modalMode === 'create' ? 'Task created successfully!' : 'Task updated successfully!');
