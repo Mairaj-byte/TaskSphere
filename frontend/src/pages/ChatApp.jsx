@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useChatApi } from '../services/chatApi';
 import {
     Send,
     MessageSquareText,
@@ -19,17 +20,17 @@ import {
 
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
-import {
-    getChatRooms,
+import { API_BASE } from "../context/AuthContext";
+
+const ChatApp = () => {
+
+    const { getChatRooms,
     getMessages,
     addMember,
     removeMember,
-    unpinMessage,
-} from "../services/chatApi";
+    unpinMessage, } = useChatApi();
 
-const API_BASE = "http://localhost:5000/api";
 
-const ChatApp = () => {
     const { user, token } = useAuth();
     const {
         pinMessage,
