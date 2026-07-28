@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { API_BASE, useAuth } from "../context/AuthContext";
+import KanbanBoard from "../components/KanbanBoard";
 
 const GroupDetails = () => {
   const { id } = useParams();
@@ -10,11 +11,13 @@ const GroupDetails = () => {
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState("");
+  const [view, setView] = useState("list");
 
   const [showMemberModal, setShowMemberModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  
 
   const [editForm, setEditForm] = useState({
     title: "",
@@ -315,63 +318,128 @@ const GroupDetails = () => {
       </div>
 
       {/* Project Tasks */}
-      <div className="rounded-2xl border border-gray-700 bg-slate-900 p-6">
-        <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white">Project Tasks</h2>
-          <button
-            onClick={() => setShowTaskModal(true)}
-            className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+<div className="rounded-2xl border border-gray-700 bg-slate-900 p-6">
+
+  <div className="mb-5 flex items-center justify-between">
+
+    <div className="flex gap-2">
+
+      <button
+        onClick={() => setView("list")}
+        className={`rounded-lg px-4 py-2 ${
+          view === "list"
+            ? "bg-indigo-600 text-white"
+            : "bg-slate-800 text-gray-300"
+        }`}
+      >
+        List
+      </button>
+
+      <button
+        onClick={() => setView("kanban")}
+        className={`rounded-lg px-4 py-2 ${
+          view === "kanban"
+            ? "bg-indigo-600 text-white"
+            : "bg-slate-800 text-gray-300"
+        }`}
+      >
+        Kanban
+      </button>
+
+    </div>
+
+    <button
+      onClick={() => setShowTaskModal(true)}
+      className="rounded-lg bg-green-600 px-4 py-2 text-white"
+    >
+      + New Task
+    </button>
+
+  </div>
+
+  {view === "list" ? (
+
+    tasks.length === 0 ? (
+
+      <p className="text-gray-400">No Tasks Found</p>
+
+    ) : (
+
+      <div className="space-y-3">
+
+        {tasks.map((task) => (
+
+          <div
+            key={task._id}
+            className="rounded-xl border border-gray-700 p-4"
           >
-            + New Task
-          </button>
-        </div>
 
-        {tasks.length === 0 ? (
-          <p className="text-gray-400">No Tasks Found</p>
-        ) : (
-          <div className="space-y-3">
-            {tasks.map((task) => (
-              <div key={task._id} className="rounded-xl border border-gray-700 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-white">{task.title}</h3>
-                    <span className="text-xs text-gray-400">{task.status}</span>
-                  </div>
+            <div className="flex items-center justify-between">
 
-                  <button
-                    onClick={() => openEditModal(task)}
-                    className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
-                  >
-                    Edit
-                  </button>
-                </div>
+              <div>
 
-                <div className="mt-3">
-                  <p className="text-sm text-gray-400">
-                    {task.description || "No description"}
-                  </p>
+                <h3 className="font-semibold text-white">
+                  {task.title}
+                </h3>
 
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <span className="rounded-full bg-indigo-600 px-3 py-1 text-xs text-white">
-                      {task.priority}
-                    </span>
+                <span className="text-xs text-gray-400">
+                  {task.status}
+                </span>
 
-                    <span className="rounded-full bg-slate-700 px-3 py-1 text-xs text-white">
-                      Due: {new Date(task.dueDate).toLocaleDateString()}
-                    </span>
-
-                    {task.assignedTo?.length > 0 && (
-                      <span className="rounded-full bg-green-700 px-3 py-1 text-xs text-white">
-                        {task.assignedTo.map((user) => user.name).join(", ")}
-                      </span>
-                    )}
-                  </div>
-                </div>
               </div>
-            ))}
+
+              <button
+                onClick={() => openEditModal(task)}
+                className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
+              >
+                Edit
+              </button>
+
+            </div>
+
+            <div className="mt-3">
+
+              <p className="text-sm text-gray-400">
+                {task.description || "No description"}
+              </p>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+
+                <span className="rounded-full bg-indigo-600 px-3 py-1 text-xs text-white">
+                  {task.priority}
+                </span>
+
+                <span className="rounded-full bg-slate-700 px-3 py-1 text-xs text-white">
+                  Due: {new Date(task.dueDate).toLocaleDateString()}
+                </span>
+
+                {task.assignedTo?.length > 0 && (
+
+                  <span className="rounded-full bg-green-700 px-3 py-1 text-xs text-white">
+                    {task.assignedTo.map((user) => user.name).join(", ")}
+                  </span>
+
+                )}
+
+              </div>
+
+            </div>
+
           </div>
-        )}
+
+        ))}
+
       </div>
+
+    )
+
+  ) : (
+
+    <KanbanBoard tasks={tasks} />
+
+  )}
+
+</div>
 
       {/* Add Member Modal */}
       {showMemberModal && (
