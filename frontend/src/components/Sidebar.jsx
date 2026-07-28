@@ -4,19 +4,24 @@ import {
   LayoutDashboard,
   CheckSquare,
   ChevronRight,
+  UserCircle,
   UsersRound,
   LogOut,
   Search,
   Clock,
+  FolderKanban,
   Layers,
-  User,
-  MessageSquare
-} from 'lucide-react';
-import { useAuth, API_BASE } from '../context/AuthContext';
+  MessageSquare // <--- ADDED THIS IMPORT
+} from "lucide-react";
+import { API_BASE, useAuth } from "../context/AuthContext";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { user, logout, token } = useAuth();
   const navigate = useNavigate();
+  const [stats, setStats] = React.useState({
+    dashboard: 0,
+    tasks: 0,
+  });
 
   const handleCronTrigger = async () => {
     try {
@@ -42,6 +47,40 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       toggleSidebar();
     }
   };
+
+  React.useEffect(() => {
+    const fetchSidebarStats = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/tasks/sidebar-stats`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        setStats({
+          dashboard: data.dashboardCount || 0,
+          tasks: data.taskCount || 0,
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    if (token) {
+      fetchSidebarStats();
+    }
+  }, [token]);
+
+  // Cleaned up profile photo URL resolution
+  const profilePhotoUrl = user?.profilePhoto
+    ? (user.profilePhoto.startsWith('http') 
+        ? user.profilePhoto 
+        : `${API_BASE.replace(/\/api$/, '')}${user.profilePhoto}`)
+    : null;
 
   return (
     <aside className="flex h-screen w-full flex-col border-r border-white/10 bg-[#0a0f1e]/95 p-5 text-gray-200 backdrop-blur-xl overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
@@ -115,9 +154,24 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             <div className="flex w-full items-center justify-between">
               <span>Dashboard</span>
               <span className="rounded-full bg-indigo-500 px-2 py-0.5 text-[10px] font-semibold text-white">
-                4
+                {stats.dashboard}
               </span>
             </div>
+          </NavLink>
+
+          <NavLink
+            to="/chat"
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
+                isActive
+                  ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
+                  : 'text-gray-400 hover:bg-white/10 hover:translate-x-1 hover:text-white'
+              }`
+            }
+          >
+            <MessageSquare size={19} />
+            <span>Discussion</span>
           </NavLink>
 
           <NavLink
@@ -131,8 +185,23 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               }`
             }
           >
-            <User size={19} />
+            <UserCircle size={18} />
             <span>My Profile</span>
+          </NavLink>
+
+          <NavLink
+            to="/groups"
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
+                isActive
+                  ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
+                  : 'text-gray-400 hover:bg-white/10 hover:text-white hover:translate-x-1'
+              }`
+            }
+          >
+            <FolderKanban size={18} />
+            <span>Projects</span>
           </NavLink>
 
           <NavLink
@@ -150,7 +219,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             <div className="flex w-full items-center justify-between">
               <span>Tasks</span>
               <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-white">
-                12
+                {stats.tasks}
               </span>
             </div>
           </NavLink>
@@ -170,24 +239,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               <UsersRound size={18} />
               Manage Team
             </NavLink>
-
           )}
 
+          
 
-          <NavLink
-            to="/groupchat"
-            onClick={handleNavClick}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                isActive
-                  ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
-                  : 'text-gray-400 hover:bg-white/10 hover:translate-x-1 hover:text-white'
-              }`
-            }
-          >
-            <MessageSquare size={19} />
-            <span>Group Discussion</span>
-          </NavLink>
+
+          
         </nav>
       </div>
 
@@ -252,59 +309,56 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           onClick={() => navigate("/profile")}
           className="group flex w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 p-3 transition-all duration-300 hover:border-indigo-500 hover:bg-white/10 hover:shadow-lg hover:shadow-indigo-500/20"
         >
-          {/* Profile Picture & Fallback Handling */}
-          {user?.profilePhoto ? (
-            <img
-              src={
-                user.profilePhoto.startsWith('http')
-                  ? user.profilePhoto
-                  : `${API_BASE.replace(/\/api$/, '')}${user.profilePhoto}`
-              }
-              alt={user?.name || "User"}
-              className="h-14 w-14 rounded-full border-2 border-indigo-500 object-cover shadow-md"
-              onError={(e) => {
-                e.target.style.display = 'none';
-                if (e.target.nextSibling) {
-                  e.target.nextSibling.style.display = 'flex';
-                }
-              }}
-            />
-          ) : null}
+          <div className="flex items-center gap-3 min-w-0">
+            {profilePhotoUrl ? (
+              <img
+                src={profilePhotoUrl}
+                alt={user?.name || "User"}
+                className="h-14 w-14 rounded-full border-2 border-indigo-500 object-cover shadow-md"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  if (e.target.nextSibling) {
+                    e.target.nextSibling.style.display = 'flex';
+                  }
+                }}
+              />
+            ) : null}
 
-          <div
-            className={`flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-xl font-bold text-white shadow-md ${
-              user?.profilePhoto ? 'hidden' : 'flex'
-            }`}
-          >
-            {user?.name?.charAt(0).toUpperCase() || "U"}
-          </div>
+            <div
+              className={`h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-xl font-bold text-white shadow-md ${
+                profilePhotoUrl ? 'hidden' : 'flex'
+              }`}
+            >
+              {user?.name?.charAt(0).toUpperCase() || "U"}
+            </div>
 
-          {/* User Info */}
-          <div className="min-w-0 flex-1 text-left">
-            <h3 className="truncate text-sm font-bold text-white">
-              {user?.name}
-            </h3>
-            <p className="truncate text-xs text-indigo-300">
-              {user?.designationRole ||
-                (user?.role === "admin"
-                  ? "Administrator"
-                  : "Team Member")}
-            </p>
-            {user?.department && (
-              <p className="truncate text-[11px] text-gray-400">
-                {user.department}
+            {/* User Info */}
+            <div className="min-w-0 flex-1 text-left">
+              <h3 className="truncate text-sm font-bold text-white">
+                {user?.name}
+              </h3>
+              <p className="truncate text-xs text-indigo-300">
+                {user?.designationRole ||
+                  (user?.role === "admin"
+                    ? "Administrator"
+                    : "Team Member")}
               </p>
-            )}
-            {user?.employeeId && (
-              <p className="truncate text-[10px] text-gray-500">
-                ID: {user.employeeId}
-              </p>
-            )}
+              {user?.department && (
+                <p className="truncate text-[11px] text-gray-400">
+                  {user.department}
+                </p>
+              )}
+              {user?.employeeId && (
+                <p className="truncate text-[10px] text-gray-500">
+                  ID: {user.employeeId}
+                </p>
+              )}
+            </div>
           </div>
 
           <ChevronRight
             size={18}
-            className="text-gray-500 transition-transform duration-300 group-hover:translate-x-1"
+            className="text-gray-500 transition-transform duration-300 group-hover:translate-x-1 shrink-0"
           />
         </button>
 
