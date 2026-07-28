@@ -6,9 +6,13 @@ const AuditLog = require('../models/AuditLog');
 const User = require('../models/User');
 const { authenticate, requireRole } = require('../middleware/auth');
 const { logAction } = require('../utils/audit');
-const { sendInAppNotification, sendAdminNotification } = require('../utils/socket');
+const {
+  sendInAppNotification,
+  sendAdminNotification,
+  sendTaskUpdate
+} = require('../utils/socket');
 const { checkReminders } = require('../utils/reminders');
-
+const sendEmail = require('../utils/sendEmail');
 const router = express.Router();
 
 router.use(authenticate);
@@ -16,7 +20,7 @@ router.use(authenticate);
 // GET /api/tasks - Search, Filter, Sort tasks
 router.get('/', async (req, res) => {
   const { status, priority, dueDate, assignedTo, search, sortBy } = req.query;
-  
+
   const query = {};
 
   // Role-Based Filtering: Members only see tasks assigned to them
@@ -71,7 +75,7 @@ router.get('/', async (req, res) => {
       .populate('createdBy', '_id name email role')
       .populate('approvedBy', '_id name email role')
       .sort(sortOptions);
-      
+
     res.json(tasks);
   } catch (err) {
     res.status(500).json({ error: 'Internal Server Error' });
@@ -99,7 +103,7 @@ router.get('/:id', async (req, res) => {
       .populate('assignedTo', '_id name email role active')
       .populate('createdBy', '_id name email role')
       .populate('approvedBy', '_id name email role');
-      
+
     if (!task) {
       return res.status(404).json({ error: 'Task not found.' });
     }
@@ -150,8 +154,32 @@ router.post('/', requireRole('admin'), async (req, res) => {
         message: `You have been assigned to a new task: "${task.title}".`,
         type: 'assignment'
       });
+
       await notification.save();
+
       sendInAppNotification(userId, notification);
+
+      sendTaskUpdate(userId, task._id);
+
+      const user = await User.findById(userId);
+
+      if (user?.email) {
+        await sendEmail(
+          user.email,
+          "New Task Assigned - TaskSphere",
+          `
+            <h2>Hello ${user.name},</h2>
+            <p>You have been assigned a new task.</p>
+
+            <p><strong>Task:</strong> ${task.title}</p>
+            <p><strong>Priority:</strong> ${task.priority}</p>
+            <p><strong>Due Date:</strong> ${new Date(task.dueDate).toLocaleString()}</p>
+
+            <br/>
+            <p>Please login to TaskSphere to view the task.</p>
+          `
+        );
+      }
     }
 
     const populatedTask = await Task.findById(task._id)
@@ -203,39 +231,137 @@ router.put('/:id', requireRole('admin'), async (req, res) => {
     // Check for newly assigned members to send notifications
     const newAssigned = task.assignedTo.map(id => id.toString());
     const newlyAdded = newAssigned.filter(id => !oldAssigned.includes(id));
-    
+
     if (newlyAdded.length > 0) {
-      await logAction({ taskId, userId: req.user._id, action: 'Assignees Updated', newValue: `${newlyAdded.length} new members added` });
+      await logAction({
+        taskId,
+        userId: req.user._id,
+        action: 'Assignees Updated',
+        newValue: `${newlyAdded.length} new members added`
+      });
       for (const userId of newlyAdded) {
         const notification = new Notification({
           userId,
+          taskId: task._id,
           message: `You have been assigned to task: "${task.title}".`,
           type: 'assignment'
         });
         await notification.save();
         sendInAppNotification(userId, notification);
+        sendTaskUpdate(userId, task._id);
+
+        // Email to newly assigned user
+        const user = await User.findById(userId);
+        if (user?.email) {
+          await sendEmail(
+            user.email,
+            "New Task Assigned - TaskSphere",
+            `
+        <div style="font-family:Arial,sans-serif;line-height:1.6;">
+          <h2 style="color:#2563eb;">New Task Assigned</h2>
+
+          <p>Hello <strong>${user.name}</strong>,</p>
+
+          <p>You have been assigned to a task.</p>
+
+          <table>
+            <tr>
+              <td><strong>Task:</strong></td>
+              <td>${task.title}</td>
+            </tr>
+
+            <tr>
+              <td><strong>Priority:</strong></td>
+              <td>${task.priority}</td>
+            </tr>
+
+            <tr>
+              <td><strong>Due Date:</strong></td>
+              <td>${new Date(task.dueDate).toLocaleDateString()}</td>
+            </tr>
+          </table>
+
+          <br>
+
+          <p>Please login to <strong>TaskSphere</strong> to view the task.</p>
+
+          <hr>
+
+          <p>Regards,<br><strong>TaskSphere Team</strong></p>
+        </div>
+        `
+          );
+        }
+
       }
     }
+      // Notify all assigned users about details update
+      for (const userId of task.assignedTo) {
+        // Don't duplicate if they were just newly added (they already got a notification)
+        if (newlyAdded.includes(userId.toString())) continue;
+        const notification = new Notification({
+          userId,
+          taskId: task._id,
+          message: `Task details updated: "${task.title}".`,
+          type: 'update'
+        });
+        await notification.save();
+        sendInAppNotification(userId, notification);
+        sendTaskUpdate(userId, task._id);
+        const user = await User.findById(userId);
+        if (user?.email) {
+          // 313
+          console.log("Sending update email to:", user.email);
+          await sendEmail(
+            user.email,
+            "Task Updated - TaskSphere",
+            `
+            <div style="font-family:Arial,sans-serif;line-height:1.6;">
+            <h2 style="color:#2563eb;">Task Updated</h2>
 
-    // Notify all assigned users about details update
-    for (const userId of task.assignedTo) {
-      // Don't duplicate if they were just newly added (they already got a notification)
-      if (newlyAdded.includes(userId.toString())) continue;
-      const notification = new Notification({
-        userId,
-        message: `Task details updated: "${task.title}".`,
-        type: 'update'
-      });
-      await notification.save();
-      sendInAppNotification(userId, notification);
-    }
+            <p>Hello <strong>${user.name}</strong>,</p>
 
-    const populatedTask = await Task.findById(task._id)
-      .populate('assignedTo', '_id name email role active')
-      .populate('createdBy', '_id name email role')
-      .populate('approvedBy', '_id name email role');
+            <p>The following task has been updated.</p>
 
-    res.json(populatedTask);
+            <table>
+              <tr>
+                <td><strong>Task:</strong></td>
+                <td>${task.title}</td>
+              </tr>
+
+              <tr>
+                <td><strong>Priority:</strong></td>
+                <td>${task.priority}</td>
+              </tr>
+
+              <tr>
+                <td><strong>Due Date:</strong></td>
+                <td>${new Date(task.dueDate).toLocaleDateString()}</td>
+              </tr>
+            </table>
+
+        <br>
+
+        <p>Please login to <strong>TaskSphere</strong> to check the latest updates.</p>
+
+        <hr>
+
+        <p>Regards,<br><strong>TaskSphere Team</strong></p>
+      </div>
+      `
+      );
+      console.log("Update email sent to:", user.email);
+        }
+
+      }
+
+      const populatedTask = await Task.findById(task._id)
+        .populate('assignedTo', '_id name email role active')
+        .populate('createdBy', '_id name email role')
+        .populate('approvedBy', '_id name email role');
+
+      res.json(populatedTask);
+    
   } catch (err) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
@@ -253,6 +379,7 @@ router.delete('/:id', requireRole('admin'), async (req, res) => {
     for (const userId of task.assignedTo) {
       const notification = new Notification({
         userId,
+        taskId: task._id,
         message: `Task "${task.title}" has been deleted by an administrator.`,
         type: 'update'
       });
@@ -347,33 +474,174 @@ router.patch('/:id/status', async (req, res) => {
       for (const admin of admins) {
         const notification = new Notification({
           userId: admin._id,
+          taskId: task._id,
           message: `${req.user.name} has submitted task "${task.title}" for approval.`,
           type: 'completed'
         });
         await notification.save();
         sendInAppNotification(admin._id, notification);
+        sendTaskUpdate(admin._id, task._id);
+        if (admin?.email) {
+          await sendEmail(
+            admin.email,
+            "📩 Task Submitted for Approval - TaskSphere",
+            `
+            <div style="font-family: Arial, sans-serif; line-height:1.6;">
+              <h2 style="color:#2563eb;">Task Submitted for Approval</h2>
+
+              <p>Hello <strong>${admin.name}</strong>,</p>
+
+              <p>A team member has submitted a task for your review.</p>
+
+              <table style="border-collapse: collapse;">
+                <tr>
+                  <td><strong>Task:</strong></td>
+                  <td>${task.title}</td>
+                </tr>
+                <tr>
+                  <td><strong>Submitted By:</strong></td>
+                  <td>${req.user.name}</td>
+                </tr>
+                <tr>
+                  <td><strong>Status:</strong></td>
+                  <td style="color:#f59e0b;"><b>Pending Approval ⏳</b></td>
+                </tr>
+              </table>
+
+              <br>
+
+              <p>Please log in to <strong>TaskSphere</strong> and review this task.</p>
+
+              <hr>
+
+              <p>
+                Regards,<br>
+                <strong>TaskSphere Team</strong>
+              </p>
+            </div>
+          `
+          );
+        }
       }
     } else if (status === 'Approved') {
       // Notify all assigned users
       for (const userId of task.assignedTo) {
         const notification = new Notification({
           userId,
+          taskId: task._id,
           message: `Your task "${task.title}" has been approved!`,
           type: 'approval'
         });
         await notification.save();
         sendInAppNotification(userId, notification);
+        sendTaskUpdate(userId, task._id);
+
+        const user = await User.findById(userId);
+
+        if (user?.email) {
+          await sendEmail(
+            user.email,
+            "🎉 Task Approved - TaskSphere",
+            `
+              <div style="font-family: Arial, sans-serif; line-height:1.6;">
+                <h2 style="color:#16a34a;">🎉 Congratulations, ${user.name}!</h2>
+
+                <p>Your task has been <strong>approved</strong> by the administrator.</p>
+
+                <table style="border-collapse: collapse;">
+                  <tr>
+                    <td><strong>Task:</strong></td>
+                    <td>${task.title}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Status:</strong></td>
+                    <td style="color:green;"><b>Approved ✅</b></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Approved By:</strong></td>
+                    <td>${req.user.name}</td>
+                  </tr>
+                </table>
+
+                <br>
+
+                <p>Great work! Keep up the excellent performance.</p>
+
+                <hr>
+
+                <p>
+                  Regards,<br>
+                  <strong>TaskSphere Team</strong>
+                </p>
+              </div>
+            `
+          );
+        }
       }
     } else if (status === 'Rejected') {
       // Notify all assigned users
       for (const userId of task.assignedTo) {
         const notification = new Notification({
           userId,
+          taskId: task._id,
           message: `Your task "${task.title}" has been rejected. Feedback: "${feedback}"`,
           type: 'rejection'
         });
         await notification.save();
         sendInAppNotification(userId, notification);
+        sendTaskUpdate(userId, task._id);
+
+        const user = await User.findById(userId);
+
+        if (user?.email) {
+          await sendEmail(
+            user.email,
+            "❌ Task Rejected - TaskSphere",
+            `
+              <div style="font-family: Arial, sans-serif; line-height:1.6;">
+                <h2 style="color:#dc2626;">Task Rejected</h2>
+
+                <p>Hello <strong>${user.name}</strong>,</p>
+
+                <p>Unfortunately, your submitted task has been <strong>rejected</strong> by the administrator.</p>
+
+                <table style="border-collapse: collapse;">
+                  <tr>
+                    <td><strong>Task:</strong></td>
+                    <td>${task.title}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Status:</strong></td>
+                    <td style="color:#dc2626;"><b>Rejected ❌</b></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Reviewed By:</strong></td>
+                    <td>${req.user.name}</td>
+                  </tr>
+                </table>
+
+                <br>
+
+                <p><strong>Feedback from Admin:</strong></p>
+
+                <div style="background:#f8f8f8;padding:12px;border-left:4px solid #dc2626;">
+                  ${feedback}
+                </div>
+
+                <br>
+
+                <p>Please review the feedback, make the necessary changes, and submit the task again.</p>
+
+                <hr>
+
+                <p>
+                  Regards,<br>
+                  <strong>TaskSphere Team</strong>
+                </p>
+              </div>
+            `
+          );
+        }
       }
     } else if (oldStatus === 'Overdue' && (status === 'To Do' || status === 'In Progress')) {
       // Task moved back from Overdue
@@ -387,7 +655,11 @@ router.patch('/:id/status', async (req, res) => {
 
     res.json(populatedTask);
   } catch (err) {
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("PATCH /tasks/:id/status ERROR:", err);
+    res.status(500).json({
+      error: err.message,
+      stack: process.env.NODE_ENV !== "production" ? err.stack : undefined,
+    });
   }
 });
 
@@ -459,6 +731,7 @@ router.post('/:id/comments', async (req, res) => {
         if (userId.toString() === req.user._id.toString()) continue;
         const notification = new Notification({
           userId,
+          taskId: task._id,
           message: `Admin ${req.user.name} commented on task "${task.title}".`,
           type: 'update'
         });
@@ -475,6 +748,7 @@ router.post('/:id/comments', async (req, res) => {
       for (const userId of notifyList) {
         const notification = new Notification({
           userId,
+          taskId: task._id,
           message: `${req.user.name} commented on task "${task.title}".`,
           type: 'update'
         });

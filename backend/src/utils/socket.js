@@ -62,9 +62,24 @@ const sendAdminNotification = (notification) => {
   io.to('admins').emit('notification', notification);
 };
 
+const sendTaskUpdate = (userId, taskId) => {
+  if (!io) return;
+
+  // Assigned user
+  io.to(userId.toString()).emit("taskUpdated", {
+    taskId,
+  });
+
+  // All admins
+  io.to("admins").emit("taskUpdated", {
+    taskId,
+  });
+};
+
 module.exports = {
   init,
   sendInAppNotification,
   sendAdminNotification,
+  sendTaskUpdate,
   getIo: () => io
 };

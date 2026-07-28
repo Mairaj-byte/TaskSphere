@@ -52,14 +52,18 @@ export const SocketProvider = ({ children }) => {
     });
 
     newSocket.on('notification', (notification) => {
-      // Prepend the new notification
+      // Add notification to the top of the list
       setNotifications(prev => [notification, ...prev]);
       setUnreadCount(prev => prev + 1);
 
-      // Trigger standard browser native push notification if allowed
-      if (Notification.permission === 'granted') {
-        new window.Notification("Task Management System", {
-          body: notification.message
+      // Show browser notification (if permission is granted)
+      if (
+        typeof window !== 'undefined' &&
+        'Notification' in window &&
+        window.Notification.permission === 'granted'
+      ) {
+        new window.Notification('Task Management System', {
+          body: notification.message,
         });
       }
     });

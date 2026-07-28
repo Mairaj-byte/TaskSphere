@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, API_BASE } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
 import { 
   Plus, Search, Filter, RefreshCw, Edit2, Trash2, Calendar, AlertCircle,
   LayoutGrid, List, X, Paperclip, UserCheck
@@ -8,6 +9,7 @@ import {
 
 const Tasks = () => {
   const { user, token } = useAuth();
+  const { socket } = useSocket();
   const navigate = useNavigate();
 
   // Tasks & View State
@@ -81,10 +83,27 @@ const Tasks = () => {
   }, [search, statusFilter, priorityFilter, dateFilter, sortBy]);
 
   useEffect(() => {
+    if (!socket) return;
+
+    const handleTaskUpdated = () => {
+      console.log("Task update received, refreshing task list...");
+      fetchTasks();
+    };
+
+    socket.on("taskUpdated", handleTaskUpdated);
+
+    return () => {
+      socket.off("taskUpdated", handleTaskUpdated);
+    };
+  }, [socket]);
+
+  useEffect(() => {
     if (user && user.role === 'admin') {
       fetchUsers();
     }
   }, [user]);
+
+
 
   const resetForm = () => {
     setFormTitle('');
@@ -170,8 +189,8 @@ const Tasks = () => {
 
       const data = await res.json();
       if (res.ok) {
+        await fetchTasks();
         setIsModalOpen(false);
-        fetchTasks();
       } else {
         setFormError(data.error || 'Operation failed');
       }
