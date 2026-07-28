@@ -288,6 +288,20 @@ const isUserOnline = (userId) => {
   return onlineUsers.has(userId.toString());
 };
 
+const sendTaskUpdate = (userId, taskId) => {
+  if (!io) return;
+
+  // Assigned user
+  io.to(userId.toString()).emit("taskUpdated", {
+    taskId,
+  });
+
+  // All admins
+  io.to("admins").emit("taskUpdated", {
+    taskId,
+  });
+};
+
 module.exports = {
   init,
   getIo: () => io,

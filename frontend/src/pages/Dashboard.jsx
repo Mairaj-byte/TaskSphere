@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast'; 
 
+// Dashboard
 const Dashboard = () => {
   const { user, token } = useAuth();
   const navigate = useNavigate();
