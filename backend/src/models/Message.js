@@ -6,17 +6,15 @@ const attachmentSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-
     fileUrl: {
       type: String,
       required: true,
+      trim: true,
     },
-
     fileType: {
       type: String,
       default: "",
     },
-
     fileSize: {
       type: Number,
       default: 0,
@@ -32,7 +30,6 @@ const readReceiptSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-
     readAt: {
       type: Date,
       default: Date.now,
@@ -47,12 +44,14 @@ const messageSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "ChatRoom",
       required: true,
+      index: true,
     },
 
     sender: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
 
     text: {
@@ -61,7 +60,10 @@ const messageSchema = new mongoose.Schema(
       default: "",
     },
 
-    attachments: [attachmentSchema],
+    attachments: {
+      type: [attachmentSchema],
+      default: [],
+    },
 
     mentions: [
       {
@@ -76,7 +78,10 @@ const messageSchema = new mongoose.Schema(
       default: null,
     },
 
-    readBy: [readReceiptSchema],
+    readBy: {
+      type: [readReceiptSchema],
+      default: [],
+    },
 
     edited: {
       type: Boolean,
@@ -108,9 +113,18 @@ const messageSchema = new mongoose.Schema(
   }
 );
 
-// Helpful indexes
+// Custom Validator: Prevent empty messages (must have text OR attachments)
+messageSchema.path("text").validate(function (value) {
+  // If deleted, bypass check
+  if (this.deleted) return true;
+  const hasText = value && value.trim().length > 0;
+  const hasAttachments = this.attachments && this.attachments.length > 0;
+  return hasText || hasAttachments;
+}, "Message cannot be empty. Must contain text or at least one attachment.");
+
+// Optimized Indexes
 messageSchema.index({ chatRoom: 1, createdAt: -1 });
-messageSchema.index({ sender: 1 });
-messageSchema.index({ mentions: 1 });
+messageSchema.index({ mentions: 1, chatRoom: 1 }); // Fast lookup for user @mentions per room
+messageSchema.index({ chatRoom: 1, pinned: 1 });   // Fast lookup for pinned messages per room
 
 module.exports = mongoose.model("Message", messageSchema);

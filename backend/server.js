@@ -63,9 +63,6 @@ const startServer = async () => {
     // Bound to "0.0.0.0" to allow network connections from mobile devices
     server.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📱 Local Network Access: http://192.168.1.26:${PORT}`);
-      console.log(`📡 Socket.IO initialized`);
-      console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
     });
   } catch (error) {
     console.error("Failed to start server:", error);

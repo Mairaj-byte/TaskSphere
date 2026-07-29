@@ -3,18 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth, API_BASE } from '../context/AuthContext';
 import {
   Plus, Search, Filter, RefreshCw, Edit2, Trash2, Calendar, AlertCircle,
-  LayoutGrid, List, X, Paperclip, CheckCircle2
+  LayoutGrid, List, X, Paperclip, CheckCircle2,
+  KanbanSquare, CalendarDays, GanttChartSquare, Mic
 } from 'lucide-react';
+import KanbanBoard from '../components/KanbanBoard';
+import CalendarView from '../components/CalendarView';
+import GanttChart from '../components/GanttChart';
+import VoiceTaskModal from '../components/VoiceTaskModal';
+import { useSocket } from "../context/SocketContext";
 
 const Tasks = () => {
   const { user, token } = useAuth();
+  const { socket } = useSocket();
   const navigate = useNavigate();
 
   // Tasks & View State
   const [tasks, setTasks] = useState([]);
   const [allTasks, setAllTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
+ const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list' | 'kanban' | 'calendar' | 'gantt'
 
   // Search & Filter State
   const [search, setSearch] = useState('');
@@ -25,6 +32,7 @@ const Tasks = () => {
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   const [usersList, setUsersList] = useState([]);
   const [modalMode, setModalMode] = useState('create'); // 'create' | 'edit'
   const [currentTaskId, setCurrentTaskId] = useState(null);
@@ -109,6 +117,8 @@ const Tasks = () => {
     }
   }, [user]);
 
+
+
   const resetForm = () => {
     setFormTitle('');
     setFormDesc('');
@@ -132,6 +142,27 @@ const Tasks = () => {
     resetForm();
     setModalMode('create');
     setIsModalOpen(true);
+  };
+
+  // Called by VoiceTaskModal once the transcript has been parsed on the backend.
+  // Pre-fills the normal create-task form so the person can review/edit
+  // before actually submitting — matches the "confirm before it's pushed" flow.
+  const handleVoiceParsed = (parsed) => {
+    resetForm();
+    setModalMode('create');
+    setFormTitle(parsed.title || '');
+    setFormPriority(parsed.priority || 'Medium');
+    if (parsed.dueDate) {
+      setFormDueDate(new Date(parsed.dueDate).toISOString().slice(0, 16));
+    }
+    if (parsed.assignedTo?.length) {
+      setFormAssignedTo(parsed.assignedTo);
+    }
+    setIsVoiceModalOpen(false);
+    setIsModalOpen(true);
+    if (parsed.warnings?.length) {
+      setToastMsg(parsed.warnings[0]);
+    }
   };
 
   const openEditModal = (task, e) => {
@@ -246,6 +277,7 @@ const Tasks = () => {
 
       const data = await res.json();
       if (res.ok) {
+        await fetchTasks();
         setIsModalOpen(false);
         fetchTasks();
         setToastMsg(modalMode === 'create' ? 'Task created successfully!' : 'Task updated successfully!');
@@ -335,13 +367,22 @@ const Tasks = () => {
           </p>
         </div>
         {['admin', 'manager'].includes(user?.role) && (
-          <button
-            onClick={openCreateModal}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          >
-            <Plus size={18} />
-            <span>Create Task</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsVoiceModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-800 text-slate-700 dark:text-slate-200 text-sm font-medium rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+              <Mic size={18} />
+              <span>Voice Task</span>
+            </button>
+            <button
+              onClick={openCreateModal}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+              <Plus size={18} />
+              <span>Create Task</span>
+            </button>
+          </div>
         )}
       </div>
 
@@ -386,6 +427,43 @@ const Tasks = () => {
               <List size={16} />
               <span className="hidden sm:inline">List</span>
             </button>
+           <button
+  onClick={() => setViewMode('kanban')}
+  className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${
+    viewMode === 'kanban'
+      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
+      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+  }`}
+  title="Kanban Board"
+>
+  <KanbanSquare size={16} />
+  <span className="hidden sm:inline">Kanban</span>
+</button>
+<button
+  onClick={() => setViewMode('calendar')}
+  className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${
+    viewMode === 'calendar'
+      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
+      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+  }`}
+  title="Calendar View"
+>
+  <CalendarDays size={16} />
+  <span className="hidden sm:inline">Calendar</span>
+</button>
+<button
+  onClick={() => setViewMode('gantt')}
+  className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${
+    viewMode === 'gantt'
+      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
+      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+  }`}
+  title="Gantt / Timeline View"
+>
+  <GanttChartSquare size={16} />
+  <span className="hidden sm:inline">Gantt</span>
+</button>
+          
           </div>
         </div>
 
@@ -479,7 +557,20 @@ const Tasks = () => {
             Try adjusting your search criteria or clear filters.
           </p>
         </div>
-      ) : viewMode === 'grid' ? (
+     ) : viewMode === 'kanban' ? (
+  <KanbanBoard
+    tasks={tasks}
+    user={user}
+    token={token}
+    navigate={navigate}
+    showToast={setToastMsg}
+    refreshTasks={fetchTasks}
+  />
+) : viewMode === 'calendar' ? (
+  <CalendarView tasks={tasks} navigate={navigate} />
+) : viewMode === 'gantt' ? (
+  <GanttChart tasks={tasks} navigate={navigate} />
+) : viewMode === 'grid' ? (
         /* GRID VIEW */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {tasks.map((task) => {
@@ -1011,6 +1102,13 @@ const Tasks = () => {
           </div>
         </div>
       )}
+
+      <VoiceTaskModal
+        open={isVoiceModalOpen}
+        onClose={() => setIsVoiceModalOpen(false)}
+        token={token}
+        onParsed={handleVoiceParsed}
+      />
     </div>
   );
 };

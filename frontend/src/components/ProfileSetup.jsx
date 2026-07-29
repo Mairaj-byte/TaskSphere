@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import axios from 'axios';
-import { API_BASE, useAuth } from "../context/AuthContext";
+import { API_BASE, useAuth } from '../context/AuthContext';
+import { Upload, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const ProfileSetup = ({ onCancel, onSuccess }) => {
- const { token, setUser } = useAuth(); // Extract authentication token
-
-
-const ProfileSetup = ({ onCancel, onSuccess }) => {
-  const { token } = useAuth();
-
-  const navigate = useNavigate(); // Add this inside your component
+  const { token, setUser } = useAuth();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -54,8 +53,6 @@ const ProfileSetup = ({ onCancel, onSuccess }) => {
     }
   };
 
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -64,62 +61,45 @@ const ProfileSetup = ({ onCancel, onSuccess }) => {
       Object.entries(formData).forEach(([key, val]) => data.append(key, val));
       if (selectedFile) data.append('profilePhoto', selectedFile);
 
-      const response = await axios.put(`${API_BASE}/users/profile`, data, {
-  headers: {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'multipart/form-data',
-  },
-});
-
-// Get the latest logged-in user
-const me = await axios.get(`${API_BASE}/auth/me`, {
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-});
-
-// Update the global AuthContext
-setUser(me.data.user);
-
-setMessage({
-  type: 'success',
-  text: 'Profile updated successfully!',
-});
-
-// Fetch the latest user details
-const meResponse = await axios.get(`${API_BASE}/auth/me`, {
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-});
-
-// Update AuthContext
-setUser(meResponse.data.user);
-
-setMessage({
-  type: 'success',
-  text: 'Profile updated successfully!',
-});
+      // Save the profile
       await axios.put(`${API_BASE}/users/profile`, data, {
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
-      // 1. Show the success toast
+      // Refresh the logged-in user in AuthContext
+      const me = await axios.get(`${API_BASE}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(me.data.user);
+
+      setMessage({ type: 'success', text: 'Profile updated successfully!' });
       toast.success('Profile Saved Successfully !!');
 
-      // 2. Redirect to /profile after a short delay (so the user sees the toast)
+      // Call onSuccess prop if provided
+      if (onSuccess) onSuccess();
+
+      // Redirect to /profile after a short delay so the user sees the toast
       setTimeout(() => {
         navigate('/profile');
       }, 2000);
-
     } catch (err) {
-      // Show error toast
       toast.error('Failed to update profile.');
+      setMessage({ type: 'error', text: 'Failed to update profile.' });
+    } finally {
       setLoading(false);
     }
   };
 
-  if (fetching) return <div className="p-10 flex items-center gap-3 text-slate-400"><Loader2 className="animate-spin" /> Loading...</div>;
+  if (fetching) {
+    return (
+      <div className="p-10 flex items-center gap-3 text-slate-400">
+        <Loader2 className="animate-spin" /> Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 p-6 md:p-8 max-w-4xl bg-slate-950">
@@ -137,15 +117,24 @@ setMessage({
               {previewUrl ? (
                 <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-slate-500"><Upload size={24} /></div>
+                <div className="w-full h-full flex items-center justify-center text-slate-500">
+                  <Upload size={24} />
+                </div>
               )}
             </div>
             <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition rounded-full cursor-pointer">
               <span className="text-xs font-bold text-white">Upload</span>
-              <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                setSelectedFile(e.target.files[0]);
-                setPreviewUrl(URL.createObjectURL(e.target.files[0]));
-              }} />
+              <input
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  setSelectedFile(file);
+                  setPreviewUrl(URL.createObjectURL(file));
+                }}
+              />
             </label>
           </div>
           <div>
@@ -154,15 +143,38 @@ setMessage({
           </div>
         </div>
 
-        {/* Professional Details Section */}
+        {/* Personal Identity Section */}
         <section className="grid md:grid-cols-2 gap-8">
           <div className="md:col-span-2">
             <h3 className="text-sm font-bold text-indigo-400 uppercase tracking-wider mb-6">Personal Identity</h3>
           </div>
-          <Input label="Full Name" name="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
-          <Input label="Employee ID" name="employeeId" value={formData.employeeId} onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })} />
-          <Input label="Date of Birth" type="date" name="dob" value={formData.dob} onChange={(e) => setFormData({ ...formData, dob: e.target.value })} />
-          <Select label="Gender" name="gender" value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value })} options={['Male', 'Female', 'Other', 'Prefer not to say']} />
+          <Input
+            label="Full Name"
+            name="name"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            required
+          />
+          <Input
+            label="Employee ID"
+            name="employeeId"
+            value={formData.employeeId}
+            onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
+          />
+          <Input
+            label="Date of Birth"
+            type="date"
+            name="dob"
+            value={formData.dob}
+            onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+          />
+          <Select
+            label="Gender"
+            name="gender"
+            value={formData.gender}
+            onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+            options={['Male', 'Female', 'Other', 'Prefer not to say']}
+          />
         </section>
 
         {/* Professional Details Section */}
@@ -170,9 +182,24 @@ setMessage({
           <div className="md:col-span-2">
             <h3 className="text-sm font-bold text-indigo-400 uppercase tracking-wider mb-6">Professional Details</h3>
           </div>
-          <Input label="Job Title" name="designationRole" value={formData.designationRole} onChange={(e) => setFormData({ ...formData, designationRole: e.target.value })} />
-          <Input label="Department" name="department" value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} />
-          <Input label="Work Location" name="workLocation" value={formData.workLocation} onChange={(e) => setFormData({ ...formData, workLocation: e.target.value })} />
+          <Input
+            label="Job Title"
+            name="designationRole"
+            value={formData.designationRole}
+            onChange={(e) => setFormData({ ...formData, designationRole: e.target.value })}
+          />
+          <Input
+            label="Department"
+            name="department"
+            value={formData.department}
+            onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+          />
+          <Input
+            label="Work Location"
+            name="workLocation"
+            value={formData.workLocation}
+            onChange={(e) => setFormData({ ...formData, workLocation: e.target.value })}
+          />
         </section>
 
         {/* Action Bar */}
@@ -183,8 +210,18 @@ setMessage({
             </span>
           )}
           <div className="flex gap-4 ml-auto">
-            <button type="button" onClick={onCancel} className="px-6 py-2.5 text-slate-400 hover:text-white font-medium transition">Cancel</button>
-            <button type="submit" disabled={loading} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition shadow-lg shadow-indigo-600/20">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-6 py-2.5 text-slate-400 hover:text-white font-medium transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition shadow-lg shadow-indigo-600/20"
+            >
               {loading ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
@@ -194,23 +231,44 @@ setMessage({
   );
 };
 
+ProfileSetup.propTypes = {
+  onCancel: PropTypes.func.isRequired,
+  onSuccess: PropTypes.func,
+};
+
 // Helper components for clean code
 const Input = ({ label, ...props }) => (
   <div className="space-y-1.5">
     <label className="text-xs font-semibold text-slate-400">{label}</label>
-    <input {...props} className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-indigo-500 outline-none transition" />
+    <input
+      {...props}
+      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-indigo-500 outline-none transition"
+    />
   </div>
 );
+
+Input.propTypes = {
+  label: PropTypes.string.isRequired,
+};
 
 const Select = ({ label, options, ...props }) => (
   <div className="space-y-1.5">
     <label className="text-xs font-semibold text-slate-400">{label}</label>
-    <select {...props} className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-indigo-500 outline-none transition">
+    <select
+      {...props}
+      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-indigo-500 outline-none transition"
+    >
       <option value="">Select...</option>
-      {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+      {options.map((opt) => (
+        <option key={opt} value={opt}>{opt}</option>
+      ))}
     </select>
   </div>
 );
-}
+
+Select.propTypes = {
+  label: PropTypes.string.isRequired,
+  options: PropTypes.arrayOf(PropTypes.string).isRequired,
+};
 
 export default ProfileSetup;

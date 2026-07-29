@@ -1,6 +1,7 @@
 const ChatRoom = require("../models/ChatRoom");
 const User = require("../models/User");         // Make sure to import the User model
 const Message = require("../models/Message");
+const { getIo } = require("../utils/socket");
 
 const getChatRooms = async (req, res) => {
   try {
@@ -43,7 +44,7 @@ const createRoom = async (req, res) => {
       group: group || null,
       members,
       admins: [req.user._id],
-createdBy: req.user._id
+      createdBy: req.user._id
     });
 
     res.status(201).json({
@@ -443,8 +444,243 @@ const unpinMessage = async (req, res) => {
     });
   }
 };
+// Get all mentions for the logged-in user across all rooms
+const getUserMentions = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 20;
+    const skip = (page - 1) * limit;
+
+    const query = {
+      mentions: userId,
+      deleted: false,
+    };
+
+    const totalMentions = await Message.countDocuments(query);
+
+    const mentions = await Message.find(query)
+      .populate("sender", "name profilePhoto role")
+      .populate("mentions", "name email profilePhoto role")
+      .populate("chatRoom", "name type")
+      .populate({
+        path: "replyTo",
+        populate: { path: "sender", select: "name profilePhoto" },
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      success: true,
+      pagination: {
+        total: totalMentions,
+        page,
+        limit,
+        pages: Math.ceil(totalMentions / limit),
+      },
+      data: mentions,
+    });
+  } catch (error) {
+    console.error("Get User Mentions Error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch user mentions.",
+    });
+  }
+};
+
+// Get all mentioned messages within a specific room
+const getRoomMentions = async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 20;
+    const skip = (page - 1) * limit;
+
+    // Verify room exists & user is a member
+    const room = await ChatRoom.findOne({
+      _id: roomId,
+      members: req.user._id,
+      isActive: true,
+    });
+
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: "Chat room not found or access denied.",
+      });
+    }
+
+    const query = {
+      chatRoom: roomId,
+      deleted: false,
+      "mentions.0": { $exists: true }, // Find messages where mentions array is not empty
+    };
+
+    const totalMentions = await Message.countDocuments(query);
+
+    const mentions = await Message.find(query)
+      .populate("sender", "name profilePhoto role")
+      .populate("mentions", "name email profilePhoto role")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      success: true,
+      pagination: {
+        total: totalMentions,
+        page,
+        limit,
+        pages: Math.ceil(totalMentions / limit),
+      },
+      data: mentions,
+    });
+  } catch (error) {
+    console.error("Get Room Mentions Error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch room mentions.",
+    });
+  }
+};
+
+// Search members in a room or globally for @mention suggestions
+const searchMentionUsers = async (req, res) => {
+  try {
+    // 1. Read roomId and query from req.body (with fallback to req.query if needed)
+    const roomId = req.body.roomId || req.query.roomId;
+    const query = req.body.query || req.query.query;
+
+    // 2. Validate roomId
+    if (!roomId) {
+      return res.status(400).json({
+        success: false,
+        message: "roomId is required to search mention users.",
+      });
+    }
+
+    // 3. Find room and fetch member IDs
+    const room = await ChatRoom.findById(roomId).select("members");
+
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: "Chat room not found.",
+      });
+    }
+
+    // Build Mongoose search query restricted ONLY to room members
+    const searchQuery = {
+      _id: { $in: room.members },
+    };
+
+    // 4. Filter by search string (name or email) if query text is provided
+    if (query && query.trim()) {
+      searchQuery.$or = [
+        { name: { $regex: query.trim(), $options: "i" } },
+        { email: { $regex: query.trim(), $options: "i" } },
+      ];
+    }
+
+    // 5. Fetch up to 10 matching members
+    const users = await User.find(searchQuery)
+      .select("_id name email profilePhoto role")
+      .limit(10);
+
+    return res.status(200).json({
+      success: true,
+      data: users,
+    });
+  } catch (error) {
+    console.error("Search Mention Users Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to search users for mentions.",
+    });
+  }
+};
+
+// Send message with mentions
+const sendMessageWithMentions = async (req, res) => {
+  try {
+    const { chatRoom, text, attachments, mentions, replyTo } = req.body;
+
+    if (!chatRoom) {
+      return res.status(400).json({
+        success: false,
+        message: "chatRoom ID is required.",
+      });
+    }
+
+    // Sanitize and deduplicate mentions array
+    const rawMentions = Array.isArray(mentions) ? mentions : [];
+    const uniqueMentions = Array.from(
+      new Set(rawMentions.map((id) => id.toString()))
+    );
+
+    // 1. Create message in database
+    const message = await Message.create({
+      chatRoom,
+      sender: req.user._id,
+      text: text || "",
+      attachments: attachments || [],
+      mentions: uniqueMentions,
+      replyTo: replyTo || null,
+    });
+
+    // 2. Update room's last message
+    await ChatRoom.findByIdAndUpdate(chatRoom, {
+      lastMessage: message._id,
+    });
+
+    // 3. Fully populate response
+    const populatedMessage = await Message.findById(message._id)
+      .populate("sender", "name profilePhoto role")
+      .populate("mentions", "name email profilePhoto role")
+      .populate({
+        path: "replyTo",
+        populate: { path: "sender", select: "name profilePhoto" },
+      });
+
+    // 4. Emit Socket events if `io` instance is bound to express app
+    const io = getIo();
+
+    if (io) {
+      io.to(chatRoom).emit("receive_message", populatedMessage);
+
+      uniqueMentions.forEach((mentionedUserId) => {
+        if (mentionedUserId !== req.user._id.toString()) {
+          io.to(mentionedUserId).emit("mentioned", {
+            message: populatedMessage,
+            senderName: req.user.name,
+          });
+        }
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "Message sent successfully.",
+      data: populatedMessage,
+    });
+  } catch (error) {
+    console.error("Send Message Error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to send message.",
+    });
+  }
+};
 
 module.exports = {
+  getRoomMentions,
+  getUserMentions,
   getChatRooms,
   createRoom,
   getMessages,
@@ -455,5 +691,7 @@ module.exports = {
   editMessage,
   deleteMessage,
   pinMessage,
-  unpinMessage
+  unpinMessage,
+  sendMessageWithMentions,
+  searchMentionUsers
 };

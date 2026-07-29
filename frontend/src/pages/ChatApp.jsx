@@ -24,11 +24,15 @@ import { API_BASE } from "../context/AuthContext";
 
 const ChatApp = () => {
 
-    const { getChatRooms,
-    getMessages,
-    addMember,
-    removeMember,
-    unpinMessage, } = useChatApi();
+    const {
+        getChatRooms,
+        getMessages,
+        addMember,
+        removeMember,
+        unpinMessage,
+        sendMessageWithMentions,
+        searchMentionUsers,
+    } = useChatApi();
 
 
     const { user, token } = useAuth();
@@ -38,7 +42,6 @@ const ChatApp = () => {
         setMessages,
         joinRoom,
         leaveRoom,
-        sendMessage,
         startTyping,
         stopTyping,
         editMessage,
@@ -51,6 +54,9 @@ const ChatApp = () => {
     const [rooms, setRooms] = useState([]);
     const [selectedRoom, setSelectedRoom] = useState(null);
     const [text, setText] = useState("");
+    const [mentionSuggestions, setMentionSuggestions] = useState([]);
+    const [mentionedUsers, setMentionedUsers] = useState([]);
+    const [showMentionBox, setShowMentionBox] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [editingText, setEditingText] = useState("");
     const [activePinnedIndex, setActivePinnedIndex] = useState(0);
@@ -156,17 +162,28 @@ const ChatApp = () => {
         }
     };
 
-    const handleSend = () => {
+    const handleSend = async () => {
         if (!text.trim()) return;
-        sendMessage({
-            chatRoom: selectedRoom._id,
-            text,
-            attachments: [],
-            mentions: [],
-            replyTo: null,
-        });
-        setText("");
-        stopTyping(selectedRoom._id);
+
+        try {
+            await sendMessageWithMentions({
+                chatRoom: selectedRoom._id,
+                text,
+                attachments: [],
+                mentions: mentionedUsers.map((u) => u._id),
+                replyTo: null,
+            });
+
+            setText("");
+            setMentionedUsers([]);
+            setMentionSuggestions([]);
+            setShowMentionBox(false);
+
+            stopTyping(selectedRoom._id);
+        } catch (err) {
+            console.error(err);
+            showToast("Failed to send message", "error");
+        }
     };
 
     const handleEdit = (msg) => {
@@ -202,13 +219,83 @@ const ChatApp = () => {
         }
     };
 
-    const handleTyping = (e) => {
-        setText(e.target.value);
+    const selectMention = (user) => {
+  setText((prev) =>
+    prev.replace(/@[a-zA-Z0-9_]*$/, `@${user.name} `)
+  );
+
+  setMentionedUsers((prev) => {
+    if (prev.some((u) => u._id === user._id)) return prev;
+    return [...prev, user];
+  });
+
+  setMentionSuggestions([]);
+  setShowMentionBox(false);
+};
+
+    const handleTyping = async (e) => {
+        const value = e.target.value;
+
+        setText(value);
+
         if (!selectedRoom) return;
-        e.target.value
-            ? startTyping(selectedRoom._id)
-            : stopTyping(selectedRoom._id);
+
+        if (value) {
+            startTyping(selectedRoom._id);
+        } else {
+            stopTyping(selectedRoom._id);
+        }
+
+        const match = value.match(/@([a-zA-Z0-9_]*)$/);
+
+        if (!match) {
+            setMentionSuggestions([]);
+            setShowMentionBox(false);
+            return;
+        }
+
+        try {
+            const res = await searchMentionUsers(
+                selectedRoom._id,
+                match[1]
+            );
+
+            if (res.success) {
+                setMentionSuggestions(res.data);
+                setShowMentionBox(true);
+            }
+        } catch (err) {
+            console.error(err);
+        }
     };
+
+    const renderMessage = (msg) => {
+  let parts = [msg.text];
+
+  msg.mentions?.forEach((mention) => {
+    parts = parts.flatMap((part) => {
+      if (typeof part !== "string") return [part];
+
+      const mentionText = `@${mention.name}`;
+
+      return part.split(mentionText).flatMap((segment, index, arr) => {
+        if (index === arr.length - 1) return [segment];
+
+        return [
+          segment,
+          <span
+            key={`${mention._id}-${index}`}
+            className="font-semibold text-indigo-300"
+          >
+            {mentionText}
+          </span>,
+        ];
+      });
+    });
+  });
+
+  return parts;
+};
 
     const formatTime = (date) =>
         new Date(date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -237,10 +324,10 @@ const ChatApp = () => {
             {toastMessage && (
                 <div
                     className={`fixed top-4 left-4 right-4 sm:left-auto sm:right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl border text-xs font-medium backdrop-blur-md transition-all duration-300 ${toastMessage.type === "error"
-                            ? "bg-rose-950/90 border-rose-800 text-rose-200"
-                            : toastMessage.type === "success"
-                                ? "bg-emerald-950/90 border-emerald-800 text-emerald-200"
-                                : "bg-slate-900/90 border-slate-700 text-slate-200"
+                        ? "bg-rose-950/90 border-rose-800 text-rose-200"
+                        : toastMessage.type === "success"
+                            ? "bg-emerald-950/90 border-emerald-800 text-emerald-200"
+                            : "bg-slate-900/90 border-slate-700 text-slate-200"
                         }`}
                 >
                     <AlertCircle size={16} className="shrink-0" />
@@ -653,8 +740,8 @@ const ChatApp = () => {
                                             {/* Bubble */}
                                             <div
                                                 className={`max-w-[88%] sm:max-w-[75%] lg:max-w-[70%] rounded-2xl p-3 sm:p-3.5 relative transition-all ${mine
-                                                        ? "bg-indigo-600 text-white rounded-br-xs shadow-md shadow-indigo-900/10"
-                                                        : "bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-xs"
+                                                    ? "bg-indigo-600 text-white rounded-br-xs shadow-md shadow-indigo-900/10"
+                                                    : "bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-xs"
                                                     }`}
                                             >
                                                 {/* Pinned Tag inside Bubble */}
@@ -697,8 +784,9 @@ const ChatApp = () => {
                                                         </div>
                                                     </div>
                                                 ) : (
+
                                                     <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
-                                                        {msg.text}
+                                                         {renderMessage(msg)}
                                                     </p>
                                                 )}
 
@@ -719,6 +807,39 @@ const ChatApp = () => {
                             )}
                             <div ref={bottomRef} />
                         </div>
+
+                        {/* Mention Model      */}
+                        {showMentionBox && mentionSuggestions.length > 0 && (
+                            <div className="mb-2 bg-slate-900 border border-slate-700 rounded-xl max-h-52 overflow-y-auto">
+                                {mentionSuggestions.map((user) => (
+                                    <button
+                                        key={user._id}
+                                        onClick={() => selectMention(user)}
+                                        className="w-full flex items-center gap-3 p-3 hover:bg-slate-800 text-left"
+                                    >
+                                        <img
+                                            src={
+                                                user.profilePhoto ||
+                                                `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                                    user.name
+                                                )}`
+                                            }
+                                            className="w-8 h-8 rounded-full"
+                                        />
+
+                                        <div>
+                                            <div className="text-sm text-white">
+                                                {user.name}
+                                            </div>
+
+                                            <div className="text-xs text-slate-400">
+                                                {user.email}
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
 
                         {/* Message Input Box */}
                         <footer className="p-2.5 sm:p-4 bg-slate-950 border-t border-slate-800 shrink-0">
