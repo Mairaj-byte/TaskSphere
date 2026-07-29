@@ -645,10 +645,6 @@ router.post('/test-cron', async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-
-=======
->>>>>>> ded4c195157095147088607afa6873fe066a09c2
 // GET /api/tasks/sidebar-stats
 router.get("/sidebar-stats", async (req, res) => {
   try {

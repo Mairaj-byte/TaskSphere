@@ -294,9 +294,5 @@ module.exports = {
   sendAdminNotification,
   getOnlineUsers,
   isUserOnline,
-<<<<<<< HEAD
+  // sendTaskUpdate,
 };
-=======
-  sendTaskUpdate,
-};
->>>>>>> ded4c195157095147088607afa6873fe066a09c2
