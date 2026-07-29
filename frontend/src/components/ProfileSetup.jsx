@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import axios from 'axios';
 import { API_BASE, useAuth } from '../context/AuthContext';
+import { Upload, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const ProfileSetup = ({ onCancel, onSuccess }) => {
-  const { token } = useAuth(); // Extract authentication token
+  const { token, setUser } = useAuth();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -22,20 +27,15 @@ const ProfileSetup = ({ onCancel, onSuccess }) => {
   const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
-    if (token) {
-      fetchCurrentProfile();
-    }
+    if (token) fetchCurrentProfile();
   }, [token]);
 
   const fetchCurrentProfile = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/users/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const res = await axios.get(`${API_BASE}/users/profile`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      const data = response.data;
-
+      const data = res.data;
       setFormData({
         name: data.name || '',
         employeeId: data.employeeId || '',
@@ -45,52 +45,23 @@ const ProfileSetup = ({ onCancel, onSuccess }) => {
         workLocation: data.workLocation || '',
         designationRole: data.designationRole || '',
       });
-
-      if (data.profilePhoto) {
-        setPreviewUrl(data.profilePhoto);
-      }
+      if (data.profilePhoto) setPreviewUrl(data.profilePhoto);
     } catch (err) {
-      setMessage({
-        type: 'error',
-        text: err.response?.data?.error || 'Failed to fetch existing profile details.',
-      });
+      setMessage({ type: 'error', text: 'Failed to load data.' });
     } finally {
       setFetching(false);
-    }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage({ type: '', text: '' });
-
     try {
       const data = new FormData();
-      data.append('name', formData.name);
-      data.append('employeeId', formData.employeeId);
-      data.append('dob', formData.dob);
-      data.append('gender', formData.gender);
-      data.append('department', formData.department);
-      data.append('workLocation', formData.workLocation);
-      data.append('designationRole', formData.designationRole);
+      Object.entries(formData).forEach(([key, val]) => data.append(key, val));
+      if (selectedFile) data.append('profilePhoto', selectedFile);
 
-      if (selectedFile) {
-        data.append('profilePhoto', selectedFile);
-      }
-
+      // Save the profile
       await axios.put(`${API_BASE}/users/profile`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -98,16 +69,25 @@ const ProfileSetup = ({ onCancel, onSuccess }) => {
         },
       });
 
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
-
-      if (onSuccess) {
-        setTimeout(() => onSuccess(), 1000);
-      }
-    } catch (err) {
-      setMessage({
-        type: 'error',
-        text: err.response?.data?.error || 'Failed to update profile.',
+      // Refresh the logged-in user in AuthContext
+      const me = await axios.get(`${API_BASE}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
+      setUser(me.data.user);
+
+      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      toast.success('Profile Saved Successfully !!');
+
+      // Call onSuccess prop if provided
+      if (onSuccess) onSuccess();
+
+      // Redirect to /profile after a short delay so the user sees the toast
+      setTimeout(() => {
+        navigate('/profile');
+      }, 2000);
+    } catch (err) {
+      toast.error('Failed to update profile.');
+      setMessage({ type: 'error', text: 'Failed to update profile.' });
     } finally {
       setLoading(false);
     }
@@ -115,198 +95,180 @@ const ProfileSetup = ({ onCancel, onSuccess }) => {
 
   if (fetching) {
     return (
-      <div className="flex justify-center items-center py-16">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
-        <span className="ml-3 text-slate-400 font-medium text-sm">Loading form...</span>
+      <div className="p-10 flex items-center gap-3 text-slate-400">
+        <Loader2 className="animate-spin" /> Loading...
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto my-8 px-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl p-6 sm:p-8">
-        <h2 className="text-2xl font-bold text-slate-100">Edit Profile</h2>
-        <p className="text-sm text-slate-400 mb-6">
-          Update your personal details and work preferences.
-        </p>
+    <div className="flex-1 p-6 md:p-8 max-w-4xl bg-slate-950">
+      {/* Page Header */}
+      <div className="mb-10">
+        <h1 className="text-2xl font-bold text-white mb-2">Edit Profile</h1>
+        <p className="text-slate-400">Keep your professional and personal information current.</p>
+      </div>
 
-        {message.text && (
-          <div
-            className={`p-4 rounded-xl mb-6 text-sm font-medium border ${
-              message.type === 'error'
-                ? 'bg-red-950/40 text-red-400 border-red-900/50'
-                : 'bg-emerald-950/40 text-emerald-400 border-emerald-900/50'
-            }`}
-          >
-            {message.text}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* File Upload Section */}
-          <div className="flex items-center gap-6">
-            <div className="relative w-20 h-20 rounded-full overflow-hidden bg-slate-800 border border-slate-700 flex-shrink-0">
+      <form onSubmit={handleSubmit} className="space-y-12">
+        {/* Profile Header (Avatar) */}
+        <div className="flex items-center gap-8 pb-8 border-b border-slate-800">
+          <div className="relative group">
+            <div className="w-24 h-24 rounded-lg bg-slate-800 border-2 border-dashed border-slate-600 overflow-hidden">
               {previewUrl ? (
-                <img
-                  src={previewUrl}
-                  alt="Profile preview"
-                  className="w-full h-full object-cover"
-                />
+                <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs text-center font-medium p-1">
-                  No Photo
+                <div className="w-full h-full flex items-center justify-center text-slate-500">
+                  <Upload size={24} />
                 </div>
               )}
             </div>
-
-            <div>
-              <label
-                htmlFor="profilePhoto"
-                className="inline-block px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold rounded-lg cursor-pointer transition"
-              >
-                Choose Photo
-              </label>
+            <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition rounded-full cursor-pointer">
+              <span className="text-xs font-bold text-white">Upload</span>
               <input
-                id="profilePhoto"
                 type="file"
-                accept="image/*"
-                onChange={handleFileChange}
                 className="hidden"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  setSelectedFile(file);
+                  setPreviewUrl(URL.createObjectURL(file));
+                }}
               />
-              <p className="text-xs text-slate-500 mt-1">
-                JPG, PNG, or WEBP (Max 5MB)
-              </p>
-            </div>
+            </label>
           </div>
-
-          {/* Form Fields Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Full Name <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3.5 py-2 text-sm bg-slate-950 text-slate-100 placeholder-slate-600 rounded-lg border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Employee ID
-              </label>
-              <input
-                type="text"
-                name="employeeId"
-                placeholder="e.g. EMP-101"
-                value={formData.employeeId}
-                onChange={handleInputChange}
-                className="w-full px-3.5 py-2 text-sm bg-slate-950 text-slate-100 placeholder-slate-600 rounded-lg border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Job Title / Designation
-              </label>
-              <input
-                type="text"
-                name="designationRole"
-                placeholder="e.g. Software Engineer"
-                value={formData.designationRole}
-                onChange={handleInputChange}
-                className="w-full px-3.5 py-2 text-sm bg-slate-950 text-slate-100 placeholder-slate-600 rounded-lg border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Department
-              </label>
-              <input
-                type="text"
-                name="department"
-                placeholder="e.g. Engineering"
-                value={formData.department}
-                onChange={handleInputChange}
-                className="w-full px-3.5 py-2 text-sm bg-slate-950 text-slate-100 placeholder-slate-600 rounded-lg border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Work Location
-              </label>
-              <input
-                type="text"
-                name="workLocation"
-                placeholder="e.g. Remote / Headquarters"
-                value={formData.workLocation}
-                onChange={handleInputChange}
-                className="w-full px-3.5 py-2 text-sm bg-slate-950 text-slate-100 placeholder-slate-600 rounded-lg border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Gender
-              </label>
-              <select
-                name="gender"
-                value={formData.gender}
-                onChange={handleInputChange}
-                className="w-full px-3.5 py-2 text-sm bg-slate-950 text-slate-100 rounded-lg border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-              >
-                <option value="" className="bg-slate-900 text-slate-400">Select Gender</option>
-                <option value="Male" className="bg-slate-900 text-slate-100">Male</option>
-                <option value="Female" className="bg-slate-900 text-slate-100">Female</option>
-                <option value="Other" className="bg-slate-900 text-slate-100">Other</option>
-                <option value="Prefer not to say" className="bg-slate-900 text-slate-100">Prefer not to say</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Date of Birth
-              </label>
-              <input
-                type="date"
-                name="dob"
-                value={formData.dob}
-                onChange={handleInputChange}
-                className="w-full px-3.5 py-2 text-sm bg-slate-950 text-slate-100 rounded-lg border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition [color-scheme:dark]"
-              />
-            </div>
+          <div>
+            <h3 className="font-bold text-white">Profile Photo</h3>
+            <p className="text-sm text-slate-400">Recommended: JPG or PNG, max 5MB.</p>
           </div>
+        </div>
 
-          {/* Action Buttons */}
-          <div className="pt-4 flex justify-end gap-3 border-t border-slate-800/80">
-            {onCancel && (
-              <button
-                type="button"
-                onClick={onCancel}
-                disabled={loading}
-                className="px-4 py-2 border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700/80 font-medium text-sm rounded-lg transition disabled:opacity-50"
-              >
-                Cancel
-              </button>
-            )}
+        {/* Personal Identity Section */}
+        <section className="grid md:grid-cols-2 gap-8">
+          <div className="md:col-span-2">
+            <h3 className="text-sm font-bold text-indigo-400 uppercase tracking-wider mb-6">Personal Identity</h3>
+          </div>
+          <Input
+            label="Full Name"
+            name="name"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            required
+          />
+          <Input
+            label="Employee ID"
+            name="employeeId"
+            value={formData.employeeId}
+            onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
+          />
+          <Input
+            label="Date of Birth"
+            type="date"
+            name="dob"
+            value={formData.dob}
+            onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+          />
+          <Select
+            label="Gender"
+            name="gender"
+            value={formData.gender}
+            onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+            options={['Male', 'Female', 'Other', 'Prefer not to say']}
+          />
+        </section>
+
+        {/* Professional Details Section */}
+        <section className="grid md:grid-cols-2 gap-8 border-t border-slate-800 pt-8">
+          <div className="md:col-span-2">
+            <h3 className="text-sm font-bold text-indigo-400 uppercase tracking-wider mb-6">Professional Details</h3>
+          </div>
+          <Input
+            label="Job Title"
+            name="designationRole"
+            value={formData.designationRole}
+            onChange={(e) => setFormData({ ...formData, designationRole: e.target.value })}
+          />
+          <Input
+            label="Department"
+            name="department"
+            value={formData.department}
+            onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+          />
+          <Input
+            label="Work Location"
+            name="workLocation"
+            value={formData.workLocation}
+            onChange={(e) => setFormData({ ...formData, workLocation: e.target.value })}
+          />
+        </section>
+
+        {/* Action Bar */}
+        <div className="flex items-center justify-between pt-8 border-t border-slate-800">
+          {message.text && (
+            <span className={`text-sm font-medium ${message.type === 'error' ? 'text-red-400' : 'text-emerald-400'}`}>
+              {message.text}
+            </span>
+          )}
+          <div className="flex gap-4 ml-auto">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-6 py-2.5 text-slate-400 hover:text-white font-medium transition"
+            >
+              Cancel
+            </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm rounded-lg transition shadow-md shadow-indigo-950/50 disabled:opacity-50"
+              className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition shadow-lg shadow-indigo-600/20"
             >
               {loading ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   );
+};
+
+ProfileSetup.propTypes = {
+  onCancel: PropTypes.func.isRequired,
+  onSuccess: PropTypes.func,
+};
+
+// Helper components for clean code
+const Input = ({ label, ...props }) => (
+  <div className="space-y-1.5">
+    <label className="text-xs font-semibold text-slate-400">{label}</label>
+    <input
+      {...props}
+      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-indigo-500 outline-none transition"
+    />
+  </div>
+);
+
+Input.propTypes = {
+  label: PropTypes.string.isRequired,
+};
+
+const Select = ({ label, options, ...props }) => (
+  <div className="space-y-1.5">
+    <label className="text-xs font-semibold text-slate-400">{label}</label>
+    <select
+      {...props}
+      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-indigo-500 outline-none transition"
+    >
+      <option value="">Select...</option>
+      {options.map((opt) => (
+        <option key={opt} value={opt}>{opt}</option>
+      ))}
+    </select>
+  </div>
+);
+
+Select.propTypes = {
+  label: PropTypes.string.isRequired,
+  options: PropTypes.arrayOf(PropTypes.string).isRequired,
 };
 
 export default ProfileSetup;

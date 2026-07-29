@@ -4,9 +4,11 @@ import { downloadReport } from "../utils/reportGenerator";
 import { useAuth, API_BASE } from '../context/AuthContext';
 import { 
   CheckSquare, Clock, AlertTriangle, Users, 
-  ArrowRight, MessageSquare, History, CheckCircle 
+  ArrowRight, MessageSquare, History, CheckCircle, Download
 } from 'lucide-react';
+import toast from 'react-hot-toast'; 
 
+// Dashboard
 const Dashboard = () => {
   const { user, token } = useAuth();
   const navigate = useNavigate();
@@ -15,6 +17,9 @@ const Dashboard = () => {
   const [users, setUsers] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Helper check for admin or manager role
+  const isAdminOrManager = user?.role === 'admin' || user?.role === 'manager';
 
   const fetchData = async () => {
     setLoading(true);
@@ -25,7 +30,8 @@ const Dashboard = () => {
       const tasksData = await tasksRes.json();
       setTasks(Array.isArray(tasksData) ? tasksData : []);
 
-      if (user.role === 'admin') {
+      // Updated to fetch extra data for managers as well
+      if (isAdminOrManager) {
         const usersRes = await fetch(`${API_BASE}/users`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -39,7 +45,7 @@ const Dashboard = () => {
         setAuditLogs(Array.isArray(logsData) ? logsData : []);
       }
     } catch (err) {
-      console.error('Error fetching dashboard data:', err);
+      toast.error(data.error || 'Failed to fetch dashboard data');
     } finally {
       setLoading(false);
     }
@@ -72,22 +78,22 @@ const Dashboard = () => {
   const getPercentage = (count) => (totalTasks === 0 ? 0 : Math.round((count / totalTasks) * 100));
 
   const handleDownloadReport = () => {
-  downloadReport({
-    generatedBy: user.name,
-    role: user.role,
+    downloadReport({
+      generatedBy: user.name,
+      role: user.role,
 
-    totalTasks,
-    approvedTasks,
-    pendingApprovals,
-    overdueTasks,
-    inProgressTasks,
-    todoTasks,
-    rejectedTasks,
+      totalTasks,
+      approvedTasks,
+      pendingApprovals,
+      overdueTasks,
+      inProgressTasks,
+      todoTasks,
+      rejectedTasks,
 
-    activeMembers,
-    totalMembers: users.length
-  });
-};
+      activeMembers,
+      totalMembers: users.length
+    });
+  };
 
   const formatLogAction = (log) => {
     const taskTitle = log.taskId ? log.taskId.title : 'Deleted Task';
@@ -101,8 +107,8 @@ const Dashboard = () => {
     }
   };
 
-  // ---------------- MANAGER DASHBOARD ----------------
-  if (user.role === 'admin') {
+  // ---------------- MANAGER / ADMIN DASHBOARD ----------------
+  if (isAdminOrManager) {
     const pendingTasksList = tasks.filter(t => t.status === 'Completed (Pending Approval)');
     const overdueTasksList = tasks.filter(t => t.status === 'Overdue');
 
@@ -111,26 +117,28 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="font-heading text-2xl font-bold text-white">Manager Dashboard</h2>
+            <h2 className="font-heading text-2xl font-bold text-white">
+              {user.role === 'admin' ? 'Admin Dashboard' : 'Manager Dashboard'}
+            </h2>
             <p className="text-sm text-gray-400">Welcome back, {user.name}. Here is your team's workflow status.</p>
           </div>
           <div className="flex gap-3">
 
-    <button
-        onClick={handleDownloadReport}
-        className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition"
-    >
-        Download Report
-    </button>
+            <button
+  onClick={handleDownloadReport}
+  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 font-medium text-sm transition-all duration-200 disabled:opacity-50"
+>
+  <Download size={18} />
+  Download Report
+</button>
 
-    <button
-        onClick={() => navigate('/tasks')}
-        className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition"
-    >
-        Create New Task
-    </button>
-
-</div>
+            <button
+              onClick={() => navigate('/tasks')}
+              className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition"
+            >
+              Create New Task
+            </button>
+          </div>
         </div>
 
         {/* Metrics Grid */}
@@ -315,22 +323,20 @@ const Dashboard = () => {
           <p className="text-sm text-gray-400">Hello, {user.name}. Here is a summary of your assigned tasks.</p>
         </div>
         <div className="flex gap-3">
+          <button
+            onClick={handleDownloadReport}
+            className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition"
+          >
+            Download Report
+          </button>
 
-    <button
-        onClick={handleDownloadReport}
-        className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition"
-    >
-        Download Report
-    </button>
-
-    <button
-        onClick={() => navigate('/tasks')}
-        className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition"
-    >
-        Go to Tasks Panel
-    </button>
-
-</div>
+          <button
+            onClick={() => navigate('/tasks')}
+            className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition"
+          >
+            Go to Tasks Panel
+          </button>
+        </div>
       </div>
 
       {/* Member Metrics Grid */}

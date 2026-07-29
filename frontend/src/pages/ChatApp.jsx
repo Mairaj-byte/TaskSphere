@@ -1,0 +1,876 @@
+import React, { useEffect, useRef, useState } from "react";
+import { useChatApi } from '../services/chatApi';
+import {
+    Send,
+    MessageSquareText,
+    Edit2,
+    Trash2,
+    UserPlus,
+    X,
+    Search,
+    Pin,
+    Users,
+    CheckCheck,
+    ChevronDown,
+    ChevronUp,
+    AlertCircle,
+    UserMinus,
+    Check,
+} from "lucide-react";
+
+import { useAuth } from "../context/AuthContext";
+import { useSocket } from "../context/SocketContext";
+import { API_BASE } from "../context/AuthContext";
+
+const ChatApp = () => {
+
+    const {
+        getChatRooms,
+        getMessages,
+        addMember,
+        removeMember,
+        unpinMessage,
+        sendMessageWithMentions,
+        searchMentionUsers,
+    } = useChatApi();
+
+
+    const { user, token } = useAuth();
+    const {
+        pinMessage,
+        messages,
+        setMessages,
+        joinRoom,
+        leaveRoom,
+        startTyping,
+        stopTyping,
+        editMessage,
+        deleteMessage,
+        onlineUsers = [],
+        typingUsers = [],
+    } = useSocket();
+
+    // UI States
+    const [rooms, setRooms] = useState([]);
+    const [selectedRoom, setSelectedRoom] = useState(null);
+    const [text, setText] = useState("");
+    const [mentionSuggestions, setMentionSuggestions] = useState([]);
+    const [mentionedUsers, setMentionedUsers] = useState([]);
+    const [showMentionBox, setShowMentionBox] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+    const [editingText, setEditingText] = useState("");
+    const [activePinnedIndex, setActivePinnedIndex] = useState(0);
+    const [showSidebarMobile, setShowSidebarMobile] = useState(false);
+
+    // Modal & Action Confirmation States
+    const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
+    const [userToDelete, setUserToDelete] = useState(null);
+    const [msgToDelete, setMsgToDelete] = useState(null);
+    const [usersList, setUsersList] = useState([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [toastMessage, setToastMessage] = useState(null);
+
+    const bottomRef = useRef(null);
+    const TARGET_ROOM_ID = "6a673c7413146dfc8952c40c";
+
+    // Toast helper
+    const showToast = (msg, type = "info") => {
+        setToastMessage({ msg, type });
+        setTimeout(() => setToastMessage(null), 3000);
+    };
+
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
+
+    useEffect(() => {
+        loadRooms();
+    }, []);
+
+    const loadRooms = async () => {
+        try {
+            const res = await getChatRooms();
+            const filteredData = (res.data || []).filter(
+                (room) => room._id === TARGET_ROOM_ID
+            );
+            setRooms(filteredData);
+            if (filteredData.length > 0) setSelectedRoom(filteredData[0]);
+        } catch (err) {
+            console.error(err);
+            showToast("Failed to load chat room", "error");
+        }
+    };
+
+    const handleRemoveMember = async () => {
+        if (!userToDelete) return;
+        try {
+            await removeMember(selectedRoom._id, userToDelete._id);
+            await loadRooms();
+            showToast(`${userToDelete.name} removed from room`, "success");
+        } catch (err) {
+            console.error(err);
+            showToast("Failed to remove member", "error");
+        } finally {
+            setUserToDelete(null);
+        }
+    };
+
+    const fetchUsers = async () => {
+        try {
+            const res = await fetch(`${API_BASE}/users`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const data = await res.json();
+            setUsersList(Array.isArray(data) ? data.filter((u) => u.active) : []);
+        } catch (err) {
+            console.error("Error fetching users:", err);
+            showToast("Could not load users", "error");
+        }
+    };
+
+    const handleOpenAddMember = () => {
+        fetchUsers();
+        setIsAddMemberOpen(true);
+    };
+
+    const handleAddMember = async (email) => {
+        if (!selectedRoom) return;
+        try {
+            await addMember(selectedRoom._id, email);
+            showToast("Member added successfully!", "success");
+            setIsAddMemberOpen(false);
+            loadRooms();
+        } catch (err) {
+            console.error(err);
+            showToast("Failed to add member.", "error");
+        }
+    };
+
+    useEffect(() => {
+        if (!selectedRoom) return;
+        loadMessages(selectedRoom._id);
+        joinRoom(selectedRoom._id);
+        return () => leaveRoom(selectedRoom._id);
+    }, [selectedRoom]);
+
+    const loadMessages = async (roomId) => {
+        try {
+            const res = await getMessages(roomId);
+            setMessages(res.data || []);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleSend = async () => {
+        if (!text.trim()) return;
+
+        try {
+            await sendMessageWithMentions({
+                chatRoom: selectedRoom._id,
+                text,
+                attachments: [],
+                mentions: mentionedUsers.map((u) => u._id),
+                replyTo: null,
+            });
+
+            setText("");
+            setMentionedUsers([]);
+            setMentionSuggestions([]);
+            setShowMentionBox(false);
+
+            stopTyping(selectedRoom._id);
+        } catch (err) {
+            console.error(err);
+            showToast("Failed to send message", "error");
+        }
+    };
+
+    const handleEdit = (msg) => {
+        setEditingId(msg._id);
+        setEditingText(msg.text);
+    };
+
+    const saveEdit = () => {
+        if (!editingText.trim()) return;
+        editMessage(editingId, editingText);
+        setEditingId(null);
+        setEditingText("");
+        showToast("Message updated", "info");
+    };
+
+    const confirmDeleteMessage = () => {
+        if (!msgToDelete) return;
+        deleteMessage(msgToDelete);
+        setMsgToDelete(null);
+        showToast("Message deleted", "info");
+    };
+
+    const handleUnpin = async (msgId) => {
+        try {
+            await unpinMessage(msgId);
+            setMessages((prev) =>
+                prev.map((m) => (m._id === msgId ? { ...m, pinned: false } : m))
+            );
+            showToast("Message unpinned", "info");
+        } catch (err) {
+            console.error(err);
+            showToast("Failed to unpin message", "error");
+        }
+    };
+
+    const selectMention = (user) => {
+  setText((prev) =>
+    prev.replace(/@[a-zA-Z0-9_]*$/, `@${user.name} `)
+  );
+
+  setMentionedUsers((prev) => {
+    if (prev.some((u) => u._id === user._id)) return prev;
+    return [...prev, user];
+  });
+
+  setMentionSuggestions([]);
+  setShowMentionBox(false);
+};
+
+    const handleTyping = async (e) => {
+        const value = e.target.value;
+
+        setText(value);
+
+        if (!selectedRoom) return;
+
+        if (value) {
+            startTyping(selectedRoom._id);
+        } else {
+            stopTyping(selectedRoom._id);
+        }
+
+        const match = value.match(/@([a-zA-Z0-9_]*)$/);
+
+        if (!match) {
+            setMentionSuggestions([]);
+            setShowMentionBox(false);
+            return;
+        }
+
+        try {
+            const res = await searchMentionUsers(
+                selectedRoom._id,
+                match[1]
+            );
+
+            if (res.success) {
+                setMentionSuggestions(res.data);
+                setShowMentionBox(true);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const renderMessage = (msg) => {
+  let parts = [msg.text];
+
+  msg.mentions?.forEach((mention) => {
+    parts = parts.flatMap((part) => {
+      if (typeof part !== "string") return [part];
+
+      const mentionText = `@${mention.name}`;
+
+      return part.split(mentionText).flatMap((segment, index, arr) => {
+        if (index === arr.length - 1) return [segment];
+
+        return [
+          segment,
+          <span
+            key={`${mention._id}-${index}`}
+            className="font-semibold text-indigo-300"
+          >
+            {mentionText}
+          </span>,
+        ];
+      });
+    });
+  });
+
+  return parts;
+};
+
+    const formatTime = (date) =>
+        new Date(date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+    const filteredUsers = usersList.filter(
+        (u) =>
+            u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            u.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const pinnedMessages = messages.filter((m) => m.pinned && !m.deleted);
+    const displayMessages = messages.filter((m) => !m.deleted);
+
+    const scrollToMessage = (msgId) => {
+        const el = document.getElementById(`msg-${msgId}`);
+        if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+            el.classList.add("ring-2", "ring-indigo-500", "transition-all");
+            setTimeout(() => el.classList.remove("ring-2", "ring-indigo-500"), 2000);
+        }
+    };
+
+    return (
+        <div className="relative flex w-full h-[100dvh] bg-slate-950 text-slate-100 font-sans overflow-hidden antialiased select-none sm:select-text">
+            {/* Toast Notification */}
+            {toastMessage && (
+                <div
+                    className={`fixed top-4 left-4 right-4 sm:left-auto sm:right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl border text-xs font-medium backdrop-blur-md transition-all duration-300 ${toastMessage.type === "error"
+                        ? "bg-rose-950/90 border-rose-800 text-rose-200"
+                        : toastMessage.type === "success"
+                            ? "bg-emerald-950/90 border-emerald-800 text-emerald-200"
+                            : "bg-slate-900/90 border-slate-700 text-slate-200"
+                        }`}
+                >
+                    <AlertCircle size={16} className="shrink-0" />
+                    <span className="truncate">{toastMessage.msg}</span>
+                </div>
+            )}
+
+            {/* Remove Member Modal */}
+            {userToDelete && (
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4 transition-all">
+                    <div className="bg-slate-900 border-t sm:border border-slate-800 rounded-t-2xl sm:rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95">
+                        <div className="flex items-center gap-3 text-rose-400">
+                            <div className="p-2.5 bg-rose-500/10 rounded-xl shrink-0">
+                                <UserMinus size={22} />
+                            </div>
+                            <h3 className="font-semibold text-slate-100 text-sm sm:text-base">Remove Member</h3>
+                        </div>
+                        <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                            Are you sure you want to remove{" "}
+                            <strong className="text-slate-200">{userToDelete.name}</strong> from this channel?
+                        </p>
+                        <div className="flex justify-end gap-2 pt-2">
+                            <button
+                                onClick={() => setUserToDelete(null)}
+                                className="flex-1 sm:flex-none px-4 py-2.5 text-xs font-medium text-slate-400 hover:bg-slate-800 active:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleRemoveMember}
+                                className="flex-1 sm:flex-none px-4 py-2.5 text-xs font-medium bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white rounded-xl transition-colors cursor-pointer"
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Message Modal */}
+            {msgToDelete && (
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4 transition-all">
+                    <div className="bg-slate-900 border-t sm:border border-slate-800 rounded-t-2xl sm:rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95">
+                        <div className="flex items-center gap-3 text-rose-400">
+                            <div className="p-2.5 bg-rose-500/10 rounded-xl shrink-0">
+                                <Trash2 size={22} />
+                            </div>
+                            <h3 className="font-semibold text-slate-100 text-sm sm:text-base">Delete Message</h3>
+                        </div>
+                        <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                            This message will be permanently removed for all members in this channel.
+                        </p>
+                        <div className="flex justify-end gap-2 pt-2">
+                            <button
+                                onClick={() => setMsgToDelete(null)}
+                                className="flex-1 sm:flex-none px-4 py-2.5 text-xs font-medium text-slate-400 hover:bg-slate-800 active:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDeleteMessage}
+                                className="flex-1 sm:flex-none px-4 py-2.5 text-xs font-medium bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white rounded-xl transition-colors cursor-pointer"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Member Modal */}
+            {isAddMemberOpen && (
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4">
+                    <div className="bg-slate-900 w-full max-w-md rounded-t-2xl sm:rounded-2xl border-t sm:border border-slate-800 shadow-2xl flex flex-col max-h-[85vh] sm:max-h-[80vh] overflow-hidden">
+                        <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 shrink-0">
+                            <h3 className="font-semibold text-sm sm:text-base">Add People to Channel</h3>
+                            <button
+                                onClick={() => setIsAddMemberOpen(false)}
+                                className="text-slate-400 hover:text-slate-200 hover:bg-slate-800 p-2 rounded-lg transition-colors cursor-pointer"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-4 border-b border-slate-800 bg-slate-950/40 shrink-0">
+                            <div className="flex items-center bg-slate-950 rounded-xl border border-slate-800 focus-within:border-indigo-500/80 px-3 transition-colors">
+                                <Search size={18} className="text-slate-500 shrink-0" />
+                                <input
+                                    autoFocus
+                                    placeholder="Search members by name or email..."
+                                    className="w-full bg-transparent px-3 py-3 outline-none text-xs sm:text-sm text-slate-200 placeholder:text-slate-600"
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-2 space-y-1 divide-y divide-slate-800/30">
+                            {filteredUsers.length === 0 ? (
+                                <div className="text-center py-8 text-xs sm:text-sm text-slate-500">
+                                    No active users found.
+                                </div>
+                            ) : (
+                                filteredUsers.map((u) => (
+                                    <button
+                                        key={u._id}
+                                        onClick={() => handleAddMember(u.email)}
+                                        className="w-full p-3 hover:bg-slate-800/60 active:bg-slate-800/80 rounded-xl flex items-center justify-between transition-all group text-left cursor-pointer"
+                                    >
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-9 h-9 rounded-full bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-xs font-bold shrink-0">
+                                                {u.name?.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <div className="text-xs sm:text-sm font-medium text-slate-200 group-hover:text-white truncate">
+                                                    {u.name}
+                                                </div>
+                                                <div className="text-[11px] sm:text-xs text-slate-500 truncate">
+                                                    {u.email}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="p-2 text-slate-400 group-hover:text-indigo-400 group-hover:bg-indigo-500/10 rounded-lg transition-colors shrink-0">
+                                            <UserPlus size={18} />
+                                        </div>
+                                    </button>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Sidebar Overlay for Mobile */}
+            {showSidebarMobile && (
+                <div
+                    onClick={() => setShowSidebarMobile(false)}
+                    className="fixed inset-0 bg-black/70 z-30 lg:hidden backdrop-blur-xs transition-opacity"
+                />
+            )}
+
+            {/* Sidebar: Channel Members Drawer */}
+            <aside
+                className={`fixed lg:relative z-40 lg:z-auto inset-y-0 left-0 w-full sm:w-80 lg:w-72 bg-slate-900 border-r border-slate-800 flex flex-col transition-transform duration-300 ease-in-out ${showSidebarMobile ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+                    }`}
+            >
+                <div className="h-16 px-4 sm:px-5 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-900/50">
+                    <div className="flex items-center gap-2.5">
+                        <Users size={18} className="text-indigo-400" />
+                        <span className="font-semibold text-xs tracking-wider uppercase text-slate-300">
+                            Channel Members
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700/50">
+                            {selectedRoom?.members?.length || 0}
+                        </span>
+                        {/* Mobile close button for sidebar */}
+                        <button
+                            onClick={() => setShowSidebarMobile(false)}
+                            className="lg:hidden p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg"
+                        >
+                            <X size={18} />
+                        </button>
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-3 space-y-1">
+                    {selectedRoom?.members?.map((member) => {
+                        const isOnline = onlineUsers.includes(member._id);
+                        return (
+                            <div
+                                key={member._id}
+                                className="flex items-center justify-between p-3 sm:p-2.5 rounded-xl hover:bg-slate-800/50 active:bg-slate-800/80 transition-colors group"
+                            >
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="relative shrink-0">
+                                        <img
+                                            src={
+                                                member.profilePhoto ||
+                                                `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                                    member.name
+                                                )}&background=1e1b4b&color=818cf8`
+                                            }
+                                            alt={member.name}
+                                            className="w-9 h-9 sm:w-8 sm:h-8 rounded-full object-cover border border-slate-700/60"
+                                        />
+                                        <div
+                                            className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-slate-900 ${isOnline ? "bg-emerald-500" : "bg-slate-600"
+                                                }`}
+                                        />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="text-xs sm:text-sm font-medium text-slate-200 truncate">
+                                            {member.name}
+                                        </div>
+                                        <div
+                                            className={`text-[10px] sm:text-[11px] ${isOnline ? "text-emerald-400/90" : "text-slate-500"
+                                                }`}
+                                        >
+                                            {isOnline ? "Online" : "Offline"}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => setUserToDelete(member)}
+                                    title="Remove from group"
+                                    className="opacity-100 lg:opacity-0 group-hover:opacity-100 p-2 sm:p-1.5 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 rounded-lg transition-all cursor-pointer"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
+                        );
+                    })}
+                </div>
+            </aside>
+
+            {/* Main Chat Area */}
+            <main className="flex flex-col flex-1 h-full bg-slate-950 relative min-w-0">
+                {!selectedRoom ? (
+                    <div className="flex-1 flex flex-col justify-center items-center text-slate-500 gap-3 p-4">
+                        <MessageSquareText
+                            size={48}
+                            className="stroke-[1.5] text-slate-700 animate-pulse"
+                        />
+                        <p className="text-xs sm:text-sm font-medium text-center">Connecting to workspace...</p>
+                    </div>
+                ) : (
+                    <>
+                        {/* Header */}
+                        <header className="h-16 border-b border-slate-800 px-3 sm:px-6 flex justify-between items-center bg-slate-900/40 backdrop-blur-md z-10 shrink-0">
+                            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                <button
+                                    onClick={() => setShowSidebarMobile(true)}
+                                    className="lg:hidden p-2 hover:bg-slate-800 active:bg-slate-800 rounded-xl text-slate-400 hover:text-slate-200 cursor-pointer shrink-0"
+                                    title="Open Channel Members"
+                                >
+                                    <Users size={20} />
+                                </button>
+                                <div className="min-w-0">
+                                    <h2 className="font-bold text-sm sm:text-base text-slate-100 truncate">
+                                        # {selectedRoom.name}
+                                    </h2>
+                                    <div className="text-[10px] sm:text-[11px] text-slate-500 truncate">
+                                        {selectedRoom.members?.length || 0} participants
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={handleOpenAddMember}
+                                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 sm:py-1.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl text-xs font-medium shadow-md shadow-indigo-600/20 transition-all active:scale-95 shrink-0 cursor-pointer"
+                            >
+                                <UserPlus size={16} />
+                                <span className="hidden sm:inline">Add Member</span>
+                            </button>
+                        </header>
+
+                        {/* Pinned Messages Banner */}
+                        {pinnedMessages.length > 0 && (
+                            <div className="bg-slate-900/90 backdrop-blur-md border-b border-indigo-500/20 px-3 sm:px-4 py-2 flex items-center justify-between gap-2 sm:gap-3 shadow-md z-10 shrink-0">
+                                <div
+                                    onClick={() =>
+                                        scrollToMessage(
+                                            pinnedMessages[activePinnedIndex % pinnedMessages.length]._id
+                                        )
+                                    }
+                                    className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer group"
+                                >
+                                    <div className="p-1.5 bg-indigo-500/10 text-indigo-400 rounded-lg shrink-0">
+                                        <Pin size={15} className="rotate-45" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">
+                                                Pinned ({pinnedMessages.length})
+                                            </span>
+                                        </div>
+                                        <div className="text-xs text-slate-300 truncate font-medium group-hover:text-white transition-colors">
+                                            <span className="text-slate-400 font-normal">
+                                                {
+                                                    pinnedMessages[
+                                                        activePinnedIndex % pinnedMessages.length
+                                                    ].sender?.name
+                                                }
+                                                :
+                                            </span>{" "}
+                                            {
+                                                pinnedMessages[
+                                                    activePinnedIndex % pinnedMessages.length
+                                                ].text
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-1 shrink-0">
+                                    {pinnedMessages.length > 1 && (
+                                        <div className="flex items-center border border-slate-800 rounded-lg bg-slate-950/50">
+                                            <button
+                                                onClick={() =>
+                                                    setActivePinnedIndex((prev) =>
+                                                        prev > 0 ? prev - 1 : pinnedMessages.length - 1
+                                                    )
+                                                }
+                                                className="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-l-lg transition-colors cursor-pointer"
+                                            >
+                                                <ChevronUp size={14} />
+                                            </button>
+                                            <button
+                                                onClick={() =>
+                                                    setActivePinnedIndex((prev) => prev + 1)
+                                                }
+                                                className="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-r-lg transition-colors cursor-pointer"
+                                            >
+                                                <ChevronDown size={14} />
+                                            </button>
+                                        </div>
+                                    )}
+                                    <button
+                                        onClick={() =>
+                                            handleUnpin(
+                                                pinnedMessages[
+                                                    activePinnedIndex % pinnedMessages.length
+                                                ]._id
+                                            )
+                                        }
+                                        title="Unpin message"
+                                        className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                                    >
+                                        <X size={15} />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Messages Scroll Container */}
+                        <div className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 space-y-4">
+                            {displayMessages.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-slate-600 space-y-2 p-4">
+                                    <MessageSquareText size={32} />
+                                    <p className="text-xs text-center">
+                                        No messages yet. Start the conversation!
+                                    </p>
+                                </div>
+                            ) : (
+                                displayMessages.map((msg, index) => {
+                                    const mine = msg.sender?._id === user?._id;
+                                    const showAvatar =
+                                        !mine &&
+                                        (index === 0 ||
+                                            displayMessages[index - 1]?.sender?._id !==
+                                            msg.sender?._id);
+
+                                    return (
+                                        <div
+                                            key={msg._id}
+                                            id={`msg-${msg._id}`}
+                                            className={`group relative flex items-end gap-2 sm:gap-2.5 ${mine ? "justify-end" : "justify-start"
+                                                }`}
+                                        >
+                                            {/* Avatar */}
+                                            {!mine && (
+                                                <div className="w-7 h-7 shrink-0">
+                                                    {showAvatar && (
+                                                        <img
+                                                            src={
+                                                                msg.sender?.profilePhoto ||
+                                                                `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                                                    msg.sender?.name || "U"
+                                                                )}&background=1e1b4b&color=818cf8`
+                                                            }
+                                                            alt={msg.sender?.name}
+                                                            className="w-7 h-7 rounded-full object-cover"
+                                                        />
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Floating Message Action Toolbar (Touch & Desktop friendly) */}
+                                            <div
+                                                className={`absolute -top-3.5 z-20 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity bg-slate-900 border border-slate-800 rounded-lg p-0.5 sm:p-1 flex items-center gap-0.5 sm:gap-1 shadow-lg ${mine ? "right-1 sm:right-2" : "left-8 sm:left-9"
+                                                    }`}
+                                            >
+                                                <button
+                                                    onClick={() => pinMessage(msg._id)}
+                                                    title="Pin message"
+                                                    className="p-1 sm:p-1 hover:bg-slate-800 text-slate-400 hover:text-indigo-400 rounded transition-colors cursor-pointer"
+                                                >
+                                                    <Pin size={13} className="rotate-45" />
+                                                </button>
+                                                {mine && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleEdit(msg)}
+                                                            title="Edit message"
+                                                            className="p-1 sm:p-1 hover:bg-slate-800 text-slate-400 hover:text-amber-400 rounded transition-colors cursor-pointer"
+                                                        >
+                                                            <Edit2 size={13} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setMsgToDelete(msg._id)}
+                                                            title="Delete message"
+                                                            className="p-1 sm:p-1 hover:bg-slate-800 text-slate-400 hover:text-rose-400 rounded transition-colors cursor-pointer"
+                                                        >
+                                                            <Trash2 size={13} />
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </div>
+
+                                            {/* Bubble */}
+                                            <div
+                                                className={`max-w-[88%] sm:max-w-[75%] lg:max-w-[70%] rounded-2xl p-3 sm:p-3.5 relative transition-all ${mine
+                                                    ? "bg-indigo-600 text-white rounded-br-xs shadow-md shadow-indigo-900/10"
+                                                    : "bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-xs"
+                                                    }`}
+                                            >
+                                                {/* Pinned Tag inside Bubble */}
+                                                {msg.pinned && (
+                                                    <div className="flex items-center gap-1 text-[10px] text-amber-400 font-medium mb-1">
+                                                        <Pin size={11} className="rotate-45 fill-amber-400" />
+                                                        <span>Pinned</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Sender Name */}
+                                                {!mine && showAvatar && (
+                                                    <div className="text-[11px] font-semibold text-indigo-400 mb-1">
+                                                        {msg.sender?.name}
+                                                    </div>
+                                                )}
+
+                                                {/* Text Content / Edit Field */}
+                                                {editingId === msg._id ? (
+                                                    <div className="space-y-2 mt-1">
+                                                        <textarea
+                                                            value={editingText}
+                                                            onChange={(e) => setEditingText(e.target.value)}
+                                                            className="w-full bg-slate-950/80 border border-indigo-400/50 rounded-lg p-2 text-xs text-white outline-none resize-none"
+                                                            rows={2}
+                                                        />
+                                                        <div className="flex justify-end gap-1.5">
+                                                            <button
+                                                                onClick={() => setEditingId(null)}
+                                                                className="px-2.5 py-1 text-[10px] bg-slate-800 text-slate-300 rounded-md hover:bg-slate-700 cursor-pointer"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                            <button
+                                                                onClick={saveEdit}
+                                                                className="px-2.5 py-1 text-[10px] bg-indigo-500 text-white rounded-md hover:bg-indigo-400 cursor-pointer"
+                                                            >
+                                                                Save
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+
+                                                    <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
+                                                         {renderMessage(msg)}
+                                                    </p>
+                                                )}
+
+                                                {/* Timestamp & Read Status */}
+                                                <div
+                                                    className={`flex items-center justify-end gap-1 text-[10px] mt-1.5 ${mine ? "text-indigo-200/80" : "text-slate-500"
+                                                        }`}
+                                                >
+                                                    <span>{formatTime(msg.createdAt)}</span>
+                                                    {mine && (
+                                                        <CheckCheck size={13} className="text-indigo-300" />
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                            <div ref={bottomRef} />
+                        </div>
+
+                        {/* Mention Model      */}
+                        {showMentionBox && mentionSuggestions.length > 0 && (
+                            <div className="mb-2 bg-slate-900 border border-slate-700 rounded-xl max-h-52 overflow-y-auto">
+                                {mentionSuggestions.map((user) => (
+                                    <button
+                                        key={user._id}
+                                        onClick={() => selectMention(user)}
+                                        className="w-full flex items-center gap-3 p-3 hover:bg-slate-800 text-left"
+                                    >
+                                        <img
+                                            src={
+                                                user.profilePhoto ||
+                                                `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                                    user.name
+                                                )}`
+                                            }
+                                            className="w-8 h-8 rounded-full"
+                                        />
+
+                                        <div>
+                                            <div className="text-sm text-white">
+                                                {user.name}
+                                            </div>
+
+                                            <div className="text-xs text-slate-400">
+                                                {user.email}
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Message Input Box */}
+                        <footer className="p-2.5 sm:p-4 bg-slate-950 border-t border-slate-800 shrink-0">
+                            {typingUsers.length > 0 && (
+                                <div className="text-[10px] sm:text-[11px] text-indigo-400 mb-1.5 italic">
+                                    Someone is typing...
+                                </div>
+                            )}
+                            <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-900 border border-slate-800 focus-within:border-indigo-500/80 rounded-2xl p-1.5 sm:p-2 transition-all shadow-inner">
+                                <input
+                                    type="text"
+                                    value={text}
+                                    onChange={handleTyping}
+                                    onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                                    placeholder={`Message #${selectedRoom?.name || "room"}...`}
+                                    className="flex-1 bg-transparent px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm text-slate-200 outline-none placeholder:text-slate-600"
+                                />
+                                <button
+                                    onClick={handleSend}
+                                    disabled={!text.trim()}
+                                    className="p-2.5 sm:p-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 text-white rounded-xl transition-all cursor-pointer shadow-md shadow-indigo-600/20 active:scale-95 shrink-0"
+                                >
+                                    <Send size={16} />
+                                </button>
+                            </div>
+                        </footer>
+                    </>
+                )}
+            </main>
+        </div>
+    );
+};
+
+export default ChatApp;

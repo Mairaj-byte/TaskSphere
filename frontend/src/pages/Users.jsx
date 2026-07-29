@@ -1,23 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth, API_BASE } from '../context/AuthContext';
-import { 
-  Plus, 
-  Edit2, 
-  ShieldAlert, 
-  UserPlus, 
-  Shield, 
-  User, 
-  Power, 
+import {
+  Plus,
+  Edit2,
+  ShieldAlert,
+  UserPlus,
+  Shield,
+  User,
+  Power,
   AlertCircle,
   X,
-  Loader2
+  Loader2,
+  Upload
 } from 'lucide-react';
+import toast from 'react-hot-toast'; 
 
 const Users = () => {
   const { user, token } = useAuth();
-  
+  const fileInputRef = useRef(null); // Ref for file input
+
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false); // New loading state for import
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,8 +37,48 @@ const Users = () => {
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+
+  
+
+// --- CSV IMPORT LOGIC ---
+const handleCsvUpload = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  setImporting(true);
+  const formData = new FormData();
+  formData.append('csvFile', file);
+
+  try {
+    const res = await fetch(`${API_BASE}/users/bulk-import`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    const data = await res.json();
+    
+    if (res.ok) {
+      // ✅ SUCCESS TOAST
+      toast.success(data.message || 'Import successful!');
+      fetchUsers(); // Refresh list
+    } else {
+      // ✅ ERROR TOAST
+      toast.error(data.error || 'Import failed.');
+    }
+  } catch (err) {
+    // ✅ ERROR TOAST
+    toast.error('Network error during import.');
+  } finally {
+    setImporting(false);
+    e.target.value = ''; // Reset input
+  }
+};
+
+  
   const fetchUsers = async () => {
-    setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/users`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -41,14 +86,15 @@ const Users = () => {
       const data = await res.json();
       setUsers(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Error fetching users:', err);
+      toast.error('Failed to load users.');
     } finally {
       setLoading(false);
     }
   };
 
+  // ✅ CORRECT LOGIC
   useEffect(() => {
-    if (user && user.role === 'admin') {
+    if (user && ['admin', 'manager'].includes(user.role)) {
       fetchUsers();
     }
   }, [user]);
@@ -73,62 +119,55 @@ const Users = () => {
     setCurrentUserId(targetUser._id);
     setFormName(targetUser.name);
     setFormEmail(targetUser.email);
-    setFormRole(targetUser.role);
+    setFormRole(targetUser.role || 'member');
     setFormPassword(''); // blank for optional change
     setIsModalOpen(true);
   };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    setFormError('');
 
-    if (!formName.trim()) return setFormError('Name is required');
-    if (!formEmail.trim()) return setFormError('Email is required');
-    if (modalMode === 'create' && !formPassword) return setFormError('Password is required');
+    if (!formName.trim() || !formEmail.trim()) {
+      toast.error('Name and Email are required.');
+      return;
+    }
+    if (modalMode === 'create' && !formPassword) {
+      toast.error('Password is required for new users.');
+      return;
+    }
 
     setSubmitting(true);
-
     const payload = {
       name: formName.trim(),
       email: formEmail.trim().toLowerCase(),
       role: formRole
     };
-
-    if (formPassword) {
-      payload.password = formPassword;
-    }
+    if (formPassword) payload.password = formPassword;
 
     try {
-      let res;
-      if (modalMode === 'create') {
-        res = await fetch(`${API_BASE}/users`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(payload)
-        });
-      } else {
-        res = await fetch(`${API_BASE}/users/${currentUserId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(payload)
-        });
-      }
+      const url = modalMode === 'create' 
+        ? `${API_BASE}/users` 
+        : `${API_BASE}/users/${currentUserId}`;
+        
+      const res = await fetch(url, {
+        method: modalMode === 'create' ? 'POST' : 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
 
       const data = await res.json();
       if (res.ok) {
+        toast.success(modalMode === 'create' ? 'User created successfully!' : 'User updated successfully!');
         setIsModalOpen(false);
         fetchUsers();
       } else {
-        setFormError(data.error || 'Operation failed.');
+        toast.error(data.error || 'Operation failed.');
       }
     } catch (err) {
-      setFormError('Network error. Failed to save user.');
+      toast.error('Network error. Failed to save user.');
     } finally {
       setSubmitting(false);
     }
@@ -136,7 +175,7 @@ const Users = () => {
 
   const handleToggleActive = async (targetUser) => {
     if (targetUser._id === user._id) {
-      alert('You cannot deactivate your own account.');
+      toast.error('You cannot deactivate your own account.');
       return;
     }
 
@@ -146,13 +185,14 @@ const Users = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
+        toast.success('Status updated successfully.');
         fetchUsers();
       } else {
         const data = await res.json();
-        alert(data.error || 'Failed to toggle account status.');
+        toast.error(data.error || 'Failed to toggle account status.');
       }
     } catch (err) {
-      console.error('Toggle status error', err);
+      toast.error('Network error during update.');
     }
   };
 
@@ -164,7 +204,7 @@ const Users = () => {
         </div>
         <h3 className="text-xl font-bold text-slate-100 mb-2">Access Denied</h3>
         <p className="text-sm text-slate-400 max-w-xs">
-          This workspace page is reserved for administrators and managers only.
+          This management portal is reserved exclusively for system administrators.
         </p>
       </div>
     );
@@ -177,16 +217,39 @@ const Users = () => {
         <div>
           <h1 className="text-2xl font-bold text-slate-100 tracking-tight">Manage Team Accounts</h1>
           <p className="text-sm text-slate-400 mt-1">
-            Create, configure, and deactivate team member profiles.
+            Create, configure roles, and manage account statuses.
           </p>
         </div>
-        <button 
-          onClick={openCreateModal} 
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-all duration-200 shadow-lg shadow-indigo-600/20 active:scale-[0.98]"
-        >
-          <UserPlus size={18} />
-          <span>Add Member</span>
-        </button>
+        
+        <div className="flex items-center gap-3">
+          {/* Hidden File Input */}
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleCsvUpload} 
+            accept=".csv" 
+            className="hidden" 
+          />
+          
+          {/* Import Button */}
+          <button 
+            onClick={() => fileInputRef.current.click()}
+            disabled={importing}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 font-medium text-sm transition-all duration-200 disabled:opacity-50"
+          >
+            {importing ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+            <span>{importing ? 'Importing...' : 'Import CSV'}</span>
+          </button>
+
+          {/* Add Member Button */}
+          <button 
+            onClick={openCreateModal} 
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-all duration-200 shadow-lg shadow-indigo-600/20 active:scale-[0.98]"
+          >
+            <UserPlus size={18} />
+            <span>Add Member</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Content Area */}
@@ -209,8 +272,8 @@ const Users = () => {
               </thead>
               <tbody className="divide-y divide-slate-800/60">
                 {users.map(u => (
-                  <tr 
-                    key={u._id} 
+                  <tr
+                    key={u._id}
                     className={`transition-colors hover:bg-slate-800/30 ${!u.active ? 'opacity-60 bg-slate-950/20' : ''}`}
                   >
                     {/* User Profile Cell */}
@@ -237,6 +300,11 @@ const Users = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="inline-flex items-center gap-1.5 text-xs font-medium">
                         {u.role === 'admin' ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                            <ShieldAlert size={14} />
+                            <span>Admin</span>
+                          </span>
+                        ) : u.role === 'manager' ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20">
                             <Shield size={14} />
                             <span>Manager</span>
@@ -252,44 +320,42 @@ const Users = () => {
 
                     {/* Status Cell */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                        u.active 
-                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${u.active
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                           : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                      }`}>
+                        }`}>
                         {u.active ? 'Active' : 'Deactivated'}
                       </span>
                     </td>
 
                     {/* Joined Date Cell */}
                     <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-400">
-                      {new Date(u.createdAt).toLocaleDateString(undefined, { 
-                        year: 'numeric', 
-                        month: 'short', 
-                        day: 'numeric' 
+                      {new Date(u.createdAt).toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
                       })}
                     </td>
 
                     {/* Actions Cell */}
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button 
+                        <button
                           onClick={() => openEditModal(u)}
                           className="p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors"
                           title="Edit Account"
                         >
                           <Edit2 size={16} />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleToggleActive(u)}
                           disabled={u._id === user._id}
-                          className={`p-2 rounded-lg transition-colors ${
-                            u._id === user._id 
-                              ? 'opacity-30 cursor-not-allowed text-slate-600' 
-                              : u.active 
-                                ? 'text-slate-400 hover:text-rose-400 hover:bg-rose-500/10' 
+                          className={`p-2 rounded-lg transition-colors ${u._id === user._id
+                              ? 'opacity-30 cursor-not-allowed text-slate-600'
+                              : u.active
+                                ? 'text-slate-400 hover:text-rose-400 hover:bg-rose-500/10'
                                 : 'text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20'
-                          }`}
+                            }`}
                           title={u.active ? 'Deactivate Account' : 'Activate Account'}
                         >
                           <Power size={16} />
@@ -308,13 +374,13 @@ const Users = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative space-y-6">
-            
+
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
               <h3 className="text-lg font-semibold text-slate-100">
                 {modalMode === 'create' ? 'Add New Team Member' : 'Edit Member Profile'}
               </h3>
-              <button 
+              <button
                 onClick={() => setIsModalOpen(false)}
                 className="text-slate-400 hover:text-slate-200 p-1 rounded-lg hover:bg-slate-800 transition-colors"
               >
@@ -334,9 +400,9 @@ const Users = () => {
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div className="space-y-1">
                 <label className="text-xs font-medium text-slate-300">Full Name *</label>
-                <input 
-                  type="text" 
-                  className="w-full px-3.5 py-2 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600" 
+                <input
+                  type="text"
+                  className="w-full px-3.5 py-2 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="Ex. Sarah Connor"
@@ -346,9 +412,9 @@ const Users = () => {
 
               <div className="space-y-1">
                 <label className="text-xs font-medium text-slate-300">Work Email *</label>
-                <input 
-                  type="email" 
-                  className="w-full px-3.5 py-2 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600" 
+                <input
+                  type="email"
+                  className="w-full px-3.5 py-2 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
                   value={formEmail}
                   onChange={(e) => setFormEmail(e.target.value)}
                   placeholder="name@company.com"
@@ -360,9 +426,9 @@ const Users = () => {
                 <label className="text-xs font-medium text-slate-300">
                   {modalMode === 'create' ? 'Password *' : 'Password (leave blank to keep unchanged)'}
                 </label>
-                <input 
-                  type="password" 
-                  className="w-full px-3.5 py-2 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600" 
+                <input
+                  type="password"
+                  className="w-full px-3.5 py-2 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
                   value={formPassword}
                   onChange={(e) => setFormPassword(e.target.value)}
                   placeholder={modalMode === 'create' ? '••••••••' : 'Optional password reset'}
@@ -372,27 +438,28 @@ const Users = () => {
 
               <div className="space-y-1">
                 <label className="text-xs font-medium text-slate-300">System Role</label>
-                <select 
+                <select
                   className="w-full px-3.5 py-2 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                   value={formRole}
                   onChange={(e) => setFormRole(e.target.value)}
                 >
                   <option value="member">Team Member</option>
-                  <option value="admin">Manager (Admin)</option>
+                  <option value="manager">Manager</option>
+                  <option value="admin">Admin</option>
                 </select>
               </div>
 
               {/* Actions */}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-sm transition-colors"
                   onClick={() => setIsModalOpen(false)}
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={submitting}
                   className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-colors shadow-lg shadow-indigo-600/20 disabled:opacity-50"
                 >
