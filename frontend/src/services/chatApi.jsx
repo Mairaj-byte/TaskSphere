@@ -1,8 +1,8 @@
 import axios from 'axios';
+import { API_BASE } from '../context/AuthContext';
 
-const API_BASE = "http://localhost:5000/api";
-
-// 1. Create a reusable axios instance
+// 1. Reusable axios instance — reuses the same env-based API_BASE as the
+// rest of the app (VITE_API_BASE, falling back to localhost only in dev).
 const apiClient = axios.create({
   baseURL: API_BASE,
   headers: {
@@ -10,13 +10,14 @@ const apiClient = axios.create({
   },
 });
 
-// 2. Request Interceptor: Injects the token into every single request automatically
+// 2. Request Interceptor: injects the *real* logged-in user's token into
+// every request. This runs outside the React tree (axios interceptors
+// aren't components), so we can't call useAuth() here — instead we read
+// straight from localStorage using the same key AuthContext writes to
+// ("task_tracker_token"), which always reflects whoever is currently
+// logged in.
 apiClient.interceptors.request.use((config) => {
-  // Use this for testing with your hardcoded token:
-  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YTYxY2M0NjFhZWMwMTk0NjJlMzkwYzYiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3ODUxNjE4ODksImV4cCI6MTc4NTc2NjY4OX0.JvG7EkUIfYBEHTXogHR8BIgaZJcMX7VWDEDTBFlPZVs";
-  
-  // Or switch to this once you are ready for dynamic storage:
-  // const token = localStorage.getItem("token");
+  const token = localStorage.getItem("task_tracker_token");
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -50,9 +51,6 @@ export const sendMessage = async (data) => {
 
 // ---------------- Room Members ----------------
 
-// services/chatApi.js
-
-// Change the function to accept email and send it in the body
 export const addMember = async (roomId, email) => {
   const response = await apiClient.post(`/chat/${roomId}/add-member`, { email });
   return response.data;
@@ -89,4 +87,3 @@ export const deleteMessage = async (messageId) => {
   const response = await apiClient.delete(`/chat/message/${messageId}`);
   return response.data;
 };
-

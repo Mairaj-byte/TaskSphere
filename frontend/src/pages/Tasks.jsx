@@ -10,6 +10,7 @@ import KanbanBoard from '../components/KanbanBoard';
 import CalendarView from '../components/CalendarView';
 import GanttChart from '../components/GanttChart';
 import VoiceTaskModal from '../components/VoiceTaskModal';
+import { useSocket } from "../context/SocketContext";
 
 const Tasks = () => {
   const { user, token } = useAuth();

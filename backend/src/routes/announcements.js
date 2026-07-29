@@ -1,0 +1,327 @@
+const express = require("express");
+const mongoose = require("mongoose");
+const Announcement = require("../models/Announcement");
+const { authenticate, requireRole } = require("../middleware/auth");
+
+const router = express.Router();
+
+/*
+=================================================
+GET ALL ANNOUNCEMENTS
+=================================================
+*/
+router.get("/", authenticate, async (req, res) => {
+  try {
+    const announcements = await Announcement.find({
+      archived: false,
+    })
+      .populate("postedBy", "name email profilePhoto role")
+      .sort({
+        pinned: -1,
+        createdAt: -1,
+      });
+
+    res.json(announcements);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Failed to fetch announcements",
+    });
+  }
+});
+
+/*
+=================================================
+CREATE ANNOUNCEMENT
+=================================================
+*/
+router.post("/", authenticate, async (req, res) => {
+  try {
+    if (
+      req.user.role !== "admin" &&
+      req.user.role !== "manager"
+    ) {
+      return res.status(403).json({
+        message: "Not authorized",
+      });
+    }
+
+    const {
+      title,
+      body,
+      category,
+      department,
+      pinned,
+      attachments,
+    } = req.body;
+
+    const announcement = await Announcement.create({
+      title,
+      body,
+      category,
+      department,
+      pinned,
+      attachments: attachments || [],
+     postedBy: req.user._id,
+    });
+
+    const populated = await Announcement.findById(
+      announcement._id
+    ).populate(
+      "postedBy",
+      "name email profilePhoto role"
+    );
+
+    res.status(201).json(populated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Failed to create announcement",
+    });
+  }
+});
+
+/*
+=================================================
+UPDATE ANNOUNCEMENT
+=================================================
+*/
+router.put("/:id", authenticate, async (req, res) => {
+  try {
+    if (
+      req.user.role !== "admin" &&
+      req.user.role !== "manager"
+    ) {
+      return res.status(403).json({
+        message: "Not authorized",
+      });
+    }
+
+    const announcement =
+      await Announcement.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        {
+          new: true,
+        }
+      ).populate(
+        "postedBy",
+        "name email profilePhoto role"
+      );
+
+    if (!announcement) {
+      return res.status(404).json({
+        message: "Announcement not found",
+      });
+    }
+
+    res.json(announcement);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Failed to update announcement",
+    });
+  }
+});
+
+/*
+=================================================
+DELETE
+=================================================
+*/
+router.delete("/:id", authenticate, async (req, res) => {
+  try {
+    if (
+      req.user.role !== "admin" &&
+      req.user.role !== "manager"
+    ) {
+      return res.status(403).json({
+        message: "Not authorized",
+      });
+    }
+
+    await Announcement.findByIdAndDelete(
+      req.params.id
+    );
+
+    res.json({
+      message: "Announcement deleted",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Delete failed",
+    });
+  }
+});
+
+/*
+=================================================
+PIN / UNPIN
+=================================================
+*/
+router.patch("/:id/pin", authenticate, async (req, res) => {
+  try {
+    if (
+      req.user.role !== "admin" &&
+      req.user.role !== "manager"
+    ) {
+      return res.status(403).json({
+        message: "Not authorized",
+      });
+    }
+
+    const announcement =
+      await Announcement.findById(req.params.id);
+
+    if (!announcement) {
+      return res.status(404).json({
+        message: "Announcement not found",
+      });
+    }
+
+    announcement.pinned =
+      !announcement.pinned;
+
+    await announcement.save();
+
+    res.json(announcement);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Failed",
+    });
+  }
+});
+
+/*
+=================================================
+ARCHIVE
+=================================================
+*/
+router.patch("/:id/archive", authenticate, async (req, res) => {
+  try {
+    if (
+      req.user.role !== "admin" &&
+      req.user.role !== "manager"
+    ) {
+      return res.status(403).json({
+        message: "Not authorized",
+      });
+    }
+
+    const announcement =
+      await Announcement.findById(req.params.id);
+
+    if (!announcement) {
+      return res.status(404).json({
+        message: "Announcement not found",
+      });
+    }
+
+    announcement.archived = true;
+
+    await announcement.save();
+
+    res.json({
+      message: "Archived",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Archive failed",
+    });
+  }
+});
+
+/*
+=================================================
+MARK AS READ
+=================================================
+*/
+router.patch("/:id/read", authenticate, async (req, res) => {
+  try {
+    const announcement =
+      await Announcement.findById(req.params.id);
+
+    if (!announcement) {
+      return res.status(404).json({
+        message: "Announcement not found",
+      });
+    }
+
+    const alreadyRead =
+      announcement.readBy.find(
+        (r) =>
+         r.user.toString() === req.user._id.toString()
+      );
+
+    if (!alreadyRead) {
+      announcement.readBy.push({
+user: req.user._id,
+      });
+
+      await announcement.save();
+    }
+
+    res.json({
+      message: "Marked as read",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Read failed",
+    });
+  }
+});
+
+/*
+=================================================
+ACKNOWLEDGE
+=================================================
+*/
+router.patch(
+  "/:id/acknowledge",
+ authenticate,
+  async (req, res) => {
+    try {
+      const announcement =
+        await Announcement.findById(
+          req.params.id
+        );
+
+      if (!announcement) {
+        return res.status(404).json({
+          message:
+            "Announcement not found",
+        });
+      }
+
+      const exists =
+        announcement.acknowledgedBy.find(
+          (r) =>
+            r.user.toString() ===
+            req.user.id
+        );
+
+      if (!exists) {
+        announcement.acknowledgedBy.push({
+          user: req.user.id,
+        });
+
+        await announcement.save();
+      }
+
+      res.json({
+        message: "Acknowledged",
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({
+        message: "Failed",
+      });
+    }
+  }
+);
+
+module.exports = router;

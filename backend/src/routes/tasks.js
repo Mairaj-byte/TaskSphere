@@ -42,9 +42,17 @@ router.post('/parse-voice', requireRole(['admin', 'manager']), async (req, res) 
       warnings: parsed.warnings,
     });
   } catch (err) {
-    console.error('Voice parse error:', err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
+
+  console.error("POST /api/tasks ERROR:", err);
+
+  res.status(500).json({
+    error: err.message,
+    stack: process.env.NODE_ENV !== "production"
+      ? err.stack
+      : undefined,
+  });
+
+}
 });
 
 // GET /api/tasks - Search, Filter, Sort tasks
@@ -95,8 +103,12 @@ router.get('/', async (req, res) => {
       .sort(sortOptions);
     res.json(tasks);
   } catch (err) {
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
+  console.error("GET /api/tasks ERROR:", err);
+
+  res.status(500).json({
+    error: err.message,
+  });
+}
 });
 
 // GET /api/tasks/audit/logs
@@ -632,4 +644,74 @@ router.post('/test-cron', async (req, res) => {
     res.status(500).json({ error: 'Failed to trigger cron action: ' + err.message });
   }
 });
+
+// GET /api/tasks/sidebar-stats
+router.get("/sidebar-stats", async (req, res) => {
+  try {
+    const query = {};
+
+    // Members only see their own tasks
+    if (req.user.role === "member") {
+      query.assignedTo = req.user._id;
+    }
+
+    const tasks = await Task.find(query);
+
+    const today = new Date();
+
+    const stats = {
+      total: tasks.length,
+
+      pending: tasks.filter(
+        t => t.status === "Pending"
+      ).length,
+
+      inProgress: tasks.filter(
+        t => t.status === "In Progress"
+      ).length,
+
+      pendingApproval: tasks.filter(
+        t => t.status === "Completed (Pending Approval)"
+      ).length,
+
+      approved: tasks.filter(
+        t => t.status === "Approved"
+      ).length,
+
+      overdue: tasks.filter(
+        t =>
+          t.dueDate &&
+          new Date(t.dueDate) < today &&
+          t.status !== "Approved"
+      ).length,
+
+      dueToday: tasks.filter(t => {
+
+        if (!t.dueDate) return false;
+
+        const d = new Date(t.dueDate);
+
+        return (
+          d.getDate() === today.getDate() &&
+          d.getMonth() === today.getMonth() &&
+          d.getFullYear() === today.getFullYear()
+        );
+
+      }).length,
+    };
+
+    res.json(stats);
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      error: err.message,
+    });
+
+  }
+});
+
 module.exports = router;
+

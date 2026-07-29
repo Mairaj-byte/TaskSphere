@@ -26,6 +26,7 @@ const VoiceTaskModal = ({ open, onClose, token, onParsed }) => {
   const [parsing, setParsing] = useState(false);
   const [error, setError] = useState('');
   const recognitionRef = useRef(null);
+  const finalTranscriptRef = useRef("");
 
   useEffect(() => {
     if (!open) return;
@@ -38,26 +39,35 @@ const VoiceTaskModal = ({ open, onClose, token, onParsed }) => {
 
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
-    recognition.interimResults = true;
+recognition.interimResults = true;
     recognition.lang = 'en-US';
 
-    recognition.onresult = (event) => {
-      let finalText = '';
-      let interimText = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const chunk = event.results[i][0].transcript;
-        if (event.results[i].isFinal) finalText += chunk;
-        else interimText += chunk;
-      }
-      setTranscript((prev) => (finalText ? (prev + ' ' + finalText).trim() : prev) + (interimText ? ` ${interimText}` : ''));
-    };
+   recognition.onresult = (event) => {
+  let interim = "";
+
+  for (let i = event.resultIndex; i < event.results.length; i++) {
+    const result = event.results[i];
+
+    if (result.isFinal) {
+      finalTranscriptRef.current += result[0].transcript + " ";
+    } else {
+      interim += result[0].transcript;
+    }
+  }
+
+  setTranscript(
+    (finalTranscriptRef.current + interim).trim()
+  );
+};
 
     recognition.onerror = (event) => {
       setError(event.error === 'not-allowed' ? 'Microphone access was denied.' : 'Speech recognition error. Please try again.');
       setListening(false);
     };
 
-    recognition.onend = () => setListening(false);
+    recognition.onend = () => {
+  setListening(false);
+};
 
     recognitionRef.current = recognition;
 
@@ -71,6 +81,7 @@ const VoiceTaskModal = ({ open, onClose, token, onParsed }) => {
   // Reset state each time the modal opens fresh.
   useEffect(() => {
     if (open) {
+     finalTranscriptRef.current = "";
       setTranscript('');
       setError('');
       setListening(false);
@@ -170,12 +181,17 @@ const VoiceTaskModal = ({ open, onClose, token, onParsed }) => {
         </p>
 
         <textarea
-          rows={4}
-          value={transcript}
-          onChange={(e) => setTranscript(e.target.value)}
-          placeholder="Transcript will appear here — you can also type or edit it directly..."
-          className="w-full mt-4 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-        />
+  rows={4}
+  value={transcript}
+  onChange={(e) => {
+    setTranscript(e.target.value);
+
+    // Keep internal transcript in sync with manual edits
+    finalTranscriptRef.current = e.target.value;
+  }}
+  placeholder="Transcript will appear here — you can also type or edit it directly..."
+  className="w-full mt-4 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+/>
 
         {error && (
           <div className="mt-3 p-3 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
