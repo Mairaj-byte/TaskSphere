@@ -19,7 +19,7 @@ const taskRoutes = require("./src/routes/tasks");
 const announcementRoutes = require("./src/routes/announcements");
 const notificationRoutes = require("./src/routes/notifications");
 const groupRoutes = require("./src/routes/groups");
-const chatRoutes = require("./src/routes/chatRoutes"); // NEW
+const chatRoutes = require("./src/routes/chatRoutes");
 
 // Express App
 const app = express();
@@ -49,7 +49,7 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/announcements", announcementRoutes);
 app.use("/api/groups", groupRoutes);
 app.use("/api/notifications", notificationRoutes);
-app.use("/api/chat", chatRoutes); // NEW
+app.use("/api/chat", chatRoutes);
 
 // Initialize Socket.IO
 initSocket(server);
@@ -62,10 +62,9 @@ const startServer = async () => {
     // Start Reminder Scheduler
     startScheduler();
 
-    server.listen(PORT, () => {
+    // Bound to "0.0.0.0" to allow network connections from mobile devices
+    server.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📡 Socket.IO initialized`);
-      console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
     });
   } catch (error) {
     console.error("Failed to start server:", error);

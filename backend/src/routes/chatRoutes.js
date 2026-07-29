@@ -13,6 +13,10 @@ const {
   deleteMessage,
   pinMessage,
   unpinMessage,
+  getRoomMentions,
+  getUserMentions,
+  searchMentionUsers,
+  sendMessageWithMentions
 } = require("../controllers/chatController");
 
 const { authenticate } = require("../middleware/auth");
@@ -37,5 +41,17 @@ router.patch("/message/:messageId/pin", authenticate, pinMessage);
 router.patch("/message/:messageId/unpin", authenticate, unpinMessage);
 
 router.delete("/message/:messageId", authenticate, deleteMessage);
+
+// Get all mentions for current user
+router.get("/mentions", authenticate, getUserMentions);
+
+// Get all mentions inside a specific room
+router.get("/rooms/:roomId/mentions", authenticate, getRoomMentions);
+
+// Switch to router.post to allow receiving JSON body
+router.post("/users/search", authenticate, searchMentionUsers);
+
+// Send message with mentions array
+router.post("/messages", authenticate, sendMessageWithMentions);
 
 module.exports = router;

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import axios from 'axios';
 import { API_BASE, useAuth } from '../context/AuthContext';
 import { Upload, Loader2 } from 'lucide-react';
-import toast from 'react-hot-toast'; // Make sure this is installed
+import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 const ProfileSetup = ({ onCancel, onSuccess }) => {
@@ -77,6 +77,9 @@ const ProfileSetup = ({ onCancel, onSuccess }) => {
 
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
       toast.success('Profile Saved Successfully !!');
+
+      // Call onSuccess prop if provided
+      if (onSuccess) onSuccess();
 
       // Redirect to /profile after a short delay so the user sees the toast
       setTimeout(() => {

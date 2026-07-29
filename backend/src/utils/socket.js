@@ -49,10 +49,10 @@ const init = (server) => {
 
     console.log(`Socket Connected : ${userId}`);
 
-    // Save online user
+    // Save online user mapping
     onlineUsers.set(userId.toString(), socket.id);
 
-    // Personal room
+    // Personal socket room for direct notifications (e.g., mentions)
     socket.join(userId.toString());
 
     // Admin room
@@ -60,16 +60,14 @@ const init = (server) => {
       socket.join("admins");
     }
 
-    // Broadcast online
-    io.emit("user_online", {
-      userId,
-    });
+    // Broadcast online status
+    io.emit("user_online", { userId });
 
     // Join chat room
     socket.on("join_room", async (roomId) => {
+      console.log("Join room:", roomId);
       try {
         const room = await ChatRoom.findById(roomId);
-
         if (!room) return;
 
         const allowed = room.members.some(
@@ -79,10 +77,9 @@ const init = (server) => {
         if (!allowed) return;
 
         socket.join(roomId);
-
         socket.emit("joined_room", roomId);
       } catch (err) {
-        console.error(err);
+        console.error("Error joining room:", err);
       }
     });
 
@@ -91,53 +88,56 @@ const init = (server) => {
       socket.leave(roomId);
     });
 
-    // Typing
+    // Typing handlers
     socket.on("typing", ({ roomId, user }) => {
-      socket.to(roomId).emit("typing", {
-        user,
-      });
+      socket.to(roomId).emit("typing", { user });
     });
 
-    // Fixed Stop Typing (Added 'user' to destructuring)
     socket.on("stop_typing", ({ roomId, user }) => {
-      socket.to(roomId).emit("typing", {
-        userId,
-        user,
-      });
+      socket.to(roomId).emit("stop_typing", { userId, user });
     });
 
-    // Send message
+    // Send Message
     socket.on("send_message", async (data) => {
       try {
+        // Sanitize and unique mention IDs
+        const rawMentions = Array.isArray(data.mentions) ? data.mentions : [];
+        const uniqueMentions = Array.from(new Set(rawMentions.map((id) => id.toString())));
+
         const message = await Message.create({
           chatRoom: data.chatRoom,
           sender: userId,
           text: data.text || "",
           attachments: data.attachments || [],
-          mentions: data.mentions || [],
+          mentions: uniqueMentions,
           replyTo: data.replyTo || null,
         });
 
+        // Populate fields for real-time frontend consumption
         await message.populate("sender", "name profilePhoto role");
-        await message.populate("mentions", "name");
-        await message.populate("replyTo");
+        await message.populate("mentions", "name email");
+        if (message.replyTo) {
+          await message.populate("replyTo");
+        }
 
         await ChatRoom.findByIdAndUpdate(data.chatRoom, {
           lastMessage: message._id,
         });
 
+        // Broadcast to chat room
         io.to(data.chatRoom).emit("receive_message", message);
 
-        // Mention notifications
-        if (message.mentions.length) {
-          message.mentions.forEach((user) => {
-            io.to(user._id.toString()).emit("mentioned", {
+        // Send direct mention notifications (Exclude the sender if self-mentioned)
+        uniqueMentions.forEach((mentionedUserId) => {
+          if (mentionedUserId !== userId.toString()) {
+            io.to(mentionedUserId).emit("mentioned", {
               message,
+              senderName: message.sender?.name || "Someone",
             });
-          });
-        }
+          }
+        });
       } catch (err) {
-        console.error(err);
+        console.error("Error sending message:", err);
       }
     });
 
@@ -166,7 +166,7 @@ const init = (server) => {
           });
         }
       } catch (err) {
-        console.error(err);
+        console.error("Error marking message as read:", err);
       }
     });
 
@@ -177,16 +177,15 @@ const init = (server) => {
           messageId,
           { pinned: true },
           { new: true }
-        );
+        )
+          .populate("sender", "name profilePhoto role")
+          .populate("mentions", "name email");
 
         if (!message) return;
 
-        io.to(message.chatRoom.toString()).emit(
-          "message_pinned",
-          message
-        );
+        io.to(message.chatRoom.toString()).emit("message_pinned", message);
       } catch (err) {
-        console.error(err);
+        console.error("Error pinning message:", err);
       }
     });
 
@@ -204,43 +203,52 @@ const init = (server) => {
 
         if (!message) return;
 
-        io.to(message.chatRoom.toString()).emit(
-          "message_deleted",
-          {
-            messageId,
-          }
-        );
+        io.to(message.chatRoom.toString()).emit("message_deleted", { messageId });
       } catch (err) {
-        console.error(err);
+        console.error("Error deleting message:", err);
       }
     });
 
-    // Edit message
-    socket.on("edit_message", async ({ messageId, text }) => {
+    // Edit message (Updates text & mentions)
+    socket.on("edit_message", async ({ messageId, text, mentions = [] }) => {
       try {
         const message = await Message.findById(messageId);
 
         if (!message) return;
 
+        // Author check
         if (message.sender.toString() !== userId.toString()) {
           return;
         }
 
+        const uniqueMentions = Array.from(new Set(mentions.map((id) => id.toString())));
+
         message.text = text;
+        message.mentions = uniqueMentions;
         message.edited = true;
         message.editedAt = new Date();
 
         await message.save();
+        await message.populate("sender", "name profilePhoto role");
+        await message.populate("mentions", "name email");
 
-        io.to(message.chatRoom.toString()).emit(
-          "message_updated",
-          message
-        );
+        io.to(message.chatRoom.toString()).emit("message_updated", message);
+
+        // Notify newly mentioned users on edit
+        uniqueMentions.forEach((mentionedUserId) => {
+          if (mentionedUserId !== userId.toString()) {
+            io.to(mentionedUserId).emit("mentioned", {
+              message,
+              senderName: message.sender?.name || "Someone",
+            });
+          }
+        });
       } catch (err) {
-        console.error(err);
+        console.error("Error editing message:", err);
       }
     });
 
+    // Disconnect
     socket.on("disconnect", async () => {
       console.log(`Socket Disconnected : ${userId}`);
 
@@ -260,24 +268,15 @@ const init = (server) => {
   return io;
 };
 
-// Notification to one user
+// Helper notification emitters
 const sendInAppNotification = (userId, notification) => {
   if (!io) return;
-
-  io.to(userId.toString()).emit(
-    "notification",
-    notification
-  );
+  io.to(userId.toString()).emit("notification", notification);
 };
 
-// Notification to admins
 const sendAdminNotification = (notification) => {
   if (!io) return;
-
-  io.to("admins").emit(
-    "notification",
-    notification
-  );
+  io.to("admins").emit("notification", notification);
 };
 
 const getOnlineUsers = () => {
@@ -288,20 +287,6 @@ const isUserOnline = (userId) => {
   return onlineUsers.has(userId.toString());
 };
 
-const sendTaskUpdate = (userId, taskId) => {
-  if (!io) return;
-
-  // Assigned user
-  io.to(userId.toString()).emit("taskUpdated", {
-    taskId,
-  });
-
-  // All admins
-  io.to("admins").emit("taskUpdated", {
-    taskId,
-  });
-};
-
 module.exports = {
   init,
   getIo: () => io,
@@ -309,5 +294,5 @@ module.exports = {
   sendAdminNotification,
   getOnlineUsers,
   isUserOnline,
-  sendTaskUpdate,
+  // sendTaskUpdate,
 };
