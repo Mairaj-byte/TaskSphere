@@ -150,43 +150,61 @@ const Announcements = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setFormError('');
+  e.preventDefault();
 
-    if (!formTitle.trim()) return setFormError('Title is required.');
-    if (!formBody.trim()) return setFormError('Body is required.');
+  setFormError("");
 
-    setSubmitting(true);
-    try {
-      const data = new FormData();
-      data.append('title', formTitle.trim());
-      data.append('body', formBody.trim());
-      data.append('category', formCategory);
-      data.append('department', formDepartment.trim());
-      data.append('pinned', formPinned);
-      formFiles.forEach((file) => data.append('attachments', file));
+  if (!formTitle.trim()) {
+    return setFormError("Title is required.");
+  }
 
-      const res = await fetch(`${API_BASE}/announcements`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: data,
-      });
-      const result = await res.json();
+  if (!formBody.trim()) {
+    return setFormError("Body is required.");
+  }
 
-      if (res.ok) {
-        setIsModalOpen(false);
-        resetForm();
-        fetchAnnouncements();
-        setToastMsg('Announcement posted successfully!');
-      } else {
-        setFormError(result.error || 'Failed to post announcement.');
-      }
-    } catch (err) {
-      setFormError('Network error. Failed to post announcement.');
-    } finally {
-      setSubmitting(false);
+  setSubmitting(true);
+
+  try {
+    const res = await fetch(`${API_BASE}/announcements`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: formTitle.trim(),
+        body: formBody.trim(),
+        category: formCategory,
+        department: formDepartment.trim(),
+        pinned: formPinned,
+        attachments: [],
+      }),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.message || result.error || "Failed to post announcement.");
     }
-  };
+
+    setToastMsg("Announcement posted successfully!");
+    setIsModalOpen(false);
+
+    setFormTitle("");
+    setFormBody("");
+    setFormCategory("General News");
+    setFormDepartment("");
+    setFormPinned(false);
+    setFormFiles([]);
+
+    fetchAnnouncements();
+  } catch (err) {
+    console.error(err);
+    setFormError(err.message || "Failed to post announcement.");
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   const hasRead = (announcement) =>
     announcement.readBy?.some((r) => (r.user?._id || r.user) === user?._id);
@@ -424,12 +442,16 @@ const Announcements = () => {
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Attachments (images, PDFs, docs — up to 5 files)
                 </label>
-                <input
-                  type="file"
-                  multiple
-                  onChange={(e) => setFormFiles(Array.from(e.target.files || []))}
-                  className="w-full text-xs text-slate-500"
-                />
+               <input
+  type="file"
+  multiple
+  disabled
+  className="w-full text-xs text-slate-500 opacity-50 cursor-not-allowed"
+/>
+
+<p className="text-xs text-slate-400 mt-1">
+  File uploads will be enabled after the backend upload service is added.
+</p>
                 {formFiles.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
                     {formFiles.map((f, i) => (
