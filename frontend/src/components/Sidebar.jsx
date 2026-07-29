@@ -10,8 +10,9 @@ import {
   Search,
   Clock,
   FolderKanban,
-  Layers,
-  MessageSquare // <--- ADDED THIS IMPORT
+ Layers,
+  MessageSquare, // <--- ADDED THIS IMPORT
+  Megaphone
 } from "lucide-react";
 import { API_BASE, useAuth } from "../context/AuthContext";
 
@@ -170,8 +171,23 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               }`
             }
           >
-            <MessageSquare size={19} />
+           <MessageSquare size={19} />
             <span>Discussion</span>
+          </NavLink>
+
+          <NavLink
+            to="/announcements"
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
+                isActive
+                  ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
+                  : 'text-gray-400 hover:bg-white/10 hover:translate-x-1 hover:text-white'
+              }`
+            }
+          >
+            <Megaphone size={18} />
+            <span>Announcements</span>
           </NavLink>
 
           <NavLink

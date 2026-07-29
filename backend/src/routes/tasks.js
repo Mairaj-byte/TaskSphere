@@ -42,9 +42,17 @@ router.post('/parse-voice', requireRole(['admin', 'manager']), async (req, res) 
       warnings: parsed.warnings,
     });
   } catch (err) {
-    console.error('Voice parse error:', err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
+
+  console.error("POST /api/tasks ERROR:", err);
+
+  res.status(500).json({
+    error: err.message,
+    stack: process.env.NODE_ENV !== "production"
+      ? err.stack
+      : undefined,
+  });
+
+}
 });
 
 // GET /api/tasks - Search, Filter, Sort tasks
@@ -95,8 +103,12 @@ router.get('/', async (req, res) => {
       .sort(sortOptions);
     res.json(tasks);
   } catch (err) {
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
+  console.error("GET /api/tasks ERROR:", err);
+
+  res.status(500).json({
+    error: err.message,
+  });
+}
 });
 
 // GET /api/tasks/audit/logs
@@ -633,7 +645,10 @@ router.post('/test-cron', async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> ded4c195157095147088607afa6873fe066a09c2
 // GET /api/tasks/sidebar-stats
 router.get("/sidebar-stats", async (req, res) => {
   try {

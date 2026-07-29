@@ -13,6 +13,7 @@ import ProfileSetup from './components/ProfileSetup';
 import Groups from './pages/Groups';
 import GroupDetails from './pages/GroupDetails';
 import ChatApp from './pages/ChatApp';
+import Announcements from './pages/Announcements';
 
 
 const AdminRoute = ({ children }) => {
@@ -66,6 +67,7 @@ function App() {
           <Route path="profile" element={<ProfileView />} />
           <Route path="profile/edit" element={<ProfileSetup />} />
           <Route path="chat" element={<ChatApp />} />
+           <Route path="announcements" element={<Announcements />} />
           <Route
             path="users"
             element={

@@ -16,6 +16,7 @@ const { startScheduler } = require("./src/utils/reminders");
 const authRoutes = require("./src/routes/auth");
 const userRoutes = require("./src/routes/users");
 const taskRoutes = require("./src/routes/tasks");
+const announcementRoutes = require("./src/routes/announcements");
 const notificationRoutes = require("./src/routes/notifications");
 const groupRoutes = require("./src/routes/groups");
 const chatRoutes = require("./src/routes/chatRoutes");
@@ -45,6 +46,7 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/announcements", announcementRoutes);
 app.use("/api/groups", groupRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/chat", chatRoutes);
