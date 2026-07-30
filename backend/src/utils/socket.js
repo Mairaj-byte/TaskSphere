@@ -279,6 +279,14 @@ const sendAdminNotification = (notification) => {
   io.to("admins").emit("notification", notification);
 };
 
+// Notifies a specific user (and all connected admins) that one of their
+// tasks changed, so any open Task/Kanban/Calendar view can refresh live.
+const sendTaskUpdate = (userId, taskId) => {
+  if (!io) return;
+  io.to(userId.toString()).emit("taskUpdated", { taskId });
+  io.to("admins").emit("taskUpdated", { taskId });
+};
+
 const getOnlineUsers = () => {
   return Array.from(onlineUsers.keys());
 };
@@ -292,7 +300,7 @@ module.exports = {
   getIo: () => io,
   sendInAppNotification,
   sendAdminNotification,
+  sendTaskUpdate,
   getOnlineUsers,
   isUserOnline,
-  // sendTaskUpdate,
 };
