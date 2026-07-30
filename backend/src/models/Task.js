@@ -133,6 +133,11 @@ isArchived: {
   default: false
 },
 
+deadlineReminderSent: {
+  type: Boolean,
+  default: false
+},
+
 activityLogs: [activitySchema]
 }, {
   timestamps: true

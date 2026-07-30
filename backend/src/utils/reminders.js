@@ -4,16 +4,27 @@ const Notification = require('../models/Notification');
 const { sendInAppNotification } = require('./socket');
 const { logAction } = require('./audit');
 
+const sendEmail = require('./sendEmail');
+const User = require("../models/User");
+
 const checkReminders = async () => {
   const now = new Date();
-  
+
   try {
     // 1. Check for tasks due in 24 hours (between 23 and 25 hours from now)
-    const target24hStart = new Date(now.getTime() + 23 * 60 * 60 * 1000);
-    const target24hEnd = new Date(now.getTime() + 25 * 60 * 60 * 1000);
+    const target24hStart = new Date(now.getTime() + 1 * 60 * 1000); // 1 minute later
+    const target24hEnd = new Date(now.getTime() + 3 * 60 * 1000);   // 3 minutes later
     const upcomingTasks = await Task.find({
-      status: { $nin: ['Approved', 'Completed (Pending Approval)'] },
-      dueDate: { $gte: target24hStart, $lte: target24hEnd }
+      status: {
+        $nin: ['Approved', 'Completed (Pending Approval)']
+      },
+
+      deadlineReminderSent: false,
+
+      dueDate: {
+        $gte: target24hStart,
+        $lte: target24hEnd
+      }
     });
 
     for (const task of upcomingTasks) {
@@ -33,6 +44,32 @@ const checkReminders = async () => {
           });
           await notification.save();
           sendInAppNotification(userId, notification);
+          const user = await User.findById(userId);
+
+          if (user && user.email) {
+            await sendEmail(
+              user.email,
+              "⏰ Deadline Approaching",
+              `
+              <h2>Hello ${user.name},</h2>
+
+              <p>Your task <b>${task.title}</b> is due in <b>24 hours</b>.</p>
+
+              <p>Please complete it before the deadline.</p>
+
+              <hr>
+
+              <p>
+                Due Date:
+                <b>${new Date(task.dueDate).toLocaleString()}</b>
+              </p>
+
+              <p>Regards,<br>TaskSphere Team</p>
+            `
+            );
+            task.deadlineReminderSent = true;
+            await task.save();
+          }
         }
       }
     }
@@ -136,7 +173,7 @@ const startScheduler = () => {
   cron.schedule(scheduleExpr, () => {
     checkReminders();
   });
-  
+
   // Also run once on startup
   checkReminders();
 };
