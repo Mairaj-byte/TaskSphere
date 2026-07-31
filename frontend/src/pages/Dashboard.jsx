@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { downloadReport } from "../utils/reportGenerator";
 import { useAuth, API_BASE } from '../context/AuthContext';
-import { 
-  CheckSquare, Clock, AlertTriangle, Users, 
+import LoginActivity from "../components/LoginActivity";
+import {
+  CheckSquare, Clock, AlertTriangle, Users,
   ArrowRight, MessageSquare, History, CheckCircle, Download
 } from 'lucide-react';
-import toast from 'react-hot-toast'; 
+import toast from 'react-hot-toast';
 
 // Dashboard
 const Dashboard = () => {
@@ -30,7 +31,6 @@ const Dashboard = () => {
       const tasksData = await tasksRes.json();
       setTasks(Array.isArray(tasksData) ? tasksData : []);
 
-      // Updated to fetch extra data for managers as well
       if (isAdminOrManager) {
         const usersRes = await fetch(`${API_BASE}/users`, {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -45,7 +45,7 @@ const Dashboard = () => {
         setAuditLogs(Array.isArray(logsData) ? logsData : []);
       }
     } catch (err) {
-      toast.error(data.error || 'Failed to fetch dashboard data');
+      toast.error('Failed to fetch dashboard data');
     } finally {
       setLoading(false);
     }
@@ -81,7 +81,6 @@ const Dashboard = () => {
     downloadReport({
       generatedBy: user.name,
       role: user.role,
-
       totalTasks,
       approvedTasks,
       pendingApprovals,
@@ -89,7 +88,6 @@ const Dashboard = () => {
       inProgressTasks,
       todoTasks,
       rejectedTasks,
-
       activeMembers,
       totalMembers: users.length
     });
@@ -123,14 +121,13 @@ const Dashboard = () => {
             <p className="text-sm text-gray-400">Welcome back, {user.name}. Here is your team's workflow status.</p>
           </div>
           <div className="flex gap-3">
-
             <button
-  onClick={handleDownloadReport}
-  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 font-medium text-sm transition-all duration-200 disabled:opacity-50"
->
-  <Download size={18} />
-  Download Report
-</button>
+              onClick={handleDownloadReport}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 font-medium text-sm transition-all duration-200 disabled:opacity-50"
+            >
+              <Download size={18} />
+              Download Report
+            </button>
 
             <button
               onClick={() => navigate('/tasks')}
@@ -180,14 +177,13 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Main Grid */}
+        {/* Upper Workflow Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column */}
           <div className="space-y-6">
-            {/* Status Breakdown */}
             <div className="rounded-2xl border border-white/10 bg-[#0d1426]/70 p-6 backdrop-blur-md space-y-4">
               <h3 className="font-heading text-lg font-semibold text-white">Task Status Breakdown</h3>
-              
+
               <div className="space-y-3 text-xs">
                 <div>
                   <div className="flex justify-between text-gray-300 mb-1">
@@ -231,7 +227,6 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Pending Approvals */}
             <div className="rounded-2xl border border-white/10 bg-[#0d1426]/70 p-6 backdrop-blur-md space-y-4">
               <h3 className="font-heading text-lg font-semibold text-amber-400">Pending Approvals ({pendingTasksList.length})</h3>
               {pendingTasksList.length === 0 ? (
@@ -258,7 +253,6 @@ const Dashboard = () => {
 
           {/* Right Column */}
           <div className="space-y-6">
-            {/* Recent Activity */}
             <div className="rounded-2xl border border-white/10 bg-[#0d1426]/70 p-6 backdrop-blur-md space-y-4">
               <h3 className="font-heading text-lg font-semibold text-white">Recent Activity Feed</h3>
               {auditLogs.length === 0 ? (
@@ -282,7 +276,6 @@ const Dashboard = () => {
               )}
             </div>
 
-            {/* Overdue Alert */}
             {overdueTasksList.length > 0 && (
               <div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-6 backdrop-blur-md space-y-3">
                 <h3 className="font-heading text-lg font-semibold text-rose-400">Critical Overdue Tasks</h3>
@@ -303,6 +296,11 @@ const Dashboard = () => {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Full Width Login Activity Component */}
+        <div className="pt-2">
+          <LoginActivity />
         </div>
       </div>
     );
@@ -376,7 +374,6 @@ const Dashboard = () => {
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Active Focus Tasks */}
         <div className="rounded-2xl border border-white/10 bg-[#0d1426]/70 p-6 backdrop-blur-md space-y-4">
           <h3 className="font-heading text-lg font-semibold text-white">Tasks Requiring Attention</h3>
           {myTasks.length === 0 ? (
@@ -400,7 +397,6 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Manager Feedback */}
         <div className="rounded-2xl border border-white/10 bg-[#0d1426]/70 p-6 backdrop-blur-md space-y-4">
           <h3 className="font-heading text-lg font-semibold text-rose-400">Recent Manager Feedback</h3>
           {myRejected.length === 0 ? (

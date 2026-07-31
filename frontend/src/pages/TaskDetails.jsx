@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth, API_BASE } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
-import { 
-  ArrowLeft, Calendar, User, MessageSquare, History, FileText, 
+import {
+  ArrowLeft, Calendar, User, MessageSquare, History, FileText,
   Play, CheckCircle, XCircle, AlertCircle, ArrowUpCircle, Send
 } from 'lucide-react';
+import FileUpload from "../components/FileUpload";
+import FileList from "../components/FileList";
 
 const TaskDetails = () => {
   const { id } = useParams();
@@ -18,6 +20,11 @@ const TaskDetails = () => {
   const [comments, setComments] = useState([]);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshFiles, setRefreshFiles] = useState(false);
+
+  const refreshTaskFiles = () => {
+    setRefreshFiles(prev => !prev);
+  };
 
   // Input states
   const [newComment, setNewComment] = useState('');
@@ -67,7 +74,8 @@ const TaskDetails = () => {
   useEffect(() => {
     if (!socket) {
       console.log("Socket not available");
-      return;}
+      return;
+    }
     console.log("Socket connected, listener registered");
     const handleTaskUpdate = (data) => {
       if (data.taskId === id) {
@@ -94,7 +102,7 @@ const TaskDetails = () => {
         },
         body: JSON.stringify({ status: newStatus, feedback })
       });
-      
+
       const data = await res.json();
       if (res.ok) {
         setIsRejectDialogOpen(false);
@@ -122,7 +130,7 @@ const TaskDetails = () => {
         },
         body: JSON.stringify({ message: newComment.trim() })
       });
-      
+
       if (res.ok) {
         setNewComment('');
         fetchTaskDetails();
@@ -189,8 +197,8 @@ const TaskDetails = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Navigation Top Bar */}
       <div>
-        <button 
-          onClick={() => navigate('/tasks')} 
+        <button
+          onClick={() => navigate('/tasks')}
           className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700/80 rounded-lg transition-colors"
         >
           <ArrowLeft size={16} />
@@ -210,7 +218,7 @@ const TaskDetails = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Left Column: Details & Discussion */}
         <div className="lg:col-span-2 space-y-6">
-          
+
           {/* Main Task Card */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-sm">
             {/* Header Section */}
@@ -229,8 +237,8 @@ const TaskDetails = () => {
                 {isAssignee && !isAdmin && (
                   <>
                     {task.status === 'To Do' && (
-                      <button 
-                        onClick={() => handleStatusChange('In Progress')} 
+                      <button
+                        onClick={() => handleStatusChange('In Progress')}
                         className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-lg shadow-sm transition-colors"
                       >
                         <Play size={16} />
@@ -238,8 +246,8 @@ const TaskDetails = () => {
                       </button>
                     )}
                     {(task.status === 'In Progress' || task.status === 'Rejected') && (
-                      <button 
-                        onClick={() => handleStatusChange('Completed (Pending Approval)')} 
+                      <button
+                        onClick={() => handleStatusChange('Completed (Pending Approval)')}
                         className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-lg shadow-sm transition-colors"
                       >
                         <ArrowUpCircle size={16} />
@@ -253,8 +261,8 @@ const TaskDetails = () => {
                 {isAdmin && (
                   <>
                     {task.status === 'To Do' && (
-                      <button 
-                        onClick={() => handleStatusChange('In Progress')} 
+                      <button
+                        onClick={() => handleStatusChange('In Progress')}
                         className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-colors"
                       >
                         <Play size={16} />
@@ -262,8 +270,8 @@ const TaskDetails = () => {
                       </button>
                     )}
                     {task.status === 'In Progress' && (
-                      <button 
-                        onClick={() => handleStatusChange('Completed (Pending Approval)')} 
+                      <button
+                        onClick={() => handleStatusChange('Completed (Pending Approval)')}
                         className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors"
                       >
                         <ArrowUpCircle size={16} />
@@ -272,15 +280,15 @@ const TaskDetails = () => {
                     )}
                     {task.status === 'Completed (Pending Approval)' && (
                       <div className="flex items-center gap-2">
-                        <button 
-                          onClick={() => setIsApproveConfirmOpen(true)} 
+                        <button
+                          onClick={() => setIsApproveConfirmOpen(true)}
                           className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors"
                         >
                           <CheckCircle size={16} />
                           <span>Approve</span>
                         </button>
-                        <button 
-                          onClick={() => setIsRejectDialogOpen(true)} 
+                        <button
+                          onClick={() => setIsRejectDialogOpen(true)}
                           className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm transition-colors"
                         >
                           <XCircle size={16} />
@@ -312,26 +320,24 @@ const TaskDetails = () => {
               </div>
             )}
 
-            {/* Attachments Section */}
-            {task.attachments && task.attachments.length > 0 && (
-              <div className="py-4 space-y-3">
-                <h4 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Attachments</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {task.attachments.map((url, i) => (
-                    <a 
-                      key={i} 
-                      href={url} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="flex items-center gap-3 p-3 text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 transition-colors group"
-                    >
-                      <FileText size={18} className="text-indigo-600 dark:text-indigo-400 shrink-0 group-hover:scale-110 transition-transform" />
-                      <span className="truncate" title={url}>{url}</span>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div className="py-6 space-y-4">
+              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                Attachments
+              </h4>
+
+              {user?.role !== "member" && (
+  <FileUpload
+    taskId={task._id}
+    onUpload={refreshTaskFiles}
+  />
+)}
+
+              <FileList
+                taskId={task._id}
+                refresh={refreshFiles}
+                onDelete={refreshTaskFiles}
+              />
+            </div>
 
             {/* Task Metadata Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-slate-100 dark:border-slate-800">
@@ -405,16 +411,16 @@ const TaskDetails = () => {
 
             {/* Comment Box */}
             <form onSubmit={handleAddComment} className="pt-4 border-t border-slate-100 dark:border-slate-800 flex gap-2">
-              <input 
-                type="text" 
-                className="flex-1 px-4 py-2.5 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" 
+              <input
+                type="text"
+                className="flex-1 px-4 py-2.5 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
                 placeholder="Type your message here..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 required
               />
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm transition-colors"
               >
                 <span>Post</span>
@@ -439,7 +445,7 @@ const TaskDetails = () => {
                 <div key={log._id} className="relative group">
                   {/* Timeline Dot */}
                   <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-indigo-600 ring-4 ring-white dark:ring-slate-900" />
-                  
+
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 text-xs text-slate-400">
                       <span className="font-semibold text-slate-700 dark:text-slate-300">{log.userId ? log.userId.name : 'System'}</span>
@@ -480,14 +486,14 @@ const TaskDetails = () => {
               Are you sure you want to mark this task as approved? The task status will move to "Approved" and the assigned team members will be notified.
             </p>
             <div className="flex justify-end gap-3 pt-2">
-              <button 
-                className="px-4 py-2 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors" 
+              <button
+                className="px-4 py-2 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
                 onClick={() => setIsApproveConfirmOpen(false)}
               >
                 Cancel
               </button>
-              <button 
-                className="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors" 
+              <button
+                className="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors"
                 onClick={() => handleStatusChange('Approved')}
               >
                 Approve Task
@@ -505,8 +511,8 @@ const TaskDetails = () => {
             <p className="text-xs text-slate-500 dark:text-slate-400">
               Provide feedback to guide the team member on required edits. Feedback is required.
             </p>
-            
-            <textarea 
+
+            <textarea
               className="w-full p-3 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 dark:text-white min-h-[100px]"
               placeholder="Ex. Coordinates translation missing. Please complete section 3..."
               value={feedbackText}
@@ -515,14 +521,14 @@ const TaskDetails = () => {
             />
 
             <div className="flex justify-end gap-3 pt-2">
-              <button 
-                className="px-4 py-2 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors" 
+              <button
+                className="px-4 py-2 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
                 onClick={() => setIsRejectDialogOpen(false)}
               >
                 Cancel
               </button>
-              <button 
-                className="px-4 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:hover:bg-rose-600 rounded-lg shadow-sm transition-colors" 
+              <button
+                className="px-4 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:hover:bg-rose-600 rounded-lg shadow-sm transition-colors"
                 onClick={() => handleStatusChange('Rejected', feedbackText)}
                 disabled={!feedbackText.trim()}
               >

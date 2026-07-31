@@ -7,11 +7,51 @@ export const API_BASE =
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+
   const [token, setToken] = useState(
     localStorage.getItem("task_tracker_token") || null
   );
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // ===========================
+  // Logout
+  // ===========================
+
+  const logout = async (redirect = true) => {
+    const currentToken = localStorage.getItem("task_tracker_token");
+
+    // Record logout on server
+    if (currentToken) {
+      try {
+        await fetch(`${API_BASE}/auth/logout`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${currentToken}`,
+          },
+        });
+      } catch (err) {
+        console.error("Logout API Error:", err);
+      }
+    }
+
+    // Clear local data
+    localStorage.removeItem("task_tracker_token");
+    localStorage.removeItem("user");
+
+    setToken(null);
+    setUser(null);
+    setError(null);
+
+    if (redirect) {
+      window.location.replace("/login");
+    }
+  };
+
+  // ===========================
+  // Verify Current User
+  // ===========================
 
   useEffect(() => {
     const fetchMe = async () => {
@@ -21,24 +61,35 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const response = await fetch(`${API_BASE}/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+  const response = await fetch(`${API_BASE}/auth/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data.user);
-        } else {
-          logout();
-        }
-      } catch (err) {
-        console.error("Failed to verify token", err);
-        logout();
-      } finally {
-        setLoading(false);
-      }
+  const data = await response.json();
+
+  if (!response.ok) {
+    if (
+      response.status === 401 &&
+      data.error?.includes("logged in from another device")
+    ) {
+      alert(
+        "Your account has been logged in on another device. Please login again."
+      );
+    }
+
+    await logout(false);
+    return;
+  }
+
+  setUser(data.user);
+} catch (err) {
+  console.error("Failed to verify token:", err);
+  await logout(false);
+} finally {
+  setLoading(false);
+}
     };
 
     fetchMe();
@@ -58,7 +109,10 @@ export const AuthProvider = ({ children }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+        }),
       });
 
       const data = await response.json();
@@ -68,6 +122,8 @@ export const AuthProvider = ({ children }) => {
       }
 
       localStorage.setItem("task_tracker_token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
       setToken(data.token);
       setUser(data.user);
 
@@ -94,16 +150,20 @@ export const AuthProvider = ({ children }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ token: credential }),
+        body: JSON.stringify({
+          token: credential,
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.message || "Google Authentication failed.");
+        throw new Error(data.message || "Google authentication failed.");
       }
 
       localStorage.setItem("task_tracker_token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
       setToken(data.token);
       setUser(data.user);
 
@@ -152,16 +212,6 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // ===========================
-  // Logout
-  // ===========================
-
-  const logout = () => {
-    localStorage.removeItem("task_tracker_token");
-    setToken(null);
-    setUser(null);
   };
 
   return (

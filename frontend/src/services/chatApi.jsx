@@ -1,8 +1,7 @@
-import axios from 'axios';
-import { API_BASE } from '../context/AuthContext';
+import axios from "axios";
+import { API_BASE } from "../context/AuthContext";
 
-// 1. Reusable axios instance — reuses the same env-based API_BASE as the
-// rest of the app.
+// Axios instance
 const apiClient = axios.create({
   baseURL: API_BASE,
   headers: {
@@ -10,15 +9,58 @@ const apiClient = axios.create({
   },
 });
 
-// 2. Request Interceptor: injects the real logged-in user's token into
-// every request by reading straight from localStorage.
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("task_tracker_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+// ==============================
+// Request Interceptor
+// ==============================
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("task_tracker_token");
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// ==============================
+// Response Interceptor
+// ==============================
+apiClient.interceptors.response.use(
+  (response) => response,
+
+  (error) => {
+    if (error.response?.status === 401) {
+      const message =
+        error.response.data?.error ||
+        error.response.data?.message ||
+        "";
+
+      // Auto logout if session is invalid
+      if (
+        message.includes("logged in from another device") ||
+        message.includes("Authentication failed") ||
+        message.includes("Invalid token") ||
+        message.includes("Token missing")
+      ) {
+        localStorage.removeItem("task_tracker_token");
+        localStorage.removeItem("user");
+
+        if (window.location.pathname !== "/login") {
+          alert(
+            "Your session has expired or you have logged in from another device."
+          );
+
+          window.location.replace("/login");
+        }
+      }
+    }
+
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
 export const useChatApi = () => {
   return {
@@ -33,11 +75,9 @@ export const useChatApi = () => {
     getMessages: async (roomId) =>
       (await apiClient.get(`/chat/${roomId}/messages`)).data,
 
-    // Normal message
     sendMessage: async (data) =>
       (await apiClient.post("/chat/send", data)).data,
 
-    // Message with mentions
     sendMessageWithMentions: async (data) =>
       (await apiClient.post("/chat/messages", data)).data,
 
