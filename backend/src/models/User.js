@@ -79,10 +79,24 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0
     },
-    lastSeen:{
-    type:Date,
-    default:null
-}
+    activeSessionId: {
+      type: String,
+      default: null
+    },
+    lastSeen: {
+      type: Date,
+      default: null
+    },
+
+    lastLoginAt: {
+      type: Date,
+      default: null
+    },
+
+    lastLogoutAt: {
+      type: Date,
+      default: null
+    }
   },
   {
     timestamps: true

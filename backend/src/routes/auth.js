@@ -1,8 +1,11 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
+
 const User = require('../models/User');
+const LoginActivity = require('../models/LoginActivity');
 const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
@@ -26,29 +29,44 @@ router.post('/google', async (req, res) => {
 
     const ticket = await googleClient.verifyIdToken({
       idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: process.env.GOOGLE_CLIENT_ID
     });
 
     const payload = ticket.getPayload();
-    const { email, name, picture, sub: googleId } = payload;
 
-    let user = await User.findOne({ email: email.toLowerCase().trim() });
+    const {
+      email,
+      name,
+      picture,
+      sub: googleId
+    } = payload;
+
+    let user = await User.findOne({
+      email: email.toLowerCase().trim()
+    });
 
     if (!user) {
       user = await User.create({
         name,
         email: email.toLowerCase().trim(),
-        googleId, // ✅ Included googleId
+        googleId,
         loginProvider: 'google',
         profilePhoto: picture,
         role: 'member',
         active: true
       });
     } else {
-      if (!user.loginProvider) user.loginProvider = 'google';
-      if (!user.googleId) user.googleId = googleId; // ✅ Preserve googleId
-      if (!user.profilePhoto && picture) user.profilePhoto = picture;
-      await user.save();
+      if (!user.loginProvider) {
+        user.loginProvider = 'google';
+      }
+
+      if (!user.googleId) {
+        user.googleId = googleId;
+      }
+
+      if (!user.profilePhoto && picture) {
+        user.profilePhoto = picture;
+      }
     }
 
     if (!user.active) {
@@ -58,11 +76,34 @@ router.post('/google', async (req, res) => {
       });
     }
 
+    // Create new session (old device becomes invalid)
+    const sessionId = uuidv4();
+
+    user.activeSessionId = sessionId;
+    user.lastSeen = new Date();
+
+    await user.save();
+
+    // --------------------------------------------------
+    // Create Login Activity Entry
+    // --------------------------------------------------
+    await LoginActivity.create({
+      user: user._id,
+      name: user.name,
+      email: user.email,
+      action: 'login',
+      loginProvider: 'google',
+      ipAddress: req.ip || req.headers['x-forwarded-for'] || '',
+      userAgent: req.headers['user-agent'] || '',
+      loginTime: new Date()
+    });
+
     const appToken = jwt.sign(
       {
         userId: user._id,
         role: user.role,
-        designationRole: user.designationRole // ✅ Changed from user.position
+        designationRole: user.designationRole,
+        sessionId
       },
       process.env.JWT_SECRET || 'companysecretkey123',
       {
@@ -89,9 +130,9 @@ router.post('/google', async (req, res) => {
         designationRole: user.designationRole
       }
     });
-
   } catch (err) {
     console.error('Google Auth Error:', err);
+
     return res.status(400).json({
       success: false,
       message: 'Invalid or expired Google Token.'
@@ -133,7 +174,7 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Prevent password login for Google-only accounts
+    // Google account cannot login using password
     if (user.loginProvider === 'google' && !user.passwordHash) {
       return res.status(400).json({
         success: false,
@@ -150,11 +191,34 @@ router.post('/login', async (req, res) => {
       });
     }
 
+    // Create new session (old device becomes invalid)
+    const sessionId = uuidv4();
+
+    user.activeSessionId = sessionId;
+    user.lastSeen = new Date();
+
+    await user.save();
+
+    // --------------------------------------------------
+    // Create Login Activity Entry
+    // --------------------------------------------------
+    await LoginActivity.create({
+      user: user._id,
+      name: user.name,
+      email: user.email,
+      action: 'login',
+      loginProvider: 'local',
+      ipAddress: req.ip || req.headers['x-forwarded-for'] || '',
+      userAgent: req.headers['user-agent'] || '',
+      loginTime: new Date()
+    });
+
     const token = jwt.sign(
       {
         userId: user._id,
         role: user.role,
-        position: user.position
+        designationRole: user.designationRole,
+        sessionId
       },
       process.env.JWT_SECRET || 'companysecretkey123',
       {
@@ -170,7 +234,6 @@ router.post('/login', async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        position: user.position,
         active: user.active,
         loginProvider: user.loginProvider,
         profilePhoto: user.profilePhoto,
@@ -182,12 +245,50 @@ router.post('/login', async (req, res) => {
         designationRole: user.designationRole
       }
     });
-
   } catch (err) {
     console.error(err);
+
     return res.status(500).json({
       success: false,
       message: 'Internal Server Error'
+    });
+  }
+});
+
+/*
+|--------------------------------------------------------------------------
+| POST /api/auth/logout
+|--------------------------------------------------------------------------
+*/
+router.post('/logout', authenticate, async (req, res) => {
+  try {
+    if (req.user) {
+      // Record logout activity
+      await LoginActivity.create({
+        user: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        action: 'logout',
+        loginProvider: req.user.loginProvider || 'local',
+        ipAddress: req.ip || req.headers['x-forwarded-for'] || '',
+        userAgent: req.headers['user-agent'] || '',
+        logoutTime: new Date()
+      });
+
+      // Clear session ID on user record so current token becomes invalid
+      req.user.activeSessionId = null;
+      await req.user.save();
+    }
+
+    return res.json({
+      success: true,
+      message: 'Logged out successfully.'
+    });
+  } catch (err) {
+    console.error('Logout Error:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to process logout.'
     });
   }
 });
@@ -205,7 +306,6 @@ router.get('/me', authenticate, async (req, res) => {
       name: req.user.name,
       email: req.user.email,
       role: req.user.role,
-      position: req.user.position,
       active: req.user.active,
       loginProvider: req.user.loginProvider,
       profilePhoto: req.user.profilePhoto,

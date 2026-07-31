@@ -20,6 +20,8 @@ const announcementRoutes = require("./src/routes/announcements");
 const notificationRoutes = require("./src/routes/notifications");
 const groupRoutes = require("./src/routes/groups");
 const chatRoutes = require("./src/routes/chatRoutes");
+const fileRoutes = require("./src/routes/fileRoute");
+const loginActivityRoutes = require("./src/routes/loginActivityRoute")
 
 // Express App
 const app = express();
@@ -50,6 +52,8 @@ app.use("/api/announcements", announcementRoutes);
 app.use("/api/groups", groupRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/files", fileRoutes);
+app.use("/api/login-activity", loginActivityRoutes);
 
 // Initialize Socket.IO
 initSocket(server);
