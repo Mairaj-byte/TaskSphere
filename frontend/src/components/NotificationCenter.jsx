@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from "react";
 import { Check, Trash2, BellOff, X, Sparkles } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
+import axios from "axios";
+
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
 
 const NotificationCenter = ({ onClose }) => {
   const {
@@ -10,6 +13,31 @@ const NotificationCenter = ({ onClose }) => {
     deleteNotification,
     clearAllNotifications
   } = useSocket();
+
+  const [notificationMuted, setNotificationMuted] = useState(false);
+    useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("task_tracker_token");
+
+        const res = await axios.get(
+          `${API_BASE}/users/profile`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        console.log("Backend Response :", res.data);
+        setNotificationMuted(res.data.notificationMuted);
+        console.log("Setting State :", res.data.notificationMuted);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const formatTime = (dateStr) => {
     const d = new Date(dateStr);
@@ -24,6 +52,33 @@ const NotificationCenter = ({ onClose }) => {
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays === 1) return 'Yesterday';
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  };
+
+  const toggleNotificationMute = async () => {
+    console.log("🔘 Button Clicked");
+
+    try {
+      const token = localStorage.getItem("task_tracker_token");
+
+      const res = await axios.patch(
+        `${API_BASE}/users/notification-mute`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("PATCH Response:", res.data);
+
+      setNotificationMuted(res.data.notificationMuted);
+
+      console.log("New State:", res.data.notificationMuted);
+
+    } catch (err) {
+      console.error("PATCH Error:", err.response?.data || err);
+    }
   };
 
   const getBadgeStyle = (type) => {
@@ -56,6 +111,21 @@ const NotificationCenter = ({ onClose }) => {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={toggleNotificationMute}
+            className={`flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-md transition-all
+              ${
+                notificationMuted
+                  ? "text-rose-400 bg-rose-500/10 hover:bg-rose-500/20"
+                  : "text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"
+              }`}
+            >
+            <BellOff size={13} />
+            <span>
+              {notificationMuted ? "OFF" : "ON"}
+            </span>
+          </button>
+
           {notifications.length > 0 && (
             <button
               onClick={markAllAsRead}

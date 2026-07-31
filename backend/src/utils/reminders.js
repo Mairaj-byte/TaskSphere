@@ -1,148 +1,244 @@
-const cron = require('node-cron');
-const Task = require('../models/Task');
-const Notification = require('../models/Notification');
-const SystemSettings = require('../models/SystemSettings');
-const { sendInAppNotification } = require('./socket');
-const { logAction } = require('./audit');
+const cron = require("node-cron");
+const Task = require("../models/Task");
+const Notification = require("../models/Notification");
+const SystemSettings = require("../models/SystemSettings");
+const { sendInAppNotification } = require("./socket");
+const { logAction } = require("./audit");
+const sendEmail = require("./sendEmail");
+const User = require("../models/User");
 
 const checkReminders = async () => {
+  console.log("Reminder Scheduler Running...");
+
   const now = new Date();
 
-  // Load admin-configurable settings; fall back to the previous hardcoded
-  // defaults (24h reminder window, escalation on, 2 days) if this is the
-  // first run or the settings read fails for any reason — so this never
-  // breaks the existing reminder behavior for anyone who hasn't touched
-  // the new Admin Settings panel yet.
+  // Load admin-configurable settings; if unavailable, use defaults.
   let reminderHoursBeforeDue = 24;
   let escalationEnabled = true;
   let daysOverdueForEscalation = 2;
   let dailyOverdueReminder = true;
+
   try {
     const settings = await SystemSettings.getSingleton();
-    reminderHoursBeforeDue = settings.notificationRules?.reminderHoursBeforeDue || 24;
+    reminderHoursBeforeDue =
+      settings.notificationRules?.reminderHoursBeforeDue || 24;
     escalationEnabled = settings.escalation?.enabled !== false;
-    daysOverdueForEscalation = settings.escalation?.daysOverdueForEscalation || 2;
-    dailyOverdueReminder = settings.notificationRules?.dailyOverdueReminder !== false;
+    daysOverdueForEscalation =
+      settings.escalation?.daysOverdueForEscalation || 2;
+    dailyOverdueReminder =
+      settings.notificationRules?.dailyOverdueReminder !== false;
   } catch (settingsErr) {
-    console.error('Could not load SystemSettings, using defaults:', settingsErr.message);
+    console.error(
+      "Could not load SystemSettings, using defaults:",
+      settingsErr.message
+    );
   }
 
   try {
-    // 1. Check for tasks due in `reminderHoursBeforeDue` hours (±1 hour window)
-    const target24hStart = new Date(now.getTime() + (reminderHoursBeforeDue - 1) * 60 * 60 * 1000);
-    const target24hEnd = new Date(now.getTime() + (reminderHoursBeforeDue + 1) * 60 * 60 * 1000);
+    // Reminder window
+    const reminderStart = new Date(
+      now.getTime() + reminderHoursBeforeDue * 60 * 60 * 1000
+    );
+    const reminderEnd = new Date(
+      now.getTime() + (reminderHoursBeforeDue + 1) * 60 * 60 * 1000
+    );
+
+    console.log("Current Time :", now);
+    console.log("Reminder Start :", reminderStart);
+    console.log("Reminder End :", reminderEnd);
+
+    // Deadline reminder
     const upcomingTasks = await Task.find({
-      status: { $nin: ['Approved', 'Completed (Pending Approval)'] },
-      dueDate: { $gte: target24hStart, $lte: target24hEnd }
+      status: {
+        $nin: [
+          "Approved",
+          "Completed",
+          "Completed (Pending Approval)",
+          "Overdue",
+        ],
+      },
+
+      deadlineReminderSent: false,
+
+      dueDate: {
+        $gte: reminderStart,
+        $lte: reminderEnd,
+      },
     });
 
-    for (const task of upcomingTasks) {
-      for (const userId of task.assignedTo) {
-        const exists = await Notification.findOne({
-          userId,
-          type: 'reminder',
-         message: { $regex: new RegExp(`due in ${reminderHoursBeforeDue} hours`, 'i') },
-          createdAt: { $gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) }
-        });
-        if (!exists) {
-          const message = `Task "${task.title}" is due in ${reminderHoursBeforeDue} hours.`;
-          const notification = new Notification({
-            userId,
-            message,
-            type: 'reminder'
-          });
-          await notification.save();
-          sendInAppNotification(userId, notification);
-        }
-      }
-    }
+    console.log("Upcoming Tasks Found :", upcomingTasks.length);
 
-    // 2. Check for tasks due today (due date today, within next 24h)
-    const targetTodayStart = new Date(now.getTime());
-    const targetTodayEnd = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    for (const task of upcomingTasks) {
+  console.log("Reminder Triggered For :", task.title);
+
+  for (const userId of task.assignedTo) {
+    const exists = await Notification.findOne({
+      userId,
+      type: "reminder",
+      message: {
+        $regex: new RegExp(
+          `due in ${reminderHoursBeforeDue} hours`,
+          "i"
+        ),
+      },
+      createdAt: {
+        $gte: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+      },
+    });
+
+    if (exists) continue;
+
+    const message = `Task "${task.title}" is due in ${reminderHoursBeforeDue} hours.`;
+
+    const notification = new Notification({
+      userId,
+      message,
+      type: "reminder",
+    });
+
+    await notification.save();
+    sendInAppNotification(userId, notification);
+
+    const user = await User.findById(userId);
+
+    if (user?.email) {
+      console.log("Sending Reminder Email To :", user.email);
+
+      await sendEmail(
+        user.email,
+        "⏰ Deadline Approaching",
+        `
+        <h2>Hello ${user.name},</h2>
+
+        <p>Your task <b>${task.title}</b> is due in ${reminderHoursBeforeDue} hours.</p>
+
+        <p>Please complete it before the deadline.</p>
+
+        <hr>
+
+        <p><b>Due Date :</b> ${new Date(task.dueDate).toLocaleString()}</p>
+
+        <br>
+
+        <p>Regards,</p>
+        <p>TaskSphere Team</p>
+        `
+      );
+
+      console.log("Reminder Email Sent Successfully");
+    }
+  }
+
+  task.deadlineReminderSent = true;
+  await task.save();
+  console.log("deadlineReminderSent updated for:", task.title);
+}
+
+    // ================================
+    // DUE TODAY
+    // ================================
     const dueTodayTasks = await Task.find({
-      status: { $nin: ['Approved', 'Completed (Pending Approval)'] },
-      dueDate: { $gte: targetTodayStart, $lte: targetTodayEnd }
+      status: {
+        $nin: ["Approved", "Completed", "Completed (Pending Approval)"],
+      },
+      dueDate: {
+        $gte: now,
+        $lte: new Date(now.getTime() + 24 * 60 * 60 * 1000),
+      },
     });
 
     for (const task of dueTodayTasks) {
-      // Only notify if within 12 hours of the due date (checking hourly)
       for (const userId of task.assignedTo) {
         const exists = await Notification.findOne({
           userId,
-          type: 'reminder',
-          message: { $regex: new RegExp(`is due today`, 'i') },
-          createdAt: { $gte: new Date(now.getTime() - 12 * 60 * 60 * 1000) }
+          type: "reminder",
+          message: {
+            $regex: /due today/i,
+          },
         });
-        if (!exists) {
-          const message = `Task "${task.title}" is due today.`;
-          const notification = new Notification({
-            userId,
-            message,
-            type: 'reminder'
-          });
-          await notification.save();
-          sendInAppNotification(userId, notification);
-        }
-      }
-    }
 
-    // 3. Mark past-due tasks as Overdue
-    const overdueTasks = await Task.find({
-      status: { $in: ['To Do', 'In Progress', 'Rejected'] },
-      dueDate: { $lt: now }
-    });
+        if (exists) continue;
 
-    for (const task of overdueTasks) {
-      const oldStatus = task.status;
-      task.status = 'Overdue';
-      await task.save();
-
-      // Log in AuditLog (attribute to creator or system)
-      await logAction({
-        taskId: task._id,
-        userId: task.createdBy,
-        action: 'Status Changed',
-        oldValue: oldStatus,
-        newValue: 'Overdue'
-      });
-
-      for (const userId of task.assignedTo) {
-        const message = `Task "${task.title}" is now OVERDUE!`;
         const notification = new Notification({
           userId,
-          message,
-          type: 'overdue'
+          message: `Task "${task.title}" is due today.`,
+          type: "reminder",
         });
+
         await notification.save();
+
         sendInAppNotification(userId, notification);
       }
     }
 
-    // 4. Daily overdue reminders for tasks already marked Overdue
-       // 4. Daily overdue reminders for tasks already marked Overdue
-    // (skipped entirely if the admin has turned this off in Settings)
-    if (dailyOverdueReminder) {
-      const alreadyOverdueTasks = await Task.find({
-        status: 'Overdue'
+    // ================================
+    // MARK OVERDUE
+    // ================================
+    const overdueTasks = await Task.find({
+      status: {
+        $in: ["To Do", "In Progress", "Rejected"],
+      },
+      dueDate: {
+        $lt: now,
+      },
+    });
+
+    for (const task of overdueTasks) {
+      const oldStatus = task.status;
+
+      task.status = "Overdue";
+
+      await task.save();
+
+      await logAction({
+        taskId: task._id,
+        userId: task.createdBy,
+        action: "Status Changed",
+        oldValue: oldStatus,
+        newValue: "Overdue",
       });
 
-      for (const task of alreadyOverdueTasks) {
+      for (const userId of task.assignedTo) {
+        const notification = new Notification({
+          userId,
+          message: `Task "${task.title}" is now OVERDUE!`,
+          type: "overdue",
+        });
+
+        await notification.save();
+
+        sendInAppNotification(userId, notification);
+      }
+    }
+
+    // ================================
+    // DAILY OVERDUE REMINDER
+    // ================================
+    if (dailyOverdueReminder) {
+      const overdueReminderTasks = await Task.find({
+        status: "Overdue",
+      });
+
+      for (const task of overdueReminderTasks) {
         for (const userId of task.assignedTo) {
           const exists = await Notification.findOne({
             userId,
-            type: 'overdue',
-            message: { $regex: new RegExp(`remains overdue`, 'i') },
-            createdAt: { $gte: new Date(now.getTime() - 22 * 60 * 60 * 1000) }
+            type: "overdue",
+            message: {
+              $regex: /remains overdue/i,
+            },
+            createdAt: {
+              $gte: new Date(now.getTime() - 22 * 60 * 60 * 1000),
+            },
           });
 
           if (!exists) {
-            const message = `Reminder: Task "${task.title}" remains overdue. Please complete it as soon as possible.`;
             const notification = new Notification({
               userId,
-              message,
-              type: 'overdue'
+              message: `Reminder: Task "${task.title}" remains overdue. Please complete it as soon as possible.`,
+              type: "overdue",
             });
+
             await notification.save();
             sendInAppNotification(userId, notification);
           }
@@ -150,20 +246,25 @@ const checkReminders = async () => {
       }
     }
 
-    // 5. Priority escalation — if a task has been Overdue for at least
-    // `daysOverdueForEscalation` days, bump its priority one level
-    // (Low -> Medium -> High -> Urgent). Urgent stays Urgent. Only runs
-    // if escalation is enabled in Settings. This satisfies the spec's
-    // "priority escalation flag for overdue tasks" requirement.
+    // ================================
+    // PRIORITY ESCALATION
+    // ================================
     if (escalationEnabled) {
-      const escalationCutoff = new Date(now.getTime() - daysOverdueForEscalation * 24 * 60 * 60 * 1000);
+      const escalationCutoff = new Date(
+        now.getTime() - daysOverdueForEscalation * 24 * 60 * 60 * 1000
+      );
+
       const escalationCandidates = await Task.find({
-        status: 'Overdue',
+        status: "Overdue",
         dueDate: { $lte: escalationCutoff },
-        priority: { $ne: 'Urgent' }
+        priority: { $ne: "Urgent" },
       });
 
-      const priorityLadder = { Low: 'Medium', Medium: 'High', High: 'Urgent' };
+      const priorityLadder = {
+        Low: "Medium",
+        Medium: "High",
+        High: "Urgent",
+      };
 
       for (const task of escalationCandidates) {
         const nextPriority = priorityLadder[task.priority];
@@ -171,6 +272,7 @@ const checkReminders = async () => {
 
         const oldPriority = task.priority;
         task.priority = nextPriority;
+
         task.activityLogs.push({
           action: `Priority auto-escalated from ${oldPriority} to ${nextPriority} (overdue ${daysOverdueForEscalation}+ days)`,
           performedBy: task.createdBy,
@@ -181,40 +283,40 @@ const checkReminders = async () => {
         await logAction({
           taskId: task._id,
           userId: task.createdBy,
-          action: 'Priority Escalated',
+          action: "Priority Escalated",
           oldValue: oldPriority,
-          newValue: nextPriority
+          newValue: nextPriority,
         });
 
         for (const userId of task.assignedTo) {
           const message = `Task "${task.title}" priority was escalated to ${nextPriority} (overdue ${daysOverdueForEscalation}+ days).`;
+
           const notification = new Notification({
             userId,
             message,
-            type: 'overdue'
+            type: "overdue",
           });
+
           await notification.save();
           sendInAppNotification(userId, notification);
         }
       }
     }
   } catch (err) {
-    console.error('Error running reminder checks:', err);
+    console.error(err);
   }
 };
 
 const startScheduler = () => {
-  // Check reminders based on CRON_SCHEDULE env (default every hour)
-  const scheduleExpr = process.env.CRON_SCHEDULE || '0 * * * *';
-  cron.schedule(scheduleExpr, () => {
+  cron.schedule("0 * * * *", () => {
     checkReminders();
   });
-  
-  // Also run once on startup
+
+  console.log("Running reminder check on startup...");
   checkReminders();
 };
 
 module.exports = {
   startScheduler,
-  checkReminders
+  checkReminders,
 };

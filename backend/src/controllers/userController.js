@@ -327,3 +327,37 @@ exports.bulkImportUsers = async (req, res) => {
     res.status(500).json({ error: 'Failed to parse the CSV file.' });
   }
 };
+
+
+
+// Mute notification Controller
+exports.toggleNotificationMute = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    user.notificationMuted = !user.notificationMuted;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      notificationMuted: user.notificationMuted,
+      message: user.notificationMuted
+        ? "In-app notifications muted."
+        : "In-app notifications enabled.",
+    });
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
