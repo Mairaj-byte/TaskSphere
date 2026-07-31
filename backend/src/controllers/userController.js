@@ -3,6 +3,7 @@ const User = require('../models/User');
 const transporter = require('../utils/nodemailer');
 const csv = require('csv-parser');
 const { Readable } = require('stream'); // Core Node.js module
+const { v4: uuidv4 } = require("uuid");
 
 // --- SELF PROFILE CONTROLLERS ---
 
@@ -116,6 +117,8 @@ exports.resetPassword = async (req, res) => {
     user.passwordHash = await bcrypt.hash(newPassword, salt);
     user.resetOtp = '';
     user.resetOtpExpiryAt = 0;
+
+    user.activeSessionId = uuidv4();
 
     await user.save();
 

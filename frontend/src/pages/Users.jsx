@@ -11,18 +11,67 @@ import {
   AlertCircle,
   X,
   Loader2,
-  Upload
+  Upload,
+  Search,
+  Users as UsersIcon,
+  CheckCircle2,
+  Image as ImageIcon
 } from 'lucide-react';
-import toast from 'react-hot-toast'; 
+import toast from 'react-hot-toast';
+
+// Helper component for user image with seamless fallback to initials
+const UserAvatar = ({ targetUser }) => {
+  const name = targetUser?.name || '';
+  const initial = name ? name.charAt(0).toUpperCase() : '?';
+
+  // Extract raw photo field from user object
+  const rawPhoto = targetUser?.profilePhoto || targetUser?.avatar || targetUser?.avatarUrl;
+
+  // Cleaned up profile photo URL resolution
+  const profilePhotoUrl = rawPhoto
+    ? (rawPhoto.startsWith('http')
+        ? rawPhoto
+        : `${API_BASE.replace(/\/api$/, '')}${rawPhoto.startsWith('/') ? '' : '/'}${rawPhoto}`)
+    : null;
+
+  return (
+    <div className="relative flex items-center justify-center shrink-0">
+      {profilePhotoUrl ? (
+        <img
+          src={profilePhotoUrl}
+          alt={name || "User"}
+          className="w-10 h-10 rounded-full border border-indigo-500 object-cover shadow-md"
+          onError={(e) => {
+            e.target.style.display = 'none';
+            if (e.target.nextSibling) {
+              e.target.nextSibling.style.display = 'flex';
+            }
+          }}
+        />
+      ) : null}
+
+      {/* Fallback Initials Badge (Shown if no URL or if image fails to load) */}
+      <div
+        className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 text-white font-semibold text-sm flex items-center justify-center shadow-md border border-indigo-400/30"
+        style={{ display: profilePhotoUrl ? 'none' : 'flex' }}
+      >
+        {initial}
+      </div>
+    </div>
+  );
+};
 
 const Users = () => {
   const { user, token } = useAuth();
-  const fileInputRef = useRef(null); // Ref for file input
-
+  const fileInputRef = useRef(null);
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [importing, setImporting] = useState(false); // New loading state for import
+  const [importing, setImporting] = useState(false);
+
+  // Search & Filter State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,52 +81,46 @@ const Users = () => {
   // Form State
   const [formName, setFormName] = useState('');
   const [formEmail, setFormEmail] = useState('');
+  const [formPhoto, setFormPhoto] = useState('');
   const [formPassword, setFormPassword] = useState('');
   const [formRole, setFormRole] = useState('member');
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // --- CSV IMPORT LOGIC ---
+  const handleCsvUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  
+    setImporting(true);
+    const formData = new FormData();
+    formData.append('csvFile', file);
 
-// --- CSV IMPORT LOGIC ---
-const handleCsvUpload = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+    try {
+      const res = await fetch(`${API_BASE}/users/bulk-import`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
 
-  setImporting(true);
-  const formData = new FormData();
-  formData.append('csvFile', file);
-
-  try {
-    const res = await fetch(`${API_BASE}/users/bulk-import`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      body: formData
-    });
-
-    const data = await res.json();
-    
-    if (res.ok) {
-      // ✅ SUCCESS TOAST
-      toast.success(data.message || 'Import successful!');
-      fetchUsers(); // Refresh list
-    } else {
-      // ✅ ERROR TOAST
-      toast.error(data.error || 'Import failed.');
+      const data = await res.json();
+      
+      if (res.ok) {
+        toast.success(data.message || 'Import successful!');
+        fetchUsers();
+      } else {
+        toast.error(data.error || 'Import failed.');
+      }
+    } catch (err) {
+      toast.error('Network error during import.');
+    } finally {
+      setImporting(false);
+      e.target.value = '';
     }
-  } catch (err) {
-    // ✅ ERROR TOAST
-    toast.error('Network error during import.');
-  } finally {
-    setImporting(false);
-    e.target.value = ''; // Reset input
-  }
-};
+  };
 
-  
   const fetchUsers = async () => {
     try {
       const res = await fetch(`${API_BASE}/users`, {
@@ -92,7 +135,6 @@ const handleCsvUpload = async (e) => {
     }
   };
 
-  // ✅ CORRECT LOGIC
   useEffect(() => {
     if (user && ['admin', 'manager'].includes(user.role)) {
       fetchUsers();
@@ -102,6 +144,7 @@ const handleCsvUpload = async (e) => {
   const resetForm = () => {
     setFormName('');
     setFormEmail('');
+    setFormPhoto('');
     setFormPassword('');
     setFormRole('member');
     setFormError('');
@@ -117,10 +160,11 @@ const handleCsvUpload = async (e) => {
     resetForm();
     setModalMode('edit');
     setCurrentUserId(targetUser._id);
-    setFormName(targetUser.name);
-    setFormEmail(targetUser.email);
+    setFormName(targetUser.name || '');
+    setFormEmail(targetUser.email || '');
+    setFormPhoto(targetUser.profilePhoto || targetUser.avatar || targetUser.avatarUrl || '');
     setFormRole(targetUser.role || 'member');
-    setFormPassword(''); // blank for optional change
+    setFormPassword('');
     setIsModalOpen(true);
   };
 
@@ -140,6 +184,7 @@ const handleCsvUpload = async (e) => {
     const payload = {
       name: formName.trim(),
       email: formEmail.trim().toLowerCase(),
+      profilePhoto: formPhoto.trim(),
       role: formRole
     };
     if (formPassword) payload.password = formPassword;
@@ -196,10 +241,24 @@ const handleCsvUpload = async (e) => {
     }
   };
 
+  // Filter users based on Search & Role Filter
+  const filteredUsers = users.filter((u) => {
+    const matchesSearch =
+      u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.email?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = roleFilter === 'all' || u.role === roleFilter;
+    return matchesSearch && matchesRole;
+  });
+
+  // Calculate quick stats
+  const totalCount = users.length;
+  const activeCount = users.filter((u) => u.active).length;
+  const adminCount = users.filter((u) => u.role === 'admin').length;
+
   if (user && user.role !== 'admin') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center bg-slate-900/50 border border-slate-800 rounded-2xl backdrop-blur-md max-w-lg mx-auto shadow-xl">
-        <div className="p-4 bg-red-500/10 rounded-full mb-4 text-red-400">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center bg-slate-900/50 border border-slate-800 rounded-2xl backdrop-blur-md max-w-lg mx-auto shadow-2xl">
+        <div className="p-4 bg-rose-500/10 rounded-full mb-4 text-rose-400 ring-1 ring-rose-500/20">
           <ShieldAlert size={48} />
         </div>
         <h3 className="text-xl font-bold text-slate-100 mb-2">Access Denied</h3>
@@ -211,18 +270,17 @@ const handleCsvUpload = async (e) => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-800">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-slate-800">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100 tracking-tight">Manage Team Accounts</h1>
+          <h1 className="text-3xl font-extrabold text-slate-100 tracking-tight">Team Management</h1>
           <p className="text-sm text-slate-400 mt-1">
-            Create, configure roles, and manage account statuses.
+            Manage user permissions, update profiles, and control platform access.
           </p>
         </div>
         
         <div className="flex items-center gap-3">
-          {/* Hidden File Input */}
           <input 
             type="file" 
             ref={fileInputRef} 
@@ -231,20 +289,18 @@ const handleCsvUpload = async (e) => {
             className="hidden" 
           />
           
-          {/* Import Button */}
           <button 
             onClick={() => fileInputRef.current.click()}
             disabled={importing}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 font-medium text-sm transition-all duration-200 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-900/50 hover:bg-slate-800 text-slate-300 font-medium text-sm transition-all duration-200 disabled:opacity-50 hover:border-slate-600 shadow-sm"
           >
-            {importing ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+            {importing ? <Loader2 size={18} className="animate-spin text-indigo-400" /> : <Upload size={18} />}
             <span>{importing ? 'Importing...' : 'Import CSV'}</span>
           </button>
 
-          {/* Add Member Button */}
           <button 
             onClick={openCreateModal} 
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-all duration-200 shadow-lg shadow-indigo-600/20 active:scale-[0.98]"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-all duration-200 shadow-lg shadow-indigo-600/25 active:scale-[0.98]"
           >
             <UserPlus size={18} />
             <span>Add Member</span>
@@ -252,18 +308,86 @@ const handleCsvUpload = async (e) => {
         </div>
       </div>
 
-      {/* Main Content Area */}
+      {/* Quick Stats Overview */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-4 flex items-center justify-between backdrop-blur-sm">
+          <div>
+            <p className="text-xs font-medium text-slate-400">Total Accounts</p>
+            <p className="text-2xl font-bold text-slate-100 mt-1">{totalCount}</p>
+          </div>
+          <div className="p-3 bg-indigo-500/10 text-indigo-400 rounded-lg">
+            <UsersIcon size={20} />
+          </div>
+        </div>
+        <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-4 flex items-center justify-between backdrop-blur-sm">
+          <div>
+            <p className="text-xs font-medium text-slate-400">Active Members</p>
+            <p className="text-2xl font-bold text-emerald-400 mt-1">{activeCount}</p>
+          </div>
+          <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-lg">
+            <CheckCircle2 size={20} />
+          </div>
+        </div>
+        <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-4 flex items-center justify-between backdrop-blur-sm">
+          <div>
+            <p className="text-xs font-medium text-slate-400">Administrators</p>
+            <p className="text-2xl font-bold text-rose-400 mt-1">{adminCount}</p>
+          </div>
+          <div className="p-3 bg-rose-500/10 text-rose-400 rounded-lg">
+            <ShieldAlert size={20} />
+          </div>
+        </div>
+      </div>
+
+      {/* Filters & Controls */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="relative w-full sm:w-80">
+          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-slate-900/80 border border-slate-800 rounded-xl text-slate-200 text-sm placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+          />
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <span className="text-xs text-slate-400 font-medium">Role:</span>
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="bg-slate-900/80 border border-slate-800 text-slate-300 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500"
+          >
+            <option value="all">All Roles</option>
+            <option value="admin">Admin</option>
+            <option value="manager">Manager</option>
+            <option value="member">Team Member</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Main Content Table Area */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
+        <div className="flex flex-col items-center justify-center py-24 gap-3">
           <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+          <p className="text-xs text-slate-500">Fetching team members...</p>
+        </div>
+      ) : filteredUsers.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center bg-slate-900/30 border border-slate-800/60 rounded-2xl">
+          <User className="w-12 h-12 text-slate-600 mb-3" />
+          <h3 className="text-slate-300 font-semibold text-base">No Users Found</h3>
+          <p className="text-slate-500 text-xs mt-1 max-w-sm">
+            No accounts matched your search criteria. Try adjusting your query or filter options.
+          </p>
         </div>
       ) : (
         <div className="bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-300 border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-950/40 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  <th scope="col" className="px-6 py-4">Name / Email</th>
+                <tr className="border-b border-slate-800 bg-slate-950/50 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-4">User</th>
                   <th scope="col" className="px-6 py-4">Role</th>
                   <th scope="col" className="px-6 py-4">Status</th>
                   <th scope="col" className="px-6 py-4">Joined</th>
@@ -271,41 +395,39 @@ const handleCsvUpload = async (e) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {users.map(u => (
+                {filteredUsers.map((u) => (
                   <tr
                     key={u._id}
-                    className={`transition-colors hover:bg-slate-800/30 ${!u.active ? 'opacity-60 bg-slate-950/20' : ''}`}
+                    className={`transition-colors hover:bg-slate-800/40 ${!u.active ? 'opacity-60 bg-slate-950/30' : ''}`}
                   >
-                    {/* User Profile Cell */}
+                    {/* User Profile Photo & Details */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-semibold text-sm flex items-center justify-center shadow-md">
-                          {u.name ? u.name.charAt(0).toUpperCase() : '?'}
-                        </div>
+                      <div className="flex items-center gap-3.5">
+                        <UserAvatar targetUser={u} />
                         <div>
                           <div className="font-semibold text-slate-100 flex items-center gap-2">
                             <span>{u.name}</span>
                             {u._id === user._id && (
-                              <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">
+                              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">
                                 You
                               </span>
                             )}
                           </div>
-                          <div className="text-xs text-slate-400 font-normal">{u.email}</div>
+                          <div className="text-xs text-slate-400 font-normal mt-0.5">{u.email}</div>
                         </div>
                       </div>
                     </td>
 
-                    {/* Role Cell */}
+                    {/* Role Badge */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="inline-flex items-center gap-1.5 text-xs font-medium">
                         {u.role === 'admin' ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-500/10 text-rose-400 border border-rose-500/20 font-semibold">
                             <ShieldAlert size={14} />
                             <span>Admin</span>
                           </span>
                         ) : u.role === 'manager' ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20 font-semibold">
                             <Shield size={14} />
                             <span>Manager</span>
                           </span>
@@ -318,17 +440,18 @@ const handleCsvUpload = async (e) => {
                       </div>
                     </td>
 
-                    {/* Status Cell */}
+                    {/* Status Badge */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${u.active
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                        u.active
                           ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                           : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                        }`}>
+                      }`}>
                         {u.active ? 'Active' : 'Deactivated'}
                       </span>
                     </td>
 
-                    {/* Joined Date Cell */}
+                    {/* Joined Date */}
                     <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-400">
                       {new Date(u.createdAt).toLocaleDateString(undefined, {
                         year: 'numeric',
@@ -337,9 +460,9 @@ const handleCsvUpload = async (e) => {
                       })}
                     </td>
 
-                    {/* Actions Cell */}
+                    {/* Actions */}
                     <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => openEditModal(u)}
                           className="p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors"
@@ -350,12 +473,13 @@ const handleCsvUpload = async (e) => {
                         <button
                           onClick={() => handleToggleActive(u)}
                           disabled={u._id === user._id}
-                          className={`p-2 rounded-lg transition-colors ${u._id === user._id
+                          className={`p-2 rounded-lg transition-colors ${
+                            u._id === user._id
                               ? 'opacity-30 cursor-not-allowed text-slate-600'
                               : u.active
                                 ? 'text-slate-400 hover:text-rose-400 hover:bg-rose-500/10'
                                 : 'text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20'
-                            }`}
+                          }`}
                           title={u.active ? 'Deactivate Account' : 'Activate Account'}
                         >
                           <Power size={16} />
@@ -420,6 +544,24 @@ const handleCsvUpload = async (e) => {
                   placeholder="name@company.com"
                   required
                 />
+              </div>
+
+              {/* Profile Photo URL Input */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-300 flex items-center justify-between">
+                  <span>Profile Photo URL / Path</span>
+                  <span className="text-[10px] text-slate-500">Optional</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    className="w-full pl-9 pr-3.5 py-2 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
+                    value={formPhoto}
+                    onChange={(e) => setFormPhoto(e.target.value)}
+                    placeholder="https://example.com/photo.jpg or /uploads/photo.jpg"
+                  />
+                  <ImageIcon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                </div>
               </div>
 
               <div className="space-y-1">
