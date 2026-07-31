@@ -446,19 +446,19 @@ const Auth = () => {
                 </div>
 
                 {/* Google Login Component */}
-                <div className="flex justify-center w-full">
-                  <GoogleLogin
-                    theme="filled_black"
-                    shape="pill"
-                    size="large"
-                    text={isSignUp ? "signup_with" : "signin_with"}
-                    width="100%"
-                    onSuccess={handleGoogleLogin}
-                    onError={() => {
-                      setError("Google Login Failed");
-                    }}
-                  />
-                </div>
+<div className="w-full bg-slate-950/60 rounded-xl p-1 overflow-hidden">
+  <GoogleLogin
+    theme="filled_black"
+    shape="rectangular"
+    size="large"
+    text={isSignUp ? "signup_with" : "signin_with"}
+    width="100%"
+    onSuccess={handleGoogleLogin}
+    onError={() => {
+      setError("Google Login Failed");
+    }}
+  />
+</div>
 
                 
               </>
