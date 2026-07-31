@@ -14,6 +14,7 @@ import Groups from './pages/Groups';
 import GroupDetails from './pages/GroupDetails';
 import ChatApp from './pages/ChatApp';
 import Announcements from './pages/Announcements';
+import AdminSettings from './pages/AdminSettings';
 
 
 const AdminRoute = ({ children }) => {
@@ -73,6 +74,14 @@ function App() {
             element={
               <AdminRoute>
                 <Users />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="settings"
+            element={
+              <AdminRoute>
+                <AdminSettings />
               </AdminRoute>
             }
           />
