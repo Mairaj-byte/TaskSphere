@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { Upload, Loader2, Paperclip, FileUp } from "lucide-react";
-import { useFileApi } from "../services/FileApi";
+import { useFileApi } from "../services/fileApi";
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
 

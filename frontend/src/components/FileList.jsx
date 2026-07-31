@@ -15,7 +15,7 @@ import {
   HardDrive,
 } from "lucide-react";
 
-import { useFileApi } from "../services/FileApi";
+import { useFileApi } from "../services/fileApi";
 import VersionHistoryModal from "./VersionHistoryModal";
 
 // Enhanced icon picker with distinct dark-theme visual styles
