@@ -3,6 +3,15 @@ const mongoose = require("mongoose");
 const Announcement = require("../models/Announcement");
 const { authenticate, requireRole } = require("../middleware/auth");
 
+const User = require("../models/User");
+const sendEmail = require("../utils/sendEmail");
+
+const multer = require("multer");
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+});
+
 const router = express.Router();
 
 /*
@@ -12,9 +21,22 @@ GET ALL ANNOUNCEMENTS
 */
 router.get("/", authenticate, async (req, res) => {
   try {
-    const announcements = await Announcement.find({
+    let query = {
       archived: false,
-    })
+    };
+
+    // Hide acknowledged announcements only for members
+    if (req.user.role === "member") {
+      query.acknowledgedBy = {
+        $not: {
+          $elemMatch: {
+            user: req.user._id,
+          },
+        },
+      };
+    }
+
+    const announcements = await Announcement.find(query)
       .populate("postedBy", "name email profilePhoto role")
       .sort({
         pinned: -1,
@@ -35,7 +57,10 @@ router.get("/", authenticate, async (req, res) => {
 CREATE ANNOUNCEMENT
 =================================================
 */
-router.post("/", authenticate, async (req, res) => {
+router.post("/", authenticate, upload.array("attachments"), async (req, res) => {
+    console.log("HEADERS =", req.headers);
+    console.log("BODY =", req.body);
+    console.log("FILES =", req.files);
   try {
     if (
       req.user.role !== "admin" &&
@@ -71,6 +96,56 @@ router.post("/", authenticate, async (req, res) => {
       "postedBy",
       "name email profilePhoto role"
     );
+
+    // =====================================================
+    // Send Announcement Email To All Active Users
+    // =====================================================
+
+    const users = await User.find({
+  active: true,
+}).select("name email");
+
+await Promise.allSettled(
+  users.map(async (user) => {
+    if (!user.email) return;
+
+    try {
+      console.log("Sending Announcement Email To:", user.email);
+
+      await sendEmail(
+        user.email,
+        `📢 New Announcement - ${announcement.title}`,
+        `
+          <h2>Hello ${user.name},</h2>
+
+          <p>A new announcement has been posted in <b>TaskSphere</b>.</p>
+
+          <hr>
+
+          <p><b>Title:</b> ${announcement.title}</p>
+
+          <p><b>Category:</b> ${announcement.category}</p>
+
+          <p>${announcement.body}</p>
+
+          <br>
+
+          <p>Please login to TaskSphere for more details.</p>
+
+          <br>
+
+          <p>Regards,</p>
+          <p><b>TaskSphere Team</b></p>
+        `
+      );
+
+      console.log(`✅ Announcement Email Sent to ${user.email}`);
+    } catch (err) {
+      console.error(`❌ Failed to send email to ${user.email}`);
+      console.error(err.message);
+    }
+  })
+);
 
     res.status(201).json(populated);
   } catch (err) {
@@ -257,9 +332,10 @@ router.patch("/:id/read", authenticate, async (req, res) => {
       );
 
     if (!alreadyRead) {
-      announcement.readBy.push({
-user: req.user._id,
-      });
+     announcement.acknowledgedBy.push({
+    user: req.user._id,
+    acknowledgedAt: new Date(),
+});
 
       await announcement.save();
     }
@@ -323,5 +399,37 @@ router.patch(
     }
   }
 );
+
+/*
+=================================================
+READ STATUS
+=================================================
+*/
+router.get("/:id/read-status", authenticate, async (req, res) => {
+  try {
+    const announcement = await Announcement.findById(req.params.id)
+      .populate("readBy.user", "name email profilePhoto")
+      .populate("acknowledgedBy.user", "name email profilePhoto");
+
+    if (!announcement) {
+      return res.status(404).json({
+        message: "Announcement not found",
+      });
+    }
+
+    res.json({
+      totalEligible: announcement.readBy.length,
+      readCount: announcement.readBy.length,
+      acknowledgedCount: announcement.acknowledgedBy.length,
+      readBy: announcement.readBy,
+      acknowledgedBy: announcement.acknowledgedBy,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+});
 
 module.exports = router;
