@@ -58,9 +58,7 @@ CREATE ANNOUNCEMENT
 =================================================
 */
 router.post("/", authenticate, upload.array("attachments"), async (req, res) => {
-    console.log("HEADERS =", req.headers);
-    console.log("BODY =", req.body);
-    console.log("FILES =", req.files);
+   
   try {
     if (
       req.user.role !== "admin" &&
@@ -110,7 +108,7 @@ await Promise.allSettled(
     if (!user.email) return;
 
     try {
-      console.log("Sending Announcement Email To:", user.email);
+      
 
       await sendEmail(
         user.email,
@@ -139,7 +137,7 @@ await Promise.allSettled(
         `
       );
 
-      console.log(`✅ Announcement Email Sent to ${user.email}`);
+     
     } catch (err) {
       console.error(`❌ Failed to send email to ${user.email}`);
       console.error(err.message);

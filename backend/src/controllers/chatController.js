@@ -35,7 +35,7 @@ const createRoom = async (req, res) => {
   try {
     const { name, description, members, type, group } = req.body;
 
-    console.log(req.user);
+    
 
     const room = await ChatRoom.create({
       name,
