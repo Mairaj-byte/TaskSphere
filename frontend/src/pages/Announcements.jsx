@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { API_BASE, useAuth } from '../context/AuthContext';
 import {
   Megaphone, Pin, PinOff, Plus, X, Paperclip, AlertCircle,
-  Trash2, Archive, CheckCircle2, Eye, Loader2
+  Trash2, Archive, CheckCircle2, Eye, Loader2, Search, Filter, Calendar
 } from 'lucide-react';
 
 const CATEGORIES = ['Policy Update', 'Holiday', 'General News', 'Urgent'];
 
 const categoryStyle = {
-  'Policy Update': 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400',
-  'Holiday': 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400',
-  'General News': 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
-  'Urgent': 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400',
+  'Policy Update': 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-800/50',
+  'Holiday': 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/50',
+  'General News': 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+  'Urgent': 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800/50',
 };
 
 const Announcements = () => {
@@ -23,6 +23,11 @@ const Announcements = () => {
   const [loading, setLoading] = useState(true);
   const [toastMsg, setToastMsg] = useState(null);
 
+  // Search & Filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  // Modal & Form state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formTitle, setFormTitle] = useState('');
   const [formBody, setFormBody] = useState('');
@@ -79,7 +84,7 @@ const Announcements = () => {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
-      setToastMsg('Acknowledged.');
+      setToastMsg('Acknowledged successfully.');
       fetchAnnouncements();
     } catch (err) {
       console.error('Failed to acknowledge', err);
@@ -153,39 +158,52 @@ const Announcements = () => {
     e.preventDefault();
     setFormError('');
 
-    if (!formTitle.trim()) return setFormError('Title is required.');
-    if (!formBody.trim()) return setFormError('Body is required.');
+if (!formTitle.trim()) {
+  return setFormError("Title is required.");
+}
 
-    setSubmitting(true);
-    try {
-      const data = new FormData();
-      data.append('title', formTitle.trim());
-      data.append('body', formBody.trim());
-      data.append('category', formCategory);
-      data.append('department', formDepartment.trim());
-      data.append('pinned', formPinned);
-      formFiles.forEach((file) => data.append('attachments', file));
+if (!formBody.trim()) {
+  return setFormError("Body is required.");
+}
 
-      const res = await fetch(`${API_BASE}/announcements`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: data,
-      });
-      const result = await res.json();
+setSubmitting(true);
 
-      if (res.ok) {
-        setIsModalOpen(false);
-        resetForm();
-        fetchAnnouncements();
-        setToastMsg('Announcement posted successfully!');
-      } else {
-        setFormError(result.error || 'Failed to post announcement.');
-      }
-    } catch (err) {
-      setFormError('Network error. Failed to post announcement.');
-    } finally {
-      setSubmitting(false);
-    }
+try {
+  const data = new FormData();
+  data.append("title", formTitle.trim());
+  data.append("body", formBody.trim());
+  data.append("category", formCategory);
+  data.append("department", formDepartment.trim());
+  data.append("pinned", formPinned);
+
+  formFiles.forEach((file) => data.append("attachments", file));
+
+  const res = await fetch(`${API_BASE}/announcements`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: data,
+  });
+
+  const result = await res.json();
+
+  if (!res.ok) {
+    throw new Error(
+      result.message || result.error || "Failed to post announcement."
+    );
+  }
+
+  setToastMsg("Announcement posted successfully!");
+  setIsModalOpen(false);
+  resetForm();
+  fetchAnnouncements();
+} catch (err) {
+  console.error(err);
+  setFormError(err.message || "Failed to post announcement.");
+} finally {
+  setSubmitting(false);
+}
   };
 
   const hasRead = (announcement) =>
@@ -193,201 +211,318 @@ const Announcements = () => {
   const hasAcknowledged = (announcement) =>
     announcement.acknowledgedBy?.some((a) => (a.user?._id || a.user) === user?._id);
 
+  // Filter logic
+  const filteredAnnouncements = useMemo(() => {
+    return announcements.filter((a) => {
+      const query = searchQuery.toLowerCase().trim();
+      const matchesSearch =
+        !query ||
+        a.title?.toLowerCase().includes(query) ||
+        a.body?.toLowerCase().includes(query) ||
+        a.department?.toLowerCase().includes(query);
+
+      const matchesCategory =
+        selectedCategory === 'All' || a.category === selectedCategory;
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [announcements, searchQuery, selectedCategory]);
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8">
+      {/* Toast Notification */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-[200] flex items-center gap-2 px-4 py-3 rounded-lg bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-lg text-sm">
-          <CheckCircle2 size={16} className="text-emerald-400 dark:text-emerald-600" />
+        <div className="fixed bottom-6 right-6 z-[200] flex items-center gap-2 px-4 py-3 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-xl border border-slate-700/50 text-sm font-medium transition-all animate-in fade-in slide-in-from-bottom-4">
+          <CheckCircle2 size={18} className="text-emerald-400 dark:text-emerald-600" />
           {toastMsg}
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Megaphone size={26} className="text-indigo-500" />
-            Announcements
-          </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Organization-wide and department updates.
-          </p>
+      {/* Header Section */}
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2.5 text-slate-900 dark:text-white">
+              <span className="p-2 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-100 dark:border-indigo-900/50">
+                <Megaphone size={24} />
+              </span>
+              Announcements
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+              Organization-wide and department updates.
+            </p>
+          </div>
+          {isAdmin && (
+            <button
+              onClick={() => { resetForm(); setIsModalOpen(true); }}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl shadow-sm hover:shadow transition-all active:scale-[0.98]"
+            >
+              <Plus size={18} />
+              <span>Post Announcement</span>
+            </button>
+          )}
         </div>
-        {isAdmin && (
-          <button
-            onClick={() => { resetForm(); setIsModalOpen(true); }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm transition-all"
-          >
-            <Plus size={18} />
-            <span>Post Announcement</span>
-          </button>
+
+        {/* Controls Bar: Search & Category Pills */}
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+          {/* Search Bar */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search announcements..."
+              className="w-full pl-10 pr-9 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 shadow-sm transition-all"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          {/* Category Filter Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+            <Filter size={14} className="text-slate-400 mr-1 hidden sm:block flex-shrink-0" />
+            <button
+              onClick={() => setSelectedCategory('All')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                selectedCategory === 'All'
+                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              All Categories
+            </button>
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                  selectedCategory === cat
+                    ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Content Section */}
+        {loading ? (
+          <div className="flex flex-col justify-center items-center py-20 gap-3">
+            <Loader2 size={32} className="animate-spin text-indigo-500" />
+            <p className="text-xs text-slate-400">Loading announcements...</p>
+          </div>
+        ) : filteredAnnouncements.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 px-4 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl text-center shadow-sm">
+            <div className="p-3 bg-slate-100 dark:bg-slate-800/60 rounded-full text-slate-400 dark:text-slate-500 mb-3">
+              <Megaphone size={32} />
+            </div>
+            <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">
+              {searchQuery || selectedCategory !== 'All' ? 'No matching announcements found' : 'No Announcements Yet'}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mt-1">
+              {searchQuery || selectedCategory !== 'All'
+                ? 'Try tweaking your search query or clear category filters to see more results.'
+                : 'There are no active updates posted for your workspace right now.'}
+            </p>
+            {(searchQuery || selectedCategory !== 'All') && (
+              <button
+                onClick={() => { setSearchQuery(''); setSelectedCategory('All'); }}
+                className="mt-4 px-3 py-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded-lg transition-colors"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredAnnouncements.map((a) => (
+              <div
+                key={a._id}
+                onMouseEnter={() => { if (!hasRead(a)) markRead(a._id); }}
+                className={`group bg-white dark:bg-slate-900 border rounded-2xl p-5 sm:p-6 shadow-sm hover:shadow-md transition-all relative ${
+                  a.pinned
+                    ? 'border-indigo-300 dark:border-indigo-800/80 ring-1 ring-indigo-500/10 dark:ring-indigo-500/20'
+                    : 'border-slate-200/80 dark:border-slate-800/80'
+                }`}
+              >
+                {/* Header row of Card */}
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <div className="flex flex-col gap-2 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {a.pinned && (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-md border border-indigo-200/60 dark:border-indigo-800/50">
+                          <Pin size={12} className="rotate-45" /> Pinned
+                        </span>
+                      )}
+                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${categoryStyle[a.category] || 'bg-slate-100 text-slate-700'}`}>
+                        {a.category}
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                        {a.department || 'Organization-wide'}
+                      </span>
+                    </div>
+
+                    <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-slate-100 leading-snug">
+                      {a.title}
+                    </h3>
+                  </div>
+
+                  {/* Admin Actions */}
+                  {isAdmin && (
+                    <div className="flex items-center gap-1 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-slate-50 dark:bg-slate-800/80 p-1 rounded-lg border border-slate-200/60 dark:border-slate-700/60 flex-shrink-0">
+                      <button
+                        onClick={() => togglePin(a)}
+                        className="p-1.5 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 rounded-md hover:bg-white dark:hover:bg-slate-700 transition-colors"
+                        title={a.pinned ? 'Unpin' : 'Pin to top'}
+                      >
+                        {a.pinned ? <PinOff size={15} /> : <Pin size={15} />}
+                      </button>
+                      <button
+                        onClick={() => archiveAnnouncement(a._id)}
+                        className="p-1.5 text-slate-500 hover:text-amber-600 dark:text-slate-400 dark:hover:text-amber-400 rounded-md hover:bg-white dark:hover:bg-slate-700 transition-colors"
+                        title="Archive"
+                      >
+                        <Archive size={15} />
+                      </button>
+                      <button
+                        onClick={() => deleteAnnouncement(a._id)}
+                        className="p-1.5 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 rounded-md hover:bg-white dark:hover:bg-slate-700 transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Announcement Body */}
+                <p className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed mb-4">
+                  {a.body}
+                </p>
+
+                {/* Attachments Section */}
+                {a.attachments?.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-4 p-2.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800">
+                    {a.attachments.map((att, i) => (
+                      <a
+                        key={i}
+                        href={att.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors shadow-xs"
+                      >
+                        <Paperclip size={13} className="text-slate-400" />
+                        <span className="max-w-[160px] truncate font-medium">
+                          {att.fileName}
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+
+                {/* Footer Meta Details & Actions */}
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-3.5 border-t border-slate-100 dark:border-slate-800/80 text-xs">
+                  <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 font-medium">
+                    <Calendar size={13} />
+                    <span>Posted by <strong className="text-slate-600 dark:text-slate-300 font-semibold">{a.postedBy?.name || 'Unknown'}</strong></span>
+                    <span>&middot;</span>
+                    <span>{new Date(a.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    {canViewReadStatus && (
+                      <button
+                        onClick={() => openReadStatus(a._id)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                      >
+                        <Eye size={14} /> Read status
+                      </button>
+                    )}
+
+                    {hasAcknowledged(a) ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/50">
+                        <CheckCircle2 size={14} /> Acknowledged
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => acknowledge(a._id)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-800/60 transition-colors"
+                      >
+                        <CheckCircle2 size={14} /> Acknowledge
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center py-24">
-          <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      ) : announcements.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-center">
-          <Megaphone size={48} className="text-slate-300 dark:text-slate-700 mb-3" />
-          <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">No Announcements Yet</h3>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {announcements.map((a) => (
-            <div
-              key={a._id}
-              onMouseEnter={() => { if (!hasRead(a)) markRead(a._id); }}
-              className={`bg-white dark:bg-slate-900 border rounded-xl p-5 shadow-sm ${
-                a.pinned ? 'border-indigo-300 dark:border-indigo-800' : 'border-slate-200 dark:border-slate-800'
-              }`}
-            >
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {a.pinned && <Pin size={14} className="text-indigo-500" />}
-                  <h3 className="font-semibold text-base text-slate-800 dark:text-slate-100">{a.title}</h3>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${categoryStyle[a.category] || ''}`}>
-                    {a.category}
-                  </span>
-                  {a.department && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-50 text-violet-700 dark:bg-violet-950/50 dark:text-violet-400">
-                      {a.department}
-                    </span>
-                  )}
-                  {!a.department && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                      Organization-wide
-                    </span>
-                  )}
-                </div>
-
-                {isAdmin && (
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <button
-                      onClick={() => togglePin(a)}
-                      className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
-                      title={a.pinned ? 'Unpin' : 'Pin to top'}
-                    >
-                      {a.pinned ? <PinOff size={14} /> : <Pin size={14} />}
-                    </button>
-                    <button
-                      onClick={() => archiveAnnouncement(a._id)}
-                      className="p-1.5 text-slate-400 hover:text-amber-600 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
-                      title="Archive"
-                    >
-                      <Archive size={14} />
-                    </button>
-                    <button
-                      onClick={() => deleteAnnouncement(a._id)}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
-                      title="Delete"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <p className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap mb-3">{a.body}</p>
-
-             {a.attachments?.length > 0 && (
-  <div className="flex flex-wrap gap-2 mb-3">
-    {a.attachments.map((att, i) => (
-      <a
-        key={i}
-        href={att.fileUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 hover:border-indigo-300"
-      >
-        <Paperclip size={12} />
-        <span className="max-w-[150px] truncate">
-          {att.fileName}
-        </span>
-      </a>
-    ))}
-  </div>
-)}
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800/80">
-                <div className="text-xs text-slate-400">
-                  Posted by {a.postedBy?.name || 'Unknown'} &middot; {new Date(a.createdAt).toLocaleDateString()}
-                </div>
-                <div className="flex items-center gap-2">
-                  {canViewReadStatus && (
-                    <button
-                      onClick={() => openReadStatus(a._id)}
-                      className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-indigo-600"
-                    >
-                      <Eye size={13} /> Read status
-                    </button>
-                  )}
-                  {hasAcknowledged(a) ? (
-                    <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
-                      <CheckCircle2 size={13} /> Acknowledged
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => acknowledge(a._id)}
-                      className="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700"
-                    >
-                      <CheckCircle2 size={13} /> Acknowledge
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* CREATE MODAL */}
+      {/* CREATE ANNOUNCEMENT MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl max-w-2xl w-full p-6 shadow-xl my-8">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl my-8 transition-all">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Post Announcement</h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Post New Announcement</h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
                 <X size={18} />
               </button>
             </div>
 
             {formError && (
-              <div className="mt-4 p-3 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
-                <AlertCircle size={16} />
+              <div className="mt-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
+                <AlertCircle size={16} className="flex-shrink-0" />
                 <span>{formError}</span>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="mt-4 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Title *</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  Title <span className="text-rose-500">*</span>
+                </label>
                 <input
                   type="text"
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
-                  placeholder="e.g., Office closed for Diwali"
+                  className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-900 dark:text-slate-100 transition-all"
+                  placeholder="e.g., Office closed for Holiday"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Body *</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  Body <span className="text-rose-500">*</span>
+                </label>
                 <textarea
-                  rows={5}
+                  rows={4}
                   value={formBody}
                   onChange={(e) => setFormBody(e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
-                  placeholder="Announcement details..."
+                  className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-900 dark:text-slate-100 transition-all"
+                  placeholder="Write full announcement details..."
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Category</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Category</label>
                   <select
                     value={formCategory}
                     onChange={(e) => setFormCategory(e.target.value)}
-                    className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-900 dark:text-slate-100 transition-all"
                   >
                     {CATEGORIES.map((c) => (
                       <option key={c} value={c}>{c}</option>
@@ -395,45 +530,49 @@ const Announcements = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Department (leave blank for org-wide)
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Department <span className="text-slate-400 font-normal">(Leave blank for All)</span>
                   </label>
                   <input
                     type="text"
                     value={formDepartment}
                     onChange={(e) => setFormDepartment(e.target.value)}
-                    className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-900 dark:text-slate-100 transition-all"
                     placeholder="e.g., Engineering"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 pt-1">
                 <input
                   type="checkbox"
                   id="pinned"
                   checked={formPinned}
                   onChange={(e) => setFormPinned(e.target.checked)}
+                  className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
                 />
-                <label htmlFor="pinned" className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                  Pin to top
+                <label htmlFor="pinned" className="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                  Pin this announcement to top
                 </label>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Attachments (images, PDFs, docs — up to 5 files)
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  Attachments
                 </label>
                 <input
                   type="file"
                   multiple
-                  onChange={(e) => setFormFiles(Array.from(e.target.files || []))}
-                  className="w-full text-xs text-slate-500"
+                  disabled
+                  className="w-full text-xs text-slate-500 opacity-50 cursor-not-allowed"
                 />
+                <p className="text-[11px] text-slate-400 mt-1">
+                  File uploads will be enabled after the backend upload service is added.
+                </p>
                 {formFiles.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
                     {formFiles.map((f, i) => (
-                      <span key={i} className="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-xs text-slate-600 dark:text-slate-300">
+                      <span key={i} className="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-xs text-slate-600 dark:text-slate-300">
                         {f.name}
                       </span>
                     ))}
@@ -445,14 +584,14 @@ const Announcements = () => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg shadow-sm"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl shadow-sm transition-all"
                 >
                   {submitting && <Loader2 size={14} className="animate-spin" />}
                   {submitting ? 'Posting...' : 'Post Announcement'}
@@ -465,41 +604,52 @@ const Announcements = () => {
 
       {/* READ STATUS MODAL */}
       {readStatusFor && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl max-w-md w-full p-6 shadow-xl max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Read Status</h3>
-              <button onClick={() => setReadStatusFor(null)} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg">
+              <button
+                onClick={() => setReadStatusFor(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
                 <X size={18} />
               </button>
             </div>
 
             {!readStatusData ? (
-              <div className="flex justify-center py-8">
-                <Loader2 size={20} className="animate-spin text-indigo-500" />
+              <div className="flex justify-center py-10">
+                <Loader2 size={24} className="animate-spin text-indigo-500" />
               </div>
             ) : (
               <div className="mt-4 space-y-4">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">Seen by</span>
-                  <span className="font-semibold">{readStatusData.readCount} / {readStatusData.totalEligible}</span>
+                <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <div>
+                    <span className="text-[11px] text-slate-400 block font-medium">Seen</span>
+                    <span className="text-lg font-bold text-slate-800 dark:text-slate-200">
+                      {readStatusData.readCount} <span className="text-xs font-normal text-slate-400">/ {readStatusData.totalEligible}</span>
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-slate-400 block font-medium">Acknowledged</span>
+                    <span className="text-lg font-bold text-slate-800 dark:text-slate-200">
+                      {readStatusData.acknowledgedCount} <span className="text-xs font-normal text-slate-400">/ {readStatusData.totalEligible}</span>
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">Acknowledged by</span>
-                  <span className="font-semibold">{readStatusData.acknowledgedCount} / {readStatusData.totalEligible}</span>
-                </div>
+
                 <div>
-                  <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Seen</h4>
-                  <div className="space-y-1.5">
-                    {readStatusData.readBy.length === 0 && (
-                      <p className="text-xs text-slate-400">No one yet.</p>
+                  <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Seen By</h4>
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    {readStatusData.readBy?.length === 0 ? (
+                      <p className="text-xs text-slate-400 py-2">No view records yet.</p>
+                    ) : (
+                      readStatusData.readBy.map((r, i) => (
+                        <div key={i} className="flex items-center justify-between text-xs py-1 border-b border-slate-100 dark:border-slate-800/50 last:border-0">
+                          <span className="font-medium text-slate-700 dark:text-slate-300">{r.user?.name}</span>
+                          <span className="text-slate-400">{new Date(r.readAt).toLocaleDateString()}</span>
+                        </div>
+                      ))
                     )}
-                    {readStatusData.readBy.map((r, i) => (
-                      <div key={i} className="flex items-center justify-between text-xs">
-                        <span>{r.user?.name}</span>
-                        <span className="text-slate-400">{new Date(r.readAt).toLocaleDateString()}</span>
-                      </div>
-                    ))}
                   </div>
                 </div>
               </div>
