@@ -5,17 +5,15 @@ import {
   LogIn,
   LogOut,
   Loader2,
-  ShieldAlert,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useLoginActivityApi } from "../services/loginActivityApi";
- import { useAuth } from "../context/AuthContext";
-
-
+import { useAuth } from "../context/AuthContext";
 
 const LoginActivity = () => {
-  // Inside LoginActivity component:
-const { user } = useAuth();
-const { getLoginActivities, getMyLoginActivities } = useLoginActivityApi();
+  const { user } = useAuth();
+  const { getLoginActivities, getMyLoginActivities, clearLoginActivities } = useLoginActivityApi();
 
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,27 +21,30 @@ const { getLoginActivities, getMyLoginActivities } = useLoginActivityApi();
   const [search, setSearch] = useState("");
   const [action, setAction] = useState("");
 
- 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
-const loadActivities = async () => {
-  try {
-    setLoading(true);
-    let res;
+  const loadActivities = async () => {
+    try {
+      setLoading(true);
+      let res;
 
-    // Admin/Manager fetches all logs; regular members fetch their own
-    if (user?.role === "admin" || user?.role === "manager") {
-      res = await getLoginActivities(1, 100, search, action);
-    } else {
-      res = await getMyLoginActivities();
+      // Admin/Manager fetches all logs; regular members fetch their own
+      if (user?.role === "admin" || user?.role === "manager") {
+        res = await getLoginActivities(1, 100, search, action);
+      } else {
+        res = await getMyLoginActivities();
+      }
+
+      setActivities(res.data || []);
+      setCurrentPage(1); // Reset to first page on new data fetch/filter
+    } catch (err) {
+      console.error("Failed to load activities:", err);
+    } finally {
+      setLoading(false);
     }
-
-    setActivities(res.data || []);
-  } catch (err) {
-    console.error("Failed to load activities:", err);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   useEffect(() => {
     loadActivities();
@@ -64,6 +65,17 @@ const loadActivities = async () => {
       loadActivities();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  // --- Pagination Logic ---
+  const totalPages = Math.ceil(activities.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentActivities = activities.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
     }
   };
 
@@ -145,14 +157,14 @@ const loadActivities = async () => {
                   <Loader2 className="animate-spin mx-auto text-indigo-400" size={24} />
                 </td>
               </tr>
-            ) : activities.length === 0 ? (
+            ) : currentActivities.length === 0 ? (
               <tr>
                 <td colSpan="6" className="text-center py-8 text-gray-500">
                   No activity history found.
                 </td>
               </tr>
             ) : (
-              activities.map((item) => (
+              currentActivities.map((item) => (
                 <tr key={item._id} className="hover:bg-white/[0.02] transition">
                   <td className="p-3.5">
                     <p className="font-medium text-white">{item.name}</p>
@@ -196,10 +208,10 @@ const loadActivities = async () => {
           <div className="py-8 text-center">
             <Loader2 className="animate-spin mx-auto text-indigo-400" size={24} />
           </div>
-        ) : activities.length === 0 ? (
+        ) : currentActivities.length === 0 ? (
           <p className="text-center py-6 text-xs text-gray-500">No activity history found.</p>
         ) : (
-          activities.map((item) => (
+          currentActivities.map((item) => (
             <div
               key={item._id}
               className="rounded-xl border border-white/5 bg-white/5 p-3.5 space-y-2 text-xs"
@@ -235,6 +247,53 @@ const loadActivities = async () => {
           ))
         )}
       </div>
+
+      {/* Pagination Controls */}
+      {!loading && activities.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-white/10 text-xs text-gray-400">
+          <div>
+            Showing <span className="text-white font-medium">{startIndex + 1}</span> to{" "}
+            <span className="text-white font-medium">
+              {Math.min(startIndex + itemsPerPage, activities.length)}
+            </span>{" "}
+            of <span className="text-white font-medium">{activities.length}</span> entries
+          </div>
+
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="p-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition text-white"
+              title="Previous Page"
+            >
+              <ChevronLeft size={16} />
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition ${
+                  currentPage === page
+                    ? "bg-indigo-600 border-indigo-500 text-white"
+                    : "border-white/10 bg-white/5 hover:bg-white/10 text-gray-300"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="p-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition text-white"
+              title="Next Page"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
