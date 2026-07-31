@@ -177,7 +177,11 @@ router.post('/', requireRole(['admin', 'manager']), async (req, res) => {
     });
 
     await task.save();
+    // checkReminders();
     await logAction({ taskId: task._id, userId: req.user._id, action: 'Created' });
+
+    await checkReminders();
+    console.log("✅ Reminder check triggered after task creation");
 
     for (const userId of assignedTo) {
       const notification = new Notification({ userId, message: `You have been assigned to a new task: "${task.title}".`, type: 'assignment' });

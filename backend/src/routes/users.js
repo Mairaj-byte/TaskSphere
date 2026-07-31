@@ -21,6 +21,13 @@ router.use(authenticate);
 router.get('/profile', userController.getProfile);
 router.put('/profile', upload.single('profilePhoto'), userController.updateProfile);
 
+// notification mute
+router.patch(
+  "/notification-mute",
+  userController.toggleNotificationMute
+);
+
+
 // User List
 router.get('/', userController.getUsers);
 

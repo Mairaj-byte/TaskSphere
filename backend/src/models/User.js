@@ -79,10 +79,15 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0
     },
-    lastSeen:{
-    type:Date,
-    default:null
-}
+    lastSeen: {
+      type: Date,
+      default: null
+    },
+
+    notificationMuted: {
+        type: Boolean,
+        default: false
+    }
   },
   {
     timestamps: true

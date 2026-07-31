@@ -269,9 +269,20 @@ const init = (server) => {
 };
 
 // Helper notification emitters
-const sendInAppNotification = (userId, notification) => {
+const sendInAppNotification = async (userId, notification) => {
   if (!io) return;
-  io.to(userId.toString()).emit("notification", notification);
+
+  const user = await User.findById(userId).select("notificationMuted");
+
+if (!user) return;
+
+// Agar notifications OFF hain
+if (user.notificationMuted) {
+    console.log(`🔕 Notification muted for user ${userId}`);
+    return;
+}
+
+io.to(userId.toString()).emit("notification", notification);
 };
 
 const sendAdminNotification = (notification) => {
