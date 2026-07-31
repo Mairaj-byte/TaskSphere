@@ -12,9 +12,22 @@ GET ALL ANNOUNCEMENTS
 */
 router.get("/", authenticate, async (req, res) => {
   try {
-    const announcements = await Announcement.find({
+    let query = {
       archived: false,
-    })
+    };
+
+    // Hide acknowledged announcements only for members
+    if (req.user.role === "member") {
+      query.acknowledgedBy = {
+        $not: {
+          $elemMatch: {
+            user: req.user._id,
+          },
+        },
+      };
+    }
+
+    const announcements = await Announcement.find(query)
       .populate("postedBy", "name email profilePhoto role")
       .sort({
         pinned: -1,
@@ -257,9 +270,10 @@ router.patch("/:id/read", authenticate, async (req, res) => {
       );
 
     if (!alreadyRead) {
-      announcement.readBy.push({
-user: req.user._id,
-      });
+     announcement.acknowledgedBy.push({
+    user: req.user._id,
+    acknowledgedAt: new Date(),
+});
 
       await announcement.save();
     }
@@ -323,5 +337,37 @@ router.patch(
     }
   }
 );
+
+/*
+=================================================
+READ STATUS
+=================================================
+*/
+router.get("/:id/read-status", authenticate, async (req, res) => {
+  try {
+    const announcement = await Announcement.findById(req.params.id)
+      .populate("readBy.user", "name email profilePhoto")
+      .populate("acknowledgedBy.user", "name email profilePhoto");
+
+    if (!announcement) {
+      return res.status(404).json({
+        message: "Announcement not found",
+      });
+    }
+
+    res.json({
+      totalEligible: announcement.readBy.length,
+      readCount: announcement.readBy.length,
+      acknowledgedCount: announcement.acknowledgedBy.length,
+      readBy: announcement.readBy,
+      acknowledgedBy: announcement.acknowledgedBy,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+});
 
 module.exports = router;

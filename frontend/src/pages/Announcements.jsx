@@ -80,29 +80,29 @@ const Announcements = () => {
 
   const acknowledge = async (id) => {
     try {
-      await fetch(`${API_BASE}/announcements/${id}/acknowledge`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setToastMsg('Acknowledged successfully.');
-      fetchAnnouncements();
-    } catch (err) {
-      console.error('Failed to acknowledge', err);
-    }
-  };
+        const res = await fetch(
+            `${API_BASE}/announcements/${id}/acknowledge`,
+            {
+                method: "PATCH",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
 
-  const togglePin = async (announcement) => {
-    try {
-      const action = announcement.pinned ? 'unpin' : 'pin';
-      await fetch(`${API_BASE}/announcements/${announcement._id}/${action}`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      fetchAnnouncements();
+        if (!res.ok) {
+            throw new Error("Failed");
+        }
+
+        setAnnouncements(prev =>
+            prev.filter(a => a._id !== id)
+        );
+
+        setToastMsg("Announcement acknowledged.");
     } catch (err) {
-      console.error('Failed to toggle pin', err);
+        console.error(err);
     }
-  };
+};
 
   const archiveAnnouncement = async (id) => {
     if (!window.confirm('Archive this announcement? It will be hidden from the main list but read history is kept.')) return;

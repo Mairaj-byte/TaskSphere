@@ -647,6 +647,8 @@ router.post('/test-cron', async (req, res) => {
 
 // GET /api/tasks/sidebar-stats
 router.get("/sidebar-stats", async (req, res) => {
+   console.log("====== SIDEBAR STATS ROUTE HIT ======");
+  console.log("USER:", req.user);
   try {
     const query = {};
 
@@ -663,7 +665,7 @@ router.get("/sidebar-stats", async (req, res) => {
       total: tasks.length,
 
       pending: tasks.filter(
-        t => t.status === "Pending"
+        t => t.status === "TO DO"
       ).length,
 
       inProgress: tasks.filter(
@@ -704,12 +706,14 @@ router.get("/sidebar-stats", async (req, res) => {
 
   } catch (err) {
 
+    console.error("========== SIDEBAR STATS ERROR ==========");
     console.error(err);
+    console.error(err.stack);
 
     res.status(500).json({
-      error: err.message,
+        error: err.message,
+        stack: err.stack,
     });
-
   }
 });
 
