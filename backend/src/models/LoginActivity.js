@@ -7,7 +7,6 @@ const loginActivitySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
 
     // User Details (stored for history)
@@ -67,9 +66,17 @@ const loginActivitySchema = new mongoose.Schema(
   }
 );
 
-// Helpful indexes
+// ==========================
+// Indexes
+// ==========================
+
+// Query login history by user
 loginActivitySchema.index({ user: 1 });
+
+// Latest logins first
 loginActivitySchema.index({ loginTime: -1 });
+
+// Latest activity first
 loginActivitySchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("LoginActivity", loginActivitySchema);
