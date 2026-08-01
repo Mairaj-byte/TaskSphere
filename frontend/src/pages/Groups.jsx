@@ -204,46 +204,54 @@ const Groups = () => {
         ) : (
           /* Project Cards */
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {filteredGroups.map((group) => (
-              <div
-                key={group._id}
-                onClick={() => navigate(`/groups/${group._id}`)}
-                className="group relative flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/80 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500/50 hover:bg-slate-900 hover:shadow-xl hover:shadow-indigo-500/10 cursor-pointer"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h2 className="text-xl font-bold text-slate-100 group-hover:text-indigo-400 transition-colors line-clamp-1">
-                      {group.name}
-                    </h2>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                      Active
-                    </span>
-                  </div>
+  {filteredGroups.map((group) => (
+    <div
+      key={group._id}
+      onClick={() => navigate(`/groups/${group._id}`)}
+      className="group relative flex flex-col justify-between rounded-2xl border border-slate-800/80 bg-slate-900/60 p-6 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500/50 hover:bg-slate-900 hover:shadow-2xl hover:shadow-indigo-500/10 cursor-pointer overflow-hidden"
+    >
+      {/* Subtle Ambient Hover Glow Background */}
+      <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-indigo-500/10 blur-2xl transition-all duration-500 group-hover:scale-150 group-hover:bg-indigo-500/20 pointer-events-none" />
 
-                  <p className="text-sm text-slate-400 line-clamp-2 mb-6 min-h-[40px]">
-                    {group.description || "No project description provided."}
-                  </p>
-                </div>
+      <div className="relative z-10">
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <h2 className="text-lg font-bold text-slate-100 group-hover:text-indigo-400 transition-colors line-clamp-1">
+            {group.name}
+          </h2>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shadow-xs shrink-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+            Active
+          </span>
+        </div>
 
-                {/* Footer Metrics */}
-                <div className="flex items-center justify-between border-t border-slate-800/80 pt-4">
-                  <div className="flex items-center text-xs text-slate-400">
-                    <UsersIcon />
-                    <span>
-                      <strong className="text-slate-200 font-semibold">{group.members?.length || 0}</strong> Members
-                    </span>
-                  </div>
+        <p className="text-xs sm:text-sm text-slate-400 line-clamp-2 mb-6 min-h-[40px] leading-relaxed">
+          {group.description || "No project description provided."}
+        </p>
+      </div>
 
-                  <div className="flex items-center text-xs text-slate-400">
-                    <CheckCircleIcon />
-                    <span>
-                      <strong className="text-slate-200 font-semibold">0</strong> Tasks
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Footer Metrics */}
+      <div className="flex items-center justify-between border-t border-slate-800/80 pt-4 relative z-10">
+        <div className="flex items-center gap-2 text-xs text-slate-400">
+          <span className="p-1.5 rounded-lg bg-slate-800/60 text-slate-300 group-hover:text-indigo-400 transition-colors">
+            <UsersIcon className="w-3.5 h-3.5" />
+          </span>
+          <span>
+            <strong className="text-slate-200 font-semibold">{group.members?.length || 0}</strong> Members
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs text-slate-400">
+          <span className="p-1.5 rounded-lg bg-slate-800/60 text-slate-300 group-hover:text-indigo-400 transition-colors">
+            <CheckCircleIcon className="w-3.5 h-3.5" />
+          </span>
+          <span>
+            <strong className="text-slate-200 font-semibold">0</strong> Tasks
+          </span>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
         )}
 
         {/* --- Create Project Modal --- */}
