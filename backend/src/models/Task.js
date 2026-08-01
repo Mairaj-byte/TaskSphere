@@ -133,7 +133,16 @@ isArchived: {
   default: false
 },
 
-activityLogs: [activitySchema]
+activityLogs: [activitySchema],
+
+// Tracks the Google Calendar event id created for each assignee who has
+// calendar sync connected, so a later update/delete on this task can find
+// and modify the right event on each person's calendar (every assignee
+// has their own separate event, since each syncs to their own calendar).
+googleCalendarEvents: [{
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  eventId: { type: String }
+}]
 }, {
   timestamps: true
 });

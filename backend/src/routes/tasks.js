@@ -10,6 +10,7 @@ const { sendInAppNotification, sendTaskUpdate } = require('../utils/socket');
 const { checkReminders } = require('../utils/reminders');
 const Group=require("../models/Group");
 const { parseVoiceTranscript } = require('../utils/voiceParser');
+const { upsertTaskEvent, deleteTaskEvent } = require('../utils/googleCalendar');
 const sendEmail = require('../utils/sendEmail');
 
 const router = express.Router();
@@ -176,8 +177,10 @@ router.post('/', requireRole(['admin', 'manager']), async (req, res) => {
       activityLogs: [{ action: "Task Created", performedBy: req.user._id }]
     });
 
-    await task.save();
+   await task.save();
     await logAction({ taskId: task._id, userId: req.user._id, action: 'Created' });
+
+    const calendarEvents = [];
 
     for (const userId of assignedTo) {
       const notification = new Notification({ userId, message: `You have been assigned to a new task: "${task.title}".`, type: 'assignment' });
@@ -206,6 +209,23 @@ router.post('/', requireRole(['admin', 'manager']), async (req, res) => {
           `
         );
       }
+
+      // Google Calendar sync (spec section 15) — best-effort only. If the
+      // user hasn't connected their calendar, or the API call fails for
+      // any reason, this must never block task creation itself.
+      try {
+        if (user) {
+          const eventId = await upsertTaskEvent(user, task, null);
+          if (eventId) calendarEvents.push({ user: userId, eventId });
+        }
+      } catch (calendarErr) {
+        console.error('Calendar sync failed on task create:', calendarErr.message);
+      }
+    }
+
+    if (calendarEvents.length) {
+      task.googleCalendarEvents = calendarEvents;
+      await task.save();
     }
 
     const populatedTask = await Task.findById(task._id).populate('assignedTo', '_id name email role active').populate('createdBy', '_id name email role').populate('dependencies', 'title status');
@@ -306,8 +326,39 @@ router.put('/:id', requireRole(['admin', 'manager']), async (req, res) => {
             `
           );
         }
+             // Google Calendar sync for newly-added assignees — best-effort,
+        // never blocks the response.
+        try {
+          if (user) {
+            const eventId = await upsertTaskEvent(user, task, null);
+            if (eventId) {
+              task.googleCalendarEvents.push({ user: userId, eventId });
+            }
+          }
+        } catch (calendarErr) {
+          console.error('Calendar sync failed on assignee add:', calendarErr.message);
+        }
       }
     }
+
+    // Google Calendar sync for assignees who were already on the task —
+    // if the title or due date changed, push that update to their
+    // existing event. Best-effort, never blocks the response.
+    if (title || dueDate) {
+      const stillAssigned = newAssigned.filter((id) => oldAssigned.includes(id));
+      for (const userIdStr of stillAssigned) {
+        const existing = task.googleCalendarEvents.find((e) => e.user.toString() === userIdStr);
+        if (!existing) continue;
+        try {
+          const user = await User.findById(userIdStr);
+          if (user) await upsertTaskEvent(user, task, existing.eventId);
+        } catch (calendarErr) {
+          console.error('Calendar sync failed on task update:', calendarErr.message);
+        }
+      }
+    }
+
+    await task.save();
 
     const populatedTask = await Task.findById(task._id).populate('assignedTo', '_id name email role active').populate('createdBy', '_id name email role').populate('approvedBy', '_id name email role');
     res.json(populatedTask);
@@ -318,7 +369,7 @@ router.put('/:id', requireRole(['admin', 'manager']), async (req, res) => {
       stack: process.env.NODE_ENV !== "production" ? err.stack : undefined,
     });
   }
-});
+})
 
 // ... (Remainder of routes remain the same)
 // DELETE /api/tasks/:id - Delete Task (Admin & Manager)
@@ -327,6 +378,17 @@ router.delete('/:id', requireRole(['admin', 'manager']), async (req, res) => {
     const task = await Task.findByIdAndDelete(req.params.id);
     if (!task) {
       return res.status(404).json({ error: 'Task not found.' });
+    }
+
+    // Clean up any Google Calendar events created for this task —
+    // best-effort, never blocks the delete response.
+    for (const entry of task.googleCalendarEvents || []) {
+      try {
+        const user = await User.findById(entry.user);
+        if (user) await deleteTaskEvent(user, entry.eventId);
+      } catch (calendarErr) {
+        console.error('Calendar event cleanup failed on task delete:', calendarErr.message);
+      }
     }
 
     // Notify assigned users of deletion

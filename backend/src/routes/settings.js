@@ -4,8 +4,27 @@ const { authenticate, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 router.use(authenticate);
-router.use(requireRole(['admin']));
 
+// GET /api/settings/public - a trimmed, safe-for-everyone view of settings
+// (currently just which integrations are turned on). Any authenticated
+// user can call this — e.g. the Profile page needs to know whether to show
+// the "Connect Google Calendar" button, without needing admin rights to
+// read the full settings document (which also holds the Slack webhook URL
+// and other admin-only config).
+router.get('/public', async (req, res) => {
+  try {
+    const settings = await SystemSettings.getSingleton();
+    res.json({
+      integrations: {
+        googleCalendar: { enabled: settings.integrations?.googleCalendar?.enabled || false },
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+router.use(requireRole(['admin']));
 // GET /api/settings - fetch the singleton settings document
 router.get('/', async (req, res) => {
   try {

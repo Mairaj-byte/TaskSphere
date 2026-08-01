@@ -83,11 +83,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null
     },
-    lastSeen: {
-      type: Date,
-      default: null
-    },
-
     lastLoginAt: {
       type: Date,
       default: null
@@ -96,12 +91,29 @@ const userSchema = new mongoose.Schema(
     lastLogoutAt: {
       type: Date,
       default: null
+    },
+    lastSeen:{
+    type:Date,
+    default:null
+},
+    // Google Calendar sync (spec section 15). Each user connects their own
+    // Google account via OAuth2; tasks assigned to them are then mirrored
+    // as events on their personal calendar. NOTE: tokens are stored in
+    // plain text here for simplicity — for a real production deployment
+    // these should be encrypted at rest (e.g. via a KMS or a library like
+    // mongoose-encryption) before going live with real user data.
+    googleCalendar: {
+      connected: { type: Boolean, default: false },
+      accessToken: { type: String, default: '' },
+      refreshToken: { type: String, default: '' },
+      tokenExpiry: { type: Date, default: null },
     }
   },
   {
     timestamps: true
   }
 );
+
 
 userSchema.set('toJSON', {
   transform: (doc, ret) => {

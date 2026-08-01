@@ -22,6 +22,7 @@ const groupRoutes = require("./src/routes/groups");
 const chatRoutes = require("./src/routes/chatRoutes");
 const departmentRoutes = require("./src/routes/departments"); // NEW
 const settingsRoutes = require("./src/routes/settings"); // NEW
+const calendarRoutes = require("./src/routes/calendarRoutes"); // NEW
 const fileRoutes = require("./src/routes/fileRoute");
 const loginActivityRoutes = require("./src/routes/loginActivityRoute")
 
@@ -56,6 +57,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/departments", departmentRoutes); // NEW
 app.use("/api/settings", settingsRoutes); // NEW
+app.use("/api/calendar", calendarRoutes); // NEW
 app.use("/api/files", fileRoutes);
 app.use("/api/login-activity", loginActivityRoutes);
 
