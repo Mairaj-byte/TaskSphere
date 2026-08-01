@@ -21,7 +21,7 @@ const Tasks = () => {
   const [tasks, setTasks] = useState([]);
   const [allTasks, setAllTasks] = useState([]);
   const [loading, setLoading] = useState(true);
- const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list' | 'kanban' | 'calendar' | 'gantt'
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list' | 'kanban' | 'calendar' | 'gantt'
 
   // Search & Filter State
   const [search, setSearch] = useState('');
@@ -405,11 +405,10 @@ const Tasks = () => {
           <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700 self-end md:self-auto">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${
-                viewMode === 'grid'
+              className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'grid'
                   ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
                   : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
+                }`}
               title="Grid View"
             >
               <LayoutGrid size={16} />
@@ -417,53 +416,49 @@ const Tasks = () => {
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${
-                viewMode === 'list'
+              className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'list'
                   ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
                   : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
+                }`}
               title="List View"
             >
               <List size={16} />
               <span className="hidden sm:inline">List</span>
             </button>
-           <button
-  onClick={() => setViewMode('kanban')}
-  className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${
-    viewMode === 'kanban'
-      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
-      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-  }`}
-  title="Kanban Board"
->
-  <KanbanSquare size={16} />
-  <span className="hidden sm:inline">Kanban</span>
-</button>
-<button
-  onClick={() => setViewMode('calendar')}
-  className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${
-    viewMode === 'calendar'
-      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
-      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-  }`}
-  title="Calendar View"
->
-  <CalendarDays size={16} />
-  <span className="hidden sm:inline">Calendar</span>
-</button>
-<button
-  onClick={() => setViewMode('gantt')}
-  className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${
-    viewMode === 'gantt'
-      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
-      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-  }`}
-  title="Gantt / Timeline View"
->
-  <GanttChartSquare size={16} />
-  <span className="hidden sm:inline">Gantt</span>
-</button>
-          
+            <button
+              onClick={() => setViewMode('kanban')}
+              className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'kanban'
+                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+              title="Kanban Board"
+            >
+              <KanbanSquare size={16} />
+              <span className="hidden sm:inline">Kanban</span>
+            </button>
+            <button
+              onClick={() => setViewMode('calendar')}
+              className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'calendar'
+                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+              title="Calendar View"
+            >
+              <CalendarDays size={16} />
+              <span className="hidden sm:inline">Calendar</span>
+            </button>
+            <button
+              onClick={() => setViewMode('gantt')}
+              className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'gantt'
+                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+              title="Gantt / Timeline View"
+            >
+              <GanttChartSquare size={16} />
+              <span className="hidden sm:inline">Gantt</span>
+            </button>
+
           </div>
         </div>
 
@@ -557,22 +552,24 @@ const Tasks = () => {
             Try adjusting your search criteria or clear filters.
           </p>
         </div>
-     ) : viewMode === 'kanban' ? (
-  <KanbanBoard
-    tasks={tasks}
-    user={user}
-    token={token}
-    navigate={navigate}
-    showToast={setToastMsg}
-    refreshTasks={fetchTasks}
-  />
-) : viewMode === 'calendar' ? (
-  <CalendarView tasks={tasks} navigate={navigate} />
-) : viewMode === 'gantt' ? (
-  <GanttChart tasks={tasks} navigate={navigate} />
-) : viewMode === 'grid' ? (
+      ) : viewMode === 'kanban' ? (
+        <KanbanBoard
+          tasks={tasks}
+          user={user}
+          token={token}
+          navigate={navigate}
+          showToast={setToastMsg}
+          refreshTasks={fetchTasks}
+        />
+      ) : viewMode === 'calendar' ? (
+        <CalendarView tasks={tasks} navigate={navigate} />
+      ) : viewMode === 'gantt' ? (
+        <GanttChart tasks={tasks} navigate={navigate} />
+      ) : viewMode === 'grid' ? (
         /* GRID VIEW */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      
+        /* GRID VIEW */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {tasks.map((task) => {
             const daysLeft = Math.round((new Date(task.dueDate) - new Date()) / (24 * 60 * 60 * 1000));
             const isOverdue = task.status === 'Overdue' || (daysLeft < 0 && task.status !== 'Approved');
@@ -581,75 +578,95 @@ const Tasks = () => {
               <div
                 key={task._id}
                 onClick={() => navigate(`/tasks/${task._id}`)}
-                className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+                className={`group relative bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 hover:border-indigo-300 dark:hover:border-indigo-700/60 rounded-2xl p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden ${
+                  isOverdue ? 'border-l-4 border-l-rose-500' : 'border-l-4 border-l-indigo-500'
+                }`}
               >
                 <div>
-                  <div className="flex items-start justify-between gap-2 mb-3">
+                  {/* Header & Actions */}
+                  <div className="flex items-start justify-between gap-3 mb-3">
                     <h3 className="font-semibold text-base text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">
                       {task.title}
                     </h3>
                     {['admin', 'manager'].includes(user?.role) && (
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-xs p-0.5 rounded-lg" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={(e) => openEditModal(task, e)}
-                          className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                          className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-md hover:bg-white dark:hover:bg-slate-700 transition-colors shadow-xs"
                           title="Edit Task"
                         >
-                          <Edit2 size={14} />
+                          <Edit2 size={13} />
                         </button>
                         <button
                           onClick={(e) => confirmDelete(task._id, e)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-white dark:hover:bg-slate-700 transition-colors shadow-xs"
                           title="Delete Task"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={13} />
                         </button>
                       </div>
                     )}
                   </div>
 
+                  {/* Status & Priority Badges */}
                   <div className="flex flex-wrap items-center gap-2 mb-3">
                     {getStatusBadge(task.status)}
                     {getPriorityBadge(task.priority)}
                   </div>
 
+                  {/* Tags */}
                   {task.tags?.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mb-3">
                       {task.tags.map((tag, i) => (
-                        <span key={i} className="px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 text-[10px] font-medium">
-                          {tag}
+                        <span key={i} className="px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-medium">
+                          #{tag}
                         </span>
                       ))}
                     </div>
                   )}
 
-                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 leading-relaxed">
+                  {/* Description */}
+                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-5 leading-relaxed">
                     {task.description || 'No description provided.'}
                   </p>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between mt-auto">
-                  <div className={`flex items-center gap-1.5 text-xs ${isOverdue ? 'text-rose-600 font-medium' : 'text-slate-500 dark:text-slate-400'}`}>
-                    <Calendar size={14} />
+                {/* Footer Meta (Date & Assignees) */}
+                <div className="pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between mt-auto">
+                  <div className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md ${
+                    isOverdue 
+                      ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-semibold animate-pulse' 
+                      : 'bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 font-medium'
+                  }`}>
+                    <Calendar size={13} />
                     <span>{new Date(task.dueDate).toLocaleDateString()}</span>
                   </div>
 
-                  <div className="flex -space-x-1.5 overflow-hidden">
-                    {task.assignedTo.map((u) => (
-                      <div
-                        key={u._id}
-                        className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold border-2 border-white dark:border-slate-900"
-                        title={`${u.name} (${u.email})`}
-                      >
-                        {u.name.charAt(0).toUpperCase()}
-                      </div>
-                    ))}
+                  {/* Assignees Avatars with Overflow Support */}
+                  <div className="flex items-center">
+                    <div className="flex -space-x-2 overflow-hidden">
+                      {task.assignedTo.slice(0, 3).map((u) => (
+                        <div
+                          key={u._id}
+                          className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-[11px] font-bold border-2 border-white dark:border-slate-900 shadow-xs"
+                          title={`${u.name} (${u.email})`}
+                        >
+                          {u.name.charAt(0).toUpperCase()}
+                        </div>
+                      ))}
+                    </div>
+                    {task.assignedTo.length > 3 && (
+                      <span className="ml-1.5 text-[10px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-full">
+                        +{task.assignedTo.length - 3}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
             );
           })}
         </div>
+      
       ) : (
         /* LIST VIEW */
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
@@ -867,11 +884,10 @@ const Tasks = () => {
                           <div
                             key={member._id}
                             onClick={() => toggleAssignee(member._id)}
-                            className={`flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-all ${
-                              isSelected
+                            className={`flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-all ${isSelected
                                 ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-500'
                                 : 'border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
+                              }`}
                           >
                             <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>
                               {member.name.charAt(0).toUpperCase()}
