@@ -159,45 +159,48 @@ const Announcements = () => {
     setFormError('');
 
     if (!formTitle.trim()) {
-      return setFormError('Title is required.');
+      return setFormError("Title is required.");
     }
 
     if (!formBody.trim()) {
-      return setFormError('Body is required.');
+      return setFormError("Body is required.");
     }
 
     setSubmitting(true);
 
     try {
+      const data = new FormData();
+      data.append("title", formTitle.trim());
+      data.append("body", formBody.trim());
+      data.append("category", formCategory);
+      data.append("department", formDepartment.trim());
+      data.append("pinned", formPinned);
+
+      formFiles.forEach((file) => data.append("attachments", file));
+
       const res = await fetch(`${API_BASE}/announcements`, {
-        method: 'POST',
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          title: formTitle.trim(),
-          body: formBody.trim(),
-          category: formCategory,
-          department: formDepartment.trim(),
-          pinned: formPinned,
-          attachments: [],
-        }),
+        body: data,
       });
 
       const result = await res.json();
 
       if (!res.ok) {
-        throw new Error(result.message || result.error || 'Failed to post announcement.');
+        throw new Error(
+          result.message || result.error || "Failed to post announcement."
+        );
       }
 
-      setToastMsg('Announcement posted successfully!');
+      setToastMsg("Announcement posted successfully!");
       setIsModalOpen(false);
       resetForm();
       fetchAnnouncements();
     } catch (err) {
       console.error(err);
-      setFormError(err.message || 'Failed to post announcement.');
+      setFormError(err.message || "Failed to post announcement.");
     } finally {
       setSubmitting(false);
     }

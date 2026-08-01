@@ -71,7 +71,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
       default: ''
     },
-    resetOtp: {
+      resetOtp: {
       type: String,
       default: ''
     },
@@ -83,11 +83,18 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null
     },
+    lastSeen: {
+      type: Date,
+      default: null
+    },
+    notificationMuted: {
+      type: Boolean,
+      default: false
+    },
     lastLoginAt: {
       type: Date,
       default: null
     },
-
     lastLogoutAt: {
       type: Date,
       default: null

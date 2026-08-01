@@ -142,7 +142,13 @@ activityLogs: [activitySchema],
 googleCalendarEvents: [{
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   eventId: { type: String }
-}]
+}],
+deadlineReminderSent: {
+  type: Boolean,
+  default: false
+},
+
+activityLogs: [activitySchema]
 }, {
   timestamps: true
 });

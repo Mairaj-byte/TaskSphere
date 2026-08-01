@@ -3,6 +3,15 @@ const mongoose = require("mongoose");
 const Announcement = require("../models/Announcement");
 const { authenticate, requireRole } = require("../middleware/auth");
 
+const User = require("../models/User");
+const sendEmail = require("../utils/sendEmail");
+
+const multer = require("multer");
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+});
+
 const router = express.Router();
 
 /*
@@ -48,7 +57,8 @@ router.get("/", authenticate, async (req, res) => {
 CREATE ANNOUNCEMENT
 =================================================
 */
-router.post("/", authenticate, async (req, res) => {
+router.post("/", authenticate, upload.array("attachments"), async (req, res) => {
+   
   try {
     if (
       req.user.role !== "admin" &&
@@ -84,6 +94,56 @@ router.post("/", authenticate, async (req, res) => {
       "postedBy",
       "name email profilePhoto role"
     );
+
+    // =====================================================
+    // Send Announcement Email To All Active Users
+    // =====================================================
+
+    const users = await User.find({
+  active: true,
+}).select("name email");
+
+await Promise.allSettled(
+  users.map(async (user) => {
+    if (!user.email) return;
+
+    try {
+      
+
+      await sendEmail(
+        user.email,
+        `📢 New Announcement - ${announcement.title}`,
+        `
+          <h2>Hello ${user.name},</h2>
+
+          <p>A new announcement has been posted in <b>TaskSphere</b>.</p>
+
+          <hr>
+
+          <p><b>Title:</b> ${announcement.title}</p>
+
+          <p><b>Category:</b> ${announcement.category}</p>
+
+          <p>${announcement.body}</p>
+
+          <br>
+
+          <p>Please login to TaskSphere for more details.</p>
+
+          <br>
+
+          <p>Regards,</p>
+          <p><b>TaskSphere Team</b></p>
+        `
+      );
+
+     
+    } catch (err) {
+      console.error(`❌ Failed to send email to ${user.email}`);
+      console.error(err.message);
+    }
+  })
+);
 
     res.status(201).json(populated);
   } catch (err) {
