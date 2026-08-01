@@ -18,17 +18,18 @@ const notificationSchema = new mongoose.Schema({
   type: {
     type: String,
     enum: [
-      'assignment',
-      'reminder',
-      'approval',
-      'rejection',
-      'deadline',
-      'overdue',
-      'completed',
-      'update'
+        "assignment",
+        "project",
+        "reminder",
+        "approval",
+        "rejection",
+        "deadline",
+        "overdue",
+        "completed",
+        "update"
     ],
     required: true
-  },
+},
   read: {
     type: Boolean,
     default: false

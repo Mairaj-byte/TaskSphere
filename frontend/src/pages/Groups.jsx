@@ -40,7 +40,7 @@ const FolderPlusIcon = () => (
 );
 
 const Groups = () => {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -50,6 +50,8 @@ const Groups = () => {
   const [showModal, setShowModal] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
+  const [users, setUsers] = useState([]);
+const [selectedMembers, setSelectedMembers] = useState([]);
 
   const fetchGroups = async () => {
     try {
@@ -73,6 +75,14 @@ const Groups = () => {
     }
   };
 
+    const toggleMember = (id) => {
+  setSelectedMembers((prev) =>
+    prev.includes(id)
+      ? prev.filter((m) => m !== id)
+      : [...prev, id]
+  );
+};
+
   const createProject = async (e) => {
     e.preventDefault();
     if (!projectName.trim()) return;
@@ -85,10 +95,11 @@ const Groups = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          name: projectName,
-          description: projectDescription,
-        }),
+       body: JSON.stringify({
+  name: projectName,
+  description: projectDescription,
+  members: selectedMembers,
+}),
       });
 
       const data = await res.json();
@@ -99,6 +110,7 @@ const Groups = () => {
 
       setProjectName("");
       setProjectDescription("");
+      setSelectedMembers([]);
       setShowModal(false);
       fetchGroups();
     } catch (err) {
@@ -108,9 +120,28 @@ const Groups = () => {
     }
   };
 
-  useEffect(() => {
-    fetchGroups();
-  }, []);
+ useEffect(() => {
+  fetchGroups();
+  fetchUsers();
+}, []);
+
+    const fetchUsers = async () => {
+  try {
+    const res = await fetch(`${API_BASE}/users`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      setUsers(data);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   // Filter groups by search query
   const filteredGroups = useMemo(() => {
@@ -134,7 +165,8 @@ const Groups = () => {
               Manage your teams, monitor progress, and build together.
             </p>
           </div>
-
+           
+           {user?.role === "admin" && (
           <button
             onClick={() => setShowModal(true)}
             className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition-all hover:bg-indigo-500 hover:shadow-indigo-600/50 active:scale-95"
@@ -142,6 +174,7 @@ const Groups = () => {
             <PlusIcon />
             Create Project
           </button>
+           )}
         </div>
 
         {/* --- Controls Bar: Search & Counter --- */}
@@ -303,6 +336,44 @@ const Groups = () => {
                     onChange={(e) => setProjectDescription(e.target.value)}
                   />
                 </div>
+
+                <div>
+  <label className="block text-xs font-medium text-slate-300 mb-2">
+    Assign Members
+  </label>
+
+  <div className="max-h-56 overflow-y-auto rounded-xl border border-slate-700 bg-slate-800/40 p-3 space-y-2">
+
+    {users.map((member) => (
+
+      <label
+        key={member._id}
+        className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-700 cursor-pointer"
+      >
+
+        <div>
+          <p className="text-sm text-white">
+            {member.name}
+          </p>
+
+          <p className="text-xs text-slate-400">
+            {member.email}
+          </p>
+        </div>
+
+        <input
+          type="checkbox"
+          checked={selectedMembers.includes(member._id)}
+          onChange={() => toggleMember(member._id)}
+          className="w-4 h-4 accent-indigo-600"
+        />
+
+      </label>
+
+    ))}
+
+  </div>
+</div>
 
                 {/* Actions */}
                 <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">

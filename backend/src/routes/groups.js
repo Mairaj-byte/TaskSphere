@@ -3,6 +3,12 @@ const router = express.Router();
 
 const Group = require("../models/Group");
 const Task = require("../models/Task");
+const User = require("../models/User");
+const Notification = require("../models/Notification");
+const sendEmail = require("../utils/sendEmail");
+const {
+    sendInAppNotification
+} = require("../utils/socket");
 
 const {
   authenticate,
@@ -14,27 +20,88 @@ const {
 ========================================================== */
 
 router.post(
-  "/",
-  authenticate,
-  requireRole(["admin"]),
-  async (req, res) => {
-    try {
+    "/",
+    authenticate,
+    requireRole(["admin"]),
+    async (req, res) => {
 
-      const group = await Group.create({
-        name: req.body.name,
-        description: req.body.description,
-        members: req.body.members || [],
-        createdBy: req.user._id
-      });
+        try {
 
-      res.status(201).json(group);
+            const {
+                name,
+                description,
+                members = []
+            } = req.body;
 
-    } catch (err) {
-      res.status(500).json({
-        error: err.message
-      });
+            const group = await Group.create({
+                name,
+                description,
+                members,
+                createdBy: req.user._id
+            });
+
+            const users = await User.find({
+                _id: {
+                    $in: members
+                }
+            });
+
+            for (const user of users) {
+
+                const notification = await Notification.create({
+
+                    userId: user._id,
+
+                    message: `You have been assigned to project "${group.name}"`,
+
+                    type: "project"
+
+                });
+
+                await sendInAppNotification(
+                    user._id,
+                    notification
+                );
+
+                await sendEmail(
+
+                    user.email,
+
+                    "New Project Assigned",
+
+                    `
+                    <h2>Hello ${user.name}</h2>
+
+                    <p>You have been assigned to a new project.</p>
+
+                    <h3>${group.name}</h3>
+
+                    <p>${description}</p>
+
+                    <br>
+
+                    <p>Please login to TaskSphere.</p>
+                    `
+
+                );
+
+            }
+
+            res.status(201).json(group);
+
+        }
+
+        catch(err){
+
+            console.error(err);
+
+            res.status(500).json({
+                error:err.message
+            });
+
+        }
+
     }
-  }
 );
 
 /* ==========================================================
@@ -45,9 +112,16 @@ router.get(
   "/",
   authenticate,
   async (req, res) => {
-    try {
+   try {
 
-     const groups = await Group.find()
+     // Members should only see projects they've actually been added to.
+     // Admins and managers still see every project (they manage/oversee
+     // work across the org, not just their own assignments).
+     const filter = req.user.role === "member"
+       ? { members: req.user._id }
+       : {};
+
+     const groups = await Group.find(filter)
   .populate("members", "name email role profilePhoto")
   .populate("createdBy", "name email");
 
@@ -118,10 +192,24 @@ router.get(
     "name email profilePhoto"
   );
 
-      if (!group) {
+     if (!group) {
         return res.status(404).json({
           error: "Group not found"
         });
+      }
+
+      // Same restriction as the list endpoint: a member who isn't part of
+      // this project shouldn't be able to view it just by knowing/guessing
+      // its URL.
+      if (req.user.role === "member") {
+        const isMember = group.members.some(
+          (m) => m._id.toString() === req.user._id.toString()
+        );
+        if (!isMember) {
+          return res.status(403).json({
+            error: "Forbidden. You are not a member of this project."
+          });
+        }
       }
 
       res.json(group);
@@ -141,7 +229,7 @@ router.get(
 router.put(
   "/:id",
   authenticate,
-  requireRole(["admin"]),
+ requireRole(["admin", "manager"]),
   async (req, res) => {
 
     try {
