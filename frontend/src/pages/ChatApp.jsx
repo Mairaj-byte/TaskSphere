@@ -319,7 +319,7 @@ const ChatApp = () => {
     };
 
     return (
-        <div className="relative flex w-full h-[100dvh] bg-slate-950 text-slate-100 font-sans overflow-hidden antialiased select-none sm:select-text">
+        <div className="relative flex flex-1 h-full overflow-hidden">
             {/* Toast Notification */}
             {toastMessage && (
                 <div
@@ -468,9 +468,17 @@ const ChatApp = () => {
 
             {/* Sidebar: Channel Members Drawer */}
             <aside
-                className={`fixed lg:relative z-40 lg:z-auto inset-y-0 left-0 w-full sm:w-80 lg:w-72 bg-slate-900 border-r border-slate-800 flex flex-col transition-transform duration-300 ease-in-out ${showSidebarMobile ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-                    }`}
-            >
+                className={`
+                relative
+                w-72
+                bg-slate-900
+                border-r
+                border-slate-800
+                flex
+                flex-col
+                shrink-0
+                `}
+                >
                 <div className="h-16 px-4 sm:px-5 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-900/50">
                     <div className="flex items-center gap-2.5">
                         <Users size={18} className="text-indigo-400" />
@@ -492,7 +500,7 @@ const ChatApp = () => {
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-3 space-y-1">
+                <div className="flex-1 overflow-y-auto py-2 px-2 space-y-1">
                     {selectedRoom?.members?.map((member) => {
                         const isOnline = onlineUsers.includes(member._id);
                         return (
@@ -556,7 +564,22 @@ const ChatApp = () => {
                 ) : (
                     <>
                         {/* Header */}
-                        <header className="h-16 border-b border-slate-800 px-3 sm:px-6 flex justify-between items-center bg-slate-900/40 backdrop-blur-md z-10 shrink-0">
+                        <header
+                            className="
+                            sticky
+                            top-0
+                            z-20
+                            h-16
+                            border-b
+                            border-slate-800
+                            px-6
+                            flex
+                            justify-between
+                            items-center
+                            bg-slate-900/95
+                            backdrop-blur-xl
+                            "
+                            >
                             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                                 <button
                                     onClick={() => setShowSidebarMobile(true)}
@@ -586,7 +609,24 @@ const ChatApp = () => {
 
                         {/* Pinned Messages Banner */}
                         {pinnedMessages.length > 0 && (
-                            <div className="bg-slate-900/90 backdrop-blur-md border-b border-indigo-500/20 px-3 sm:px-4 py-2 flex items-center justify-between gap-2 sm:gap-3 shadow-md z-10 shrink-0">
+                            <div
+                                className="
+                                sticky
+                                top-16
+                                z-10
+                                bg-slate-900/95
+                                backdrop-blur-xl
+                                border-b
+                                border-indigo-500/20
+                                px-4
+                                py-2
+                                flex
+                                items-center
+                                justify-between
+                                gap-3
+                                shadow-md
+                                "
+                                >
                                 <div
                                     onClick={() =>
                                         scrollToMessage(
@@ -663,7 +703,7 @@ const ChatApp = () => {
                         )}
 
                         {/* Messages Scroll Container */}
-                        <div className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 space-y-4">
+                       <div className="flex-1 overflow-y-auto px-4 pb-4 pt-2 space-y-4">
                             {displayMessages.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center text-slate-600 space-y-2 p-4">
                                     <MessageSquareText size={32} />
@@ -842,7 +882,18 @@ const ChatApp = () => {
                         )}
 
                         {/* Message Input Box */}
-                        <footer className="p-2.5 sm:p-4 bg-slate-950 border-t border-slate-800 shrink-0">
+                        <footer
+                            className="
+                            sticky
+                            bottom-0
+                            z-20
+                            p-4
+                            bg-slate-950/95
+                            backdrop-blur-xl
+                            border-t
+                            border-slate-800
+                            "
+                            >
                             {typingUsers.length > 0 && (
                                 <div className="text-[10px] sm:text-[11px] text-indigo-400 mb-1.5 italic">
                                     Someone is typing...
