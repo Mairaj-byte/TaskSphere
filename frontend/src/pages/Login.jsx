@@ -286,11 +286,10 @@ const Auth = () => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {/* Full Name Input */}
                   <div
-                    className={`grid transition-all duration-300 ease-in-out ${
-                      isSignUp
+                    className={`grid transition-all duration-300 ease-in-out ${isSignUp
                         ? 'grid-rows-[1fr] opacity-100'
                         : 'grid-rows-[0fr] opacity-0 pointer-events-none'
-                    }`}
+                      }`}
                   >
                     <div className="overflow-hidden">
                       <label htmlFor="name" className="block text-xs font-medium text-slate-400 mb-1.5">
@@ -364,11 +363,10 @@ const Auth = () => {
 
                   {/* Role Display */}
                   <div
-                    className={`grid transition-all duration-300 ease-in-out ${
-                      isSignUp
+                    className={`grid transition-all duration-300 ease-in-out ${isSignUp
                         ? 'grid-rows-[1fr] opacity-100'
                         : 'grid-rows-[0fr] opacity-0 pointer-events-none'
-                    }`}
+                      }`}
                   >
                     <div className="overflow-hidden">
                       <label className="block text-xs font-medium text-slate-400 mb-1.5">
@@ -388,11 +386,10 @@ const Auth = () => {
 
                   {/* Remember Me & Forgot Password */}
                   <div
-                    className={`grid transition-all duration-300 ease-in-out ${
-                      !isSignUp
+                    className={`grid transition-all duration-300 ease-in-out ${!isSignUp
                         ? 'grid-rows-[1fr] opacity-100'
                         : 'grid-rows-[0fr] opacity-0 pointer-events-none'
-                    }`}
+                      }`}
                   >
                     <div className="overflow-hidden">
                       <div className="flex items-center justify-between text-xs py-1">
@@ -446,21 +443,21 @@ const Auth = () => {
                 </div>
 
                 {/* Google Login Component */}
-<div className="w-full bg-slate-950/60 rounded-xl p-1 overflow-hidden">
-  <GoogleLogin
-    theme="filled_black"
-    shape="rectangular"
-    size="large"
-    text={isSignUp ? "signup_with" : "signin_with"}
-    width="100%"
-    onSuccess={handleGoogleLogin}
-    onError={() => {
-      setError("Google Login Failed");
-    }}
-  />
-</div>
+                <div className="w-full bg-[#1f1f21] rounded-xl p-1 overflow-hidden">
+                  <GoogleLogin
+                    theme="filled_black"
+                    shape="rectangular"
+                    size="large"
+                    text={isSignUp ? "signup_with" : "signin_with"}
+                    width="100%"
+                    onSuccess={handleGoogleLogin}
+                    onError={() => {
+                      setError("Google Login Failed");
+                    }}
+                  />
+                </div>
 
-                
+
               </>
             )}
 
