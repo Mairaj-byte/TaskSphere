@@ -344,7 +344,7 @@ const ChatApp = () => {
     };
 
     return (
-        <div className="relative flex flex-1 h-full overflow-hidden">
+        <div className="relative flex h-full w-full overflow-hidden bg-slate-950">
             {/* Toast Notification */}
             {toastMessage && (
                 <div
@@ -370,7 +370,15 @@ const ChatApp = () => {
                             </div>
                             <h3 className="font-semibold text-slate-100 text-sm sm:text-base">Remove Member</h3>
                         </div>
-                        <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                        <p
+                            className="
+                            text-[13px]
+                            sm:text-sm
+                            leading-6
+                            break-words
+                            whitespace-pre-wrap
+                            "
+                            >
                             Are you sure you want to remove{" "}
                             <strong className="text-slate-200">{userToDelete.name}</strong> from this channel?
                         </p>
@@ -487,21 +495,43 @@ const ChatApp = () => {
             {showSidebarMobile && (
                 <div
                     onClick={() => setShowSidebarMobile(false)}
-                    className="fixed inset-0 bg-black/70 z-30 lg:hidden backdrop-blur-xs transition-opacity"
+                    className="
+                        fixed
+                        inset-0
+                        bg-black/60
+                        backdrop-blur-sm
+                        z-30
+                        lg:hidden
+                        transition-all
+                        duration-300
+                        "
                 />
             )}
 
             {/* Sidebar: Channel Members Drawer */}
             <aside
                 className={`
-                relative
-                w-72
-                bg-slate-900
-                border-r
-                border-slate-800
-                flex
-                flex-col
-                shrink-0
+                    fixed lg:relative
+                    top-0 left-0
+                    z-40 lg:z-auto
+                    h-screen lg:h-full
+                    w-[260px]
+                    md:w-[280px]
+                    lg:w-72
+                    bg-slate-900
+                    border-r border-slate-800
+                    flex flex-col
+                    shrink-0
+                    lg:translate-x-0
+                    transform
+                    transition-transform
+                    duration-300
+                    ease-in-out
+                    ${
+                        showSidebarMobile
+                            ? "translate-x-0"
+                            : "-translate-x-full lg:translate-x-0"
+                    }
                 `}
             >
                 <div className="h-16 px-4 sm:px-5 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-900/50">
@@ -585,7 +615,7 @@ const ChatApp = () => {
             </aside>
 
             {/* Main Chat Area */}
-            <main className="flex flex-col flex-1 h-full bg-slate-950 relative min-w-0">
+            <main className="flex flex-col flex-1 h-full w-full bg-slate-950 relative min-w-0">
                 {!selectedRoom ? (
                     <div className="flex-1 flex flex-col justify-center items-center text-slate-500 gap-3 p-4">
                         <MessageSquareText
@@ -603,17 +633,23 @@ const ChatApp = () => {
                             top-0
                             z-20
                             h-16
+
                             border-b
                             border-slate-800
-                            px-6
+
+                            px-3
+                            sm:px-4
+                            lg:px-6
+
                             flex
                             justify-between
                             items-center
+
                             bg-slate-900/95
                             backdrop-blur-xl
                             "
                         >
-                            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
                                 <button
                                     onClick={() => setShowSidebarMobile(true)}
                                     className="lg:hidden p-2 hover:bg-slate-800 active:bg-slate-800 rounded-xl text-slate-400 hover:text-slate-200 cursor-pointer shrink-0"
@@ -622,10 +658,10 @@ const ChatApp = () => {
                                     <Users size={20} />
                                 </button>
                                 <div className="min-w-0">
-                                    <h2 className="font-bold text-sm sm:text-base text-slate-100 truncate">
+                                    <h2 className="font-semibold text-sm sm:text-base text-slate-100 truncate">
                                         # {selectedRoom.name}
                                     </h2>
-                                    <div className="text-[10px] sm:text-[11px] text-slate-500 truncate">
+                                    <div className="text-[11px] text-slate-500 truncate">
                                         {selectedRoom.members?.length || 0} participants
                                     </div>
                                 </div>
@@ -633,10 +669,46 @@ const ChatApp = () => {
 
                             <button
                                 onClick={handleOpenAddMember}
-                                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 sm:py-1.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl text-xs font-medium shadow-md shadow-indigo-600/20 transition-all active:scale-95 shrink-0 cursor-pointer"
+                                className="
+                                    flex
+                                    items-center
+                                    justify-center
+
+                                    gap-2
+
+                                    w-10
+                                    h-10
+
+                                    md:w-auto
+                                    md:h-auto
+
+                                    md:px-3.5
+                                    md:py-2
+
+                                    bg-indigo-600
+                                    hover:bg-indigo-500
+                                    active:bg-indigo-700
+
+                                    text-white
+
+                                    rounded-xl
+
+                                    shadow-md
+                                    shadow-indigo-600/20
+
+                                    transition-all
+                                    active:scale-95
+
+                                    shrink-0
+
+                                    cursor-pointer
+                                    "
                             >
                                 <UserPlus size={16} />
-                                <span className="hidden sm:inline">Add Member</span>
+
+                                <span className="hidden md:inline">
+                                    Add Member
+                                </span>
                             </button>
                         </header>
 
@@ -737,7 +809,26 @@ const ChatApp = () => {
 
                         {/* Messages Scroll Container */}
                         <div
-                            className="flex-1 overflow-y-auto px-4 pb-4 pt-2 space-y-4 bg-cover bg-center bg-no-repeat"
+                            className="
+                                flex-1
+                                overflow-y-auto
+
+                                px-2
+                                sm:px-3
+                                md:px-4
+                                lg:px-5
+
+                                pt-2
+                                pb-3
+                                sm:pb-4
+
+                                space-y-3
+                                sm:space-y-4
+
+                                bg-cover
+                                bg-center
+                                bg-no-repeat
+                                "
                             style={{
                                 backgroundImage: `url(${chatBg})`,
                             }}
@@ -781,13 +872,14 @@ const ChatApp = () => {
                                             {/* Message */}
                                             <div
                                                 id={`msg-${msg._id}`}
-                                                className={`group relative flex items-end gap-2 sm:gap-2.5 ${mine ? "justify-end" : "justify-start"
-                                                    }`}
+                                                className={`group relative flex items-end gap-2 w-full ${
+                                                    mine ? "justify-end" : "justify-start"
+                                                }`}
                                             >
 
                                                 {/* Avatar */}
                                                 {!mine && (
-                                                    <div className="w-7 h-7 shrink-0">
+                                                    <div className="w-8 h-8 shrink-0 self-end">
                                                         {showAvatar && (
                                                             <img
                                                                 src={
@@ -797,7 +889,7 @@ const ChatApp = () => {
                                                                     )}&background=1e1b4b&color=818cf8`
                                                                 }
                                                                 alt={msg.sender?.name}
-                                                                className="w-7 h-7 rounded-full object-cover"
+                                                                className="w-8 h-8 rounded-full object-cover"
                                                             />
                                                         )}
                                                     </div>
@@ -838,10 +930,25 @@ const ChatApp = () => {
 
                                                 {/* Bubble */}
                                                 <div
-                                                    className={`max-w-[88%] sm:max-w-[75%] lg:max-w-[70%] rounded-2xl p-3 sm:p-3.5 relative transition-all ${mine
-                                                        ? "bg-indigo-600 text-white rounded-br-xs shadow-md shadow-indigo-900/10"
-                                                        : "bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-xs"
-                                                        }`}
+                                                    className={`
+
+                                                    max-w-[85%]
+                                                    sm:max-w-[80%]
+                                                    md:max-w-[72%]
+                                                    xl:max-w-[65%]
+
+                                                    rounded-2xl
+                                                    p-3
+                                                    sm:p-3.5
+                                                    relative
+                                                    transition-all
+
+                                                    ${
+                                                        mine
+                                                            ? "bg-indigo-600 text-white rounded-br-xs shadow-md shadow-indigo-900/10"
+                                                            : "bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-xs"
+                                                    }
+                                                `}
                                                 >
 
                                                     {/* Pinned */}
@@ -857,7 +964,7 @@ const ChatApp = () => {
 
                                                     {/* Sender */}
                                                     {!mine && showAvatar && (
-                                                        <div className="text-[11px] font-semibold text-indigo-400 mb-1">
+                                                        <div className="text-xs font-semibold text-indigo-400 mb-1">
                                                             {msg.sender?.name}
                                                         </div>
                                                     )}
@@ -891,14 +998,14 @@ const ChatApp = () => {
                                                             </div>
                                                         </div>
                                                     ) : (
-                                                        <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
+                                                        <p className="text-[13px] sm:text-sm leading-6 whitespace-pre-wrap break-words overflow-wrap-anywhere">
                                                             {renderMessage(msg)}
                                                         </p>
                                                     )}
 
                                                     {/* Time */}
                                                     <div
-                                                        className={`flex items-center justify-end gap-1 text-[10px] mt-1.5 ${mine
+                                                        className={`flex items-center justify-end gap-1 text-[11px] mt-2 ${mine
                                                             ? "text-indigo-200/80"
                                                             : "text-slate-500"
                                                             }`}
@@ -960,11 +1067,14 @@ const ChatApp = () => {
                             sticky
                             bottom-0
                             z-20
-                            p-4
+                            px-2
+                            py-2
+                            sm:p-4
                             bg-slate-950/95
                             backdrop-blur-xl
                             border-t
                             border-slate-800
+                            pb-[max(8px,env(safe-area-inset-bottom))]
                             "
                         >
                             {typingUsers.length > 0 && (
@@ -972,19 +1082,53 @@ const ChatApp = () => {
                                     Someone is typing...
                                 </div>
                             )}
-                            <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-900 border border-slate-800 focus-within:border-indigo-500/80 rounded-2xl p-1.5 sm:p-2 transition-all shadow-inner">
+                            <div className="
+                                flex
+                                items-center
+                                gap-2
+                                bg-slate-900
+                                border
+                                border-slate-800
+                                focus-within:border-indigo-500/80
+                                rounded-2xl
+
+                                px-2
+                                py-2
+
+                                sm:p-2
+
+                                transition-all
+                                shadow-inner
+                                ">
                                 <input
                                     type="text"
                                     value={text}
                                     onChange={handleTyping}
                                     onKeyDown={(e) => e.key === "Enter" && handleSend()}
                                     placeholder={`Message #${selectedRoom?.name || "room"}...`}
-                                    className="flex-1 bg-transparent px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm text-slate-200 outline-none placeholder:text-slate-600"
+                                    className="
+                                        flex-1
+                                        bg-transparent
+
+                                        px-2
+                                        sm:px-3
+
+                                        py-2
+
+                                        text-[14px]
+                                        sm:text-sm
+
+                                        text-slate-200
+
+                                        outline-none
+
+                                        placeholder:text-slate-600
+                                        "
                                 />
                                 <button
                                     onClick={handleSend}
                                     disabled={!text.trim()}
-                                    className="p-2.5 sm:p-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 text-white rounded-xl transition-all cursor-pointer shadow-md shadow-indigo-600/20 active:scale-95 shrink-0"
+                                    className="p-3 sm:p-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 text-white rounded-xl transition-all cursor-pointer shadow-md shadow-indigo-600/20 active:scale-95 shrink-0"
                                 >
                                     <Send size={16} />
                                 </button>
