@@ -733,7 +733,7 @@ router.get("/sidebar-stats", async (req, res) => {
       total: tasks.length,
 
       pending: tasks.filter(
-        t => t.status === "TO DO"
+        t => t.status === "To Do"
       ).length,
 
       inProgress: tasks.filter(
