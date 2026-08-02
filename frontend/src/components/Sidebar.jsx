@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useSocket } from "../context/SocketContext";
 import {
   LayoutDashboard,
   CheckSquare,
@@ -19,11 +20,18 @@ import { API_BASE, useAuth } from "../context/AuthContext";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { user, logout, token } = useAuth();
+  const { socket } = useSocket();
   const navigate = useNavigate();
   const [stats, setStats] = React.useState({
-    dashboard: 0,
-    tasks: 0,
-  });
+  dashboard: 0,
+  tasks: 0,
+
+  completed: 0,
+  pending: 0,
+  overdue: 0,
+
+  productivity: 0,
+});
 
   const handleCronTrigger = async () => {
     try {
@@ -50,8 +58,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     }
   };
 
-  React.useEffect(() => {
-    const fetchSidebarStats = async () => {
+   const fetchSidebarStats = async () => {
       try {
         const res = await fetch(`${API_BASE}/tasks/sidebar-stats`, {
           headers: {
@@ -63,19 +70,44 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
         const data = await res.json();
 
-        setStats({
-          dashboard: data.dashboardCount || 0,
-          tasks: data.taskCount || 0,
-        });
+       setStats({
+  dashboard: data.total || 0,
+
+  tasks: data.total || 0,
+
+  completed: data.completed || 0,
+
+  pending: data.pending || 0,
+
+  overdue: data.overdue || 0,
+
+  productivity: data.productivity || 0,
+});
       } catch (err) {
         console.error(err);
       }
     };
 
+   React.useEffect(() => {
+
     if (token) {
-      fetchSidebarStats();
+        fetchSidebarStats();
     }
-  }, [token]);
+
+}, [token]);
+
+  React.useEffect(() => {
+
+    if (!socket) return;
+
+    socket.on("taskUpdated", fetchSidebarStats);
+
+    return () => {
+        socket.off("taskUpdated", fetchSidebarStats);
+    };
+
+}, [socket]);
+  
 
   // Cleaned up profile photo URL resolution
   const profilePhotoUrl = user?.profilePhoto
@@ -295,36 +327,64 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           </button>
         )}
 
-        {/* ================= TODAY'S SUMMARY ================= */}
+       {/* ================= TODAY'S SUMMARY ================= */}
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
           <h3 className="mb-3 text-sm font-semibold text-white">
             Today's Summary
           </h3>
-          <div className="space-y-3">
-            <div className="flex justify-between">
+          <div className="space-y-1">
+            <button
+              type="button"
+              onClick={() => {
+                handleNavClick();
+                navigate('/tasks?status=Approved');
+              }}
+              className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-white/10"
+            >
               <span className="text-gray-400">Completed</span>
-              <span className="text-green-400">18</span>
-            </div>
-            <div className="flex justify-between">
+              <span className="text-green-400">{stats.completed}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                handleNavClick();
+                navigate('/tasks?status=pending');
+              }}
+              className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-white/10"
+            >
               <span className="text-gray-400">Pending</span>
-              <span className="text-yellow-400">6</span>
-            </div>
-            <div className="flex justify-between">
+              <span className="text-yellow-400">{stats.pending}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                handleNavClick();
+                navigate('/tasks?status=Overdue');
+              }}
+              className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-white/10"
+            >
               <span className="text-gray-400">Overdue</span>
-              <span className="text-red-400">2</span>
-            </div>
+              <span className="text-red-400">{stats.overdue}</span>
+            </button>
           </div>
         </div>
 
         {/* ================= PRODUCTIVITY ================= */}
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <button
+          type="button"
+          onClick={() => {
+            handleNavClick();
+            navigate('/tasks?status=Approved');
+          }}
+          className="w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left transition-colors hover:bg-white/10"
+        >
           <h3 className="text-sm font-semibold text-white">
             Productivity
           </h3>
           <div className="mt-4 h-3 rounded-full bg-gray-700">
             <div
               className="h-3 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-700"
-              style={{ width: "72%" }}
+              style={{ width: `${stats.productivity}%` }}
             ></div>
           </div>
           <div className="mt-3 flex items-center justify-between">
@@ -332,10 +392,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               Task Completion
             </p>
             <p className="text-xs font-semibold text-indigo-300">
-              72%
+              {stats.productivity}%
             </p>
           </div>
-        </div>
+        </button>
 
         {/* USER CARD */}
         <button

@@ -25,6 +25,15 @@ const settingsRoutes = require("./src/routes/settings");
 const calendarRoutes = require("./src/routes/calendarRoutes");
 const fileRoutes = require("./src/routes/fileRoute");
 const loginActivityRoutes = require("./src/routes/loginActivityRoute");
+const routes = {
+  authRoutes, userRoutes, taskRoutes, announcementRoutes,
+  notificationRoutes, groupRoutes, chatRoutes, departmentRoutes,
+  settingsRoutes, calendarRoutes, fileRoutes, loginActivityRoutes,
+};
+
+for (const [name, r] of Object.entries(routes)) {
+  console.log(name, typeof r);
+}
 
 // Express App
 const app = express();

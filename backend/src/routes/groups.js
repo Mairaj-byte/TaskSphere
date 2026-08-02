@@ -7,7 +7,8 @@ const User = require("../models/User");
 const Notification = require("../models/Notification");
 const sendEmail = require("../utils/sendEmail");
 const {
-    sendInAppNotification
+    sendInAppNotification,
+    getIo
 } = require("../utils/socket");
 
 const {
@@ -86,6 +87,15 @@ router.post(
                 );
 
             }
+            const io = getIo();
+
+for (const member of members) {
+
+    io.to(member.toString()).emit("projectUpdated");
+
+}
+
+io.to("admins").emit("projectUpdated");
 
             res.status(201).json(group);
 
@@ -242,6 +252,16 @@ router.put(
         }
       );
 
+       const io = getIo();
+
+group.members.forEach(member => {
+
+    io.to(member.toString()).emit("projectUpdated");
+
+});
+
+io.to("admins").emit("projectUpdated");
+
       res.json(group);
 
     } catch (err) {
@@ -266,6 +286,22 @@ router.delete(
   async (req, res) => {
 
     try {
+
+       const group = await Group.findById(req.params.id);
+
+const io = getIo();
+
+if (group) {
+
+    group.members.forEach(member => {
+
+        io.to(member.toString()).emit("projectUpdated");
+
+    });
+
+}
+
+io.to("admins").emit("projectUpdated");
 
       await Group.findByIdAndDelete(req.params.id);
 
@@ -308,6 +344,11 @@ router.post(
       }
 
       await group.save();
+      const io = getIo();
+
+io.to(req.body.userId).emit("projectUpdated");
+
+io.to("admins").emit("projectUpdated");
 
      const updatedGroup = await Group.findById(group._id)
   .populate(
@@ -356,6 +397,11 @@ router.delete(
       );
 
       await group.save();
+      const io = getIo();
+
+io.to(req.params.userId).emit("projectUpdated");
+
+io.to("admins").emit("projectUpdated");
 
 const updatedGroup = await Group.findById(group._id)
   .populate(

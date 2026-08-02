@@ -6,12 +6,17 @@ const AuditLog = require('../models/AuditLog');
 const User = require('../models/User');
 const { authenticate, requireRole } = require('../middleware/auth');
 const { logAction } = require('../utils/audit');
-const { sendInAppNotification, sendTaskUpdate } = require('../utils/socket');
 const { checkReminders } = require('../utils/reminders');
 const Group=require("../models/Group");
 const { parseVoiceTranscript } = require('../utils/voiceParser');
 const { upsertTaskEvent, deleteTaskEvent } = require('../utils/googleCalendar');
 const sendEmail = require('../utils/sendEmail');
+const {
+  sendInAppNotification,
+  sendTaskUpdate,
+  getIo,
+} = require("../utils/socket");
+
 
 const router = express.Router();
 
@@ -67,7 +72,14 @@ router.get('/', async (req, res) => {
     query.assignedTo = assignedTo;
   }
 
-  if (status) query.status = status;
+ if (status === 'pending') {
+    query.status = { $in: ['To Do', 'In Progress', 'In Review', 'Completed (Pending Approval)'] };
+  } else if (status === 'pending') {
+    query.status = { $in: ['To Do', 'In Progress', 'In Review', 'Completed (Pending Approval)'] };
+  } else if (status) {
+    query.status = status;
+  }
+  
   if (priority) query.priority = priority;
 
   const now = new Date();
@@ -119,6 +131,41 @@ router.get('/audit/logs', requireRole(['admin', 'manager']), async (req, res) =>
     res.json(logs);
   } catch (err) {
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+  
+   // GET /api/tasks/sidebar-stats
+// IMPORTANT: must be registered BEFORE '/:id' below, otherwise Express
+// matches '/:id' first (treating "sidebar-stats" as an id) and this
+// route never runs — that was the cause of the stats always showing 0.
+router.get("/sidebar-stats", async (req, res) => {
+  try {
+    const query = {};
+
+    if (req.user.role === "member") {
+      query.assignedTo = req.user._id;
+    }
+
+    const tasks = await Task.find(query);
+
+    const completed = tasks.filter(task => task.status === "Approved").length;
+    const overdue = tasks.filter(task => task.status === "Overdue").length;
+    const pending = tasks.length - completed - overdue;
+
+    const productivity =
+      tasks.length > 0
+        ? Math.round((completed / tasks.length) * 100)
+        : 0;
+
+    res.json({
+      total: tasks.length,
+      completed,
+      pending,
+      overdue,
+      productivity,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -178,6 +225,26 @@ router.post('/', requireRole(['admin', 'manager']), async (req, res) => {
     });
 
    await task.save();
+   for (const member of task.assignedTo) {
+
+    await sendInAppNotification(member, {
+
+        title: "New Task Assigned",
+
+        message: `You have been assigned "${task.title}".`
+
+    });
+
+}
+   const io = getIo();
+
+io.to("admins").emit("taskUpdated");
+
+task.assignedTo.forEach(user => {
+
+    io.to(user.toString()).emit("taskUpdated");
+
+});
     await logAction({ taskId: task._id, userId: req.user._id, action: 'Created' });
 
     const calendarEvents = [];
@@ -270,6 +337,15 @@ router.put('/:id', requireRole(['admin', 'manager']), async (req, res) => {
 });
 
     await task.save();
+    const io = getIo();
+
+io.to("admins").emit("taskUpdated");
+
+task.assignedTo.forEach(user => {
+
+    io.to(user.toString()).emit("taskUpdated");
+
+});
 
     if (oldTitle !== task.title) await logAction({ taskId, userId: req.user._id, action: 'Title Updated', oldValue: oldTitle, newValue: task.title });
     if (oldPriority !== task.priority) await logAction({ taskId, userId: req.user._id, action: 'Priority Updated', oldValue: oldPriority, newValue: task.priority });
@@ -382,6 +458,9 @@ router.put('/:id', requireRole(['admin', 'manager']), async (req, res) => {
 router.delete('/:id', requireRole(['admin', 'manager']), async (req, res) => {
   try {
     const task = await Task.findByIdAndDelete(req.params.id);
+    const io = getIo();
+
+io.emit("taskUpdated");
     if (!task) {
       return res.status(404).json({ error: 'Task not found.' });
     }
@@ -507,6 +586,15 @@ if (
     }
 
     await task.save();
+    const io = getIo();
+
+task.assignedTo.forEach(user => {
+
+    io.to(user.toString()).emit("taskUpdated");
+
+});
+
+io.to("admins").emit("taskUpdated");
 
     // Log to Audit Log
     await logAction({
@@ -713,77 +801,5 @@ router.post('/test-cron', async (req, res) => {
   }
 });
 
-// GET /api/tasks/sidebar-stats
-router.get("/sidebar-stats", async (req, res) => {
-   console.log("====== SIDEBAR STATS ROUTE HIT ======");
-  console.log("USER:", req.user);
-  try {
-    const query = {};
-
-    // Members only see their own tasks
-    if (req.user.role === "member") {
-      query.assignedTo = req.user._id;
-    }
-
-    const tasks = await Task.find(query);
-
-    const today = new Date();
-
-    const stats = {
-      total: tasks.length,
-
-      pending: tasks.filter(
-        t => t.status === "To Do"
-      ).length,
-
-      inProgress: tasks.filter(
-        t => t.status === "In Progress"
-      ).length,
-
-      pendingApproval: tasks.filter(
-        t => t.status === "Completed (Pending Approval)"
-      ).length,
-
-      approved: tasks.filter(
-        t => t.status === "Approved"
-      ).length,
-
-      overdue: tasks.filter(
-        t =>
-          t.dueDate &&
-          new Date(t.dueDate) < today &&
-          t.status !== "Approved"
-      ).length,
-
-      dueToday: tasks.filter(t => {
-
-        if (!t.dueDate) return false;
-
-        const d = new Date(t.dueDate);
-
-        return (
-          d.getDate() === today.getDate() &&
-          d.getMonth() === today.getMonth() &&
-          d.getFullYear() === today.getFullYear()
-        );
-
-      }).length,
-    };
-
-    res.json(stats);
-
-  } catch (err) {
-
-    console.error("========== SIDEBAR STATS ERROR ==========");
-    console.error(err);
-    console.error(err.stack);
-
-    res.status(500).json({
-        error: err.message,
-        stack: err.stack,
-    });
-  }
-});
 
 module.exports = router;
-

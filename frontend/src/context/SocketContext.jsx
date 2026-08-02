@@ -81,6 +81,16 @@ export const SocketProvider = ({ children }) => {
       }
     });
 
+        newSocket.on("projectUpdated", () => {
+
+    window.dispatchEvent(
+
+        new Event("refreshProjects")
+
+    );
+
+});
+
     // ---------------- Messages ----------------
 
     newSocket.on("receive_message", (message) => {
@@ -122,6 +132,16 @@ export const SocketProvider = ({ children }) => {
       );
     });
 
+      newSocket.on("projectUpdated", () => {
+
+    window.dispatchEvent(
+
+        new Event("refreshProjects")
+
+    );
+
+});
+
     // ---------------- Mention ----------------
 
     newSocket.on("mentioned", (data) => {
@@ -133,6 +153,15 @@ export const SocketProvider = ({ children }) => {
         });
       }
     });
+        newSocket.on("projectUpdated", () => {
+
+    window.dispatchEvent(
+
+        new Event("refreshProjects")
+
+    );
+
+});
 
     // ---------------- Presence ----------------
 
@@ -147,6 +176,24 @@ export const SocketProvider = ({ children }) => {
         prev.filter((id) => id !== userId)
       );
     });
+
+    newSocket.on("projectUpdated", () => {
+
+    window.dispatchEvent(
+        new Event("refreshProjects")
+    );
+
+});
+
+    newSocket.on("projectUpdated", () => {
+
+    window.dispatchEvent(
+
+        new Event("refreshProjects")
+
+    );
+
+});
 
     // ---------------- Typing ----------------
 
@@ -163,6 +210,16 @@ export const SocketProvider = ({ children }) => {
         prev.filter((name) => name !== typingUser)
       );
     });
+
+        newSocket.on("projectUpdated", () => {
+
+    window.dispatchEvent(
+
+        new Event("refreshProjects")
+
+    );
+
+});
 
     // Browser Notification Permission
 

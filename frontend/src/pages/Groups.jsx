@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useAuth, API_BASE } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useSocket } from "../context/SocketContext";
 
 // --- Inline SVGs for zero extra dependencies ---
 const PlusIcon = () => (
@@ -46,6 +47,7 @@ const Groups = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { socket } = useSocket();
 
   const [showModal, setShowModal] = useState(false);
   const [projectName, setProjectName] = useState("");
@@ -108,11 +110,14 @@ const [selectedMembers, setSelectedMembers] = useState([]);
         throw new Error(data.error || "Failed to create project");
       }
 
-      setProjectName("");
-      setProjectDescription("");
-      setSelectedMembers([]);
-      setShowModal(false);
-      fetchGroups();
+     setProjectName("");
+setProjectDescription("");
+setSelectedMembers([]);
+setShowModal(false);
+
+// The socket event will refresh automatically.
+// Keeping this is also fine as a fallback.
+fetchGroups();
     } catch (err) {
       alert(err.message);
     } finally {
@@ -124,6 +129,26 @@ const [selectedMembers, setSelectedMembers] = useState([]);
   fetchGroups();
   fetchUsers();
 }, []);
+
+   useEffect(() => {
+
+    if (!socket) return;
+
+    const refreshProjects = () => {
+
+        fetchGroups();
+
+    };
+
+    socket.on("projectUpdated", refreshProjects);
+
+    return () => {
+
+        socket.off("projectUpdated", refreshProjects);
+
+    };
+
+}, [socket]);
 
     const fetchUsers = async () => {
   try {

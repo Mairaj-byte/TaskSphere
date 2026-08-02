@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth, API_BASE } from '../context/AuthContext';
 import {
   Plus, Search, Filter, RefreshCw, Edit2, Trash2, Calendar, AlertCircle,
@@ -13,10 +13,12 @@ import VoiceTaskModal from '../components/VoiceTaskModal';
 import { useSocket } from "../context/SocketContext";
 
 const Tasks = () => {
-  const { user, token } = useAuth();
+ const { user, token } = useAuth();
   const { socket } = useSocket();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
+  // Tasks & View State
   // Tasks & View State
   const [tasks, setTasks] = useState([]);
   const [allTasks, setAllTasks] = useState([]);
@@ -25,10 +27,18 @@ const Tasks = () => {
 
   // Search & Filter State
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+ const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
-  const [sortBy, setSortBy] = useState('dueDate:asc');
+ const [dateFilter, setDateFilter] = useState('');
+const [sortBy, setSortBy] = useState('dueDate:asc');
+
+  // Sync filters with the URL every time it changes (not just on first
+  // mount) — this is what makes clicking Completed → Overdue → Pending
+  // update the list immediately, without needing a page refresh.
+  useEffect(() => {
+    setStatusFilter(searchParams.get('status') || '');
+    setDateFilter(searchParams.get('dueDate') || '');
+  }, [searchParams]);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
