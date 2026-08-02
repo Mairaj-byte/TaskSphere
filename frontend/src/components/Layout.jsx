@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet, Navigate, useLocation} from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
@@ -7,6 +7,7 @@ import Navbar from './Navbar';
 const Layout = () => {
   const { user, loading } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const location = useLocation();
 
   const toggleSidebar = () => {
     setIsSidebarOpen(prev => !prev);
@@ -50,7 +51,13 @@ const Layout = () => {
       {/* Main Content Area - Only this container handles scrolling */}
       <div className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
         <Navbar toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+        <main
+          className={`flex-1 overflow-y-auto ${
+            location.pathname === "/chat"
+              ? "p-0"
+              : "p-4 md:p-6 lg:p-8"
+          }`}
+        >
           <Outlet />
         </main>
       </div>
