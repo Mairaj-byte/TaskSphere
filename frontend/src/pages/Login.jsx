@@ -169,7 +169,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-slate-950 flex font-sans overflow-x-hidden relative [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+    <div className="h-screen w-full bg-slate-950 flex font-sans overflow-hidden relative">
       {/* GLOBAL BACKGROUND AMBIENT GLOW & GRID */}
       <div className="absolute -top-24 -right-24 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
