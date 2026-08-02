@@ -20,11 +20,11 @@ const announcementRoutes = require("./src/routes/announcements");
 const notificationRoutes = require("./src/routes/notifications");
 const groupRoutes = require("./src/routes/groups");
 const chatRoutes = require("./src/routes/chatRoutes");
-const departmentRoutes = require("./src/routes/departments"); // NEW
-const settingsRoutes = require("./src/routes/settings"); // NEW
-const calendarRoutes = require("./src/routes/calendarRoutes"); // NEW
+const departmentRoutes = require("./src/routes/departments");
+const settingsRoutes = require("./src/routes/settings");
+const calendarRoutes = require("./src/routes/calendarRoutes");
 const fileRoutes = require("./src/routes/fileRoute");
-const loginActivityRoutes = require("./src/routes/loginActivityRoute")
+const loginActivityRoutes = require("./src/routes/loginActivityRoute");
 
 // Express App
 const app = express();
@@ -35,7 +35,27 @@ const PORT = process.env.PORT || 5000;
 // Global Middleware
 setupMiddleware(app);
 
+// ===============================
+// Root Route
+// ===============================
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "🚀 API Working",
+    application: "TaskSphere Backend",
+    version: "1.0.0",
+    status: "Running",
+    database:
+      mongoose.connection.readyState === 1
+        ? "Connected"
+        : "Disconnected",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ===============================
 // Health Check
+// ===============================
 app.get("/health", (req, res) => {
   res.status(200).json({
     status: "OK",
@@ -43,11 +63,13 @@ app.get("/health", (req, res) => {
       mongoose.connection.readyState === 1
         ? "Connected"
         : "Disconnected",
-    timestamp: new Date(),
+    timestamp: new Date().toISOString(),
   });
 });
 
+// ===============================
 // API Routes
+// ===============================
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/tasks", taskRoutes);
@@ -55,16 +77,30 @@ app.use("/api/announcements", announcementRoutes);
 app.use("/api/groups", groupRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/chat", chatRoutes);
-app.use("/api/departments", departmentRoutes); // NEW
-app.use("/api/settings", settingsRoutes); // NEW
-app.use("/api/calendar", calendarRoutes); // NEW
+app.use("/api/departments", departmentRoutes);
+app.use("/api/settings", settingsRoutes);
+app.use("/api/calendar", calendarRoutes);
 app.use("/api/files", fileRoutes);
 app.use("/api/login-activity", loginActivityRoutes);
 
+// ===============================
+// 404 Route
+// ===============================
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
+
+// ===============================
 // Initialize Socket.IO
+// ===============================
 initSocket(server);
 
+// ===============================
 // Start Server
+// ===============================
 const startServer = async () => {
   try {
     await connectDB();
@@ -72,12 +108,17 @@ const startServer = async () => {
     // Start Reminder Scheduler
     startScheduler();
 
-    // Bound to "0.0.0.0" to allow network connections from mobile devices
+    // Listen on all network interfaces
     server.listen(PORT, "0.0.0.0", () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      console.log("====================================");
+      console.log("🚀 TaskSphere Backend Started");
+      console.log(`🌐 Server : http://localhost:${PORT}`);
+      console.log(`❤️ Health : http://localhost:${PORT}/health`);
+      console.log(`📦 API    : http://localhost:${PORT}/`);
+      console.log("====================================");
     });
   } catch (error) {
-    console.error("Failed to start server:", error);
+    console.error("❌ Failed to start server:", error);
     process.exit(1);
   }
 };
