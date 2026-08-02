@@ -4,7 +4,7 @@ import { API_BASE, useAuth } from '../context/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Mail, Briefcase, MapPin, Calendar, User as UserIcon, ShieldCheck, Edit3, Sparkles, Building2,
-  Link2, Unlink, Loader2, CheckCircle2, AlertCircle
+  Link2, Unlink, Loader2, CheckCircle2, AlertCircle, Hash
 } from 'lucide-react';
 
 const ProfileView = ({ onEditClick }) => {
@@ -234,6 +234,11 @@ const ProfileView = ({ onEditClick }) => {
           </div>
 
           <div className="space-y-4">
+            <DetailItem
+              icon={<Hash size={18} />}
+              label="Employee ID"
+              value={profile?.employeeId}
+            />
             <DetailItem
               icon={<Briefcase size={18} />}
               label="Role / Designation"

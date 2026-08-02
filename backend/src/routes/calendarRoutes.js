@@ -62,13 +62,23 @@ router.get('/google/callback', async (req, res) => {
   }
 });
 
-// POST /api/calendar/google/disconnect - clear this user's stored tokens
+// POST /api/calendar/google/disconnect
+// Revokes the user's Google OAuth tokens and clears the stored credentials.
 router.post('/google/disconnect', authenticate, async (req, res) => {
   try {
     await disconnectUser(req.user._id);
-    res.json({ message: 'Google Calendar disconnected.' });
+
+    res.status(200).json({
+      success: true,
+      message: 'Google Calendar disconnected successfully.',
+    });
   } catch (err) {
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Google Calendar disconnect failed:', err);
+
+    res.status(500).json({
+      success: false,
+      error: 'Failed to disconnect Google Calendar.',
+    });
   }
 });
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useChatApi } from '../services/chatApi';
+
 import {
     Send,
     MessageSquareText,
@@ -17,6 +18,8 @@ import {
     UserMinus,
     Check,
 } from "lucide-react";
+
+import chatBg from "../assets/chat-bg.jpg";
 
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
@@ -99,6 +102,28 @@ const ChatApp = () => {
             console.error(err);
             showToast("Failed to load chat room", "error");
         }
+    };
+
+    const formatMessageDate = (date) => {
+        const d = new Date(date);
+        const today = new Date();
+        const yesterday = new Date();
+
+        yesterday.setDate(today.getDate() - 1);
+
+        if (d.toDateString() === today.toDateString()) {
+            return "Today";
+        }
+
+        if (d.toDateString() === yesterday.toDateString()) {
+            return "Yesterday";
+        }
+
+        return d.toLocaleDateString("en-US", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+        });
     };
 
     const handleRemoveMember = async () => {
@@ -220,18 +245,18 @@ const ChatApp = () => {
     };
 
     const selectMention = (user) => {
-  setText((prev) =>
-    prev.replace(/@[a-zA-Z0-9_]*$/, `@${user.name} `)
-  );
+        setText((prev) =>
+            prev.replace(/@[a-zA-Z0-9_]*$/, `@${user.name} `)
+        );
 
-  setMentionedUsers((prev) => {
-    if (prev.some((u) => u._id === user._id)) return prev;
-    return [...prev, user];
-  });
+        setMentionedUsers((prev) => {
+            if (prev.some((u) => u._id === user._id)) return prev;
+            return [...prev, user];
+        });
 
-  setMentionSuggestions([]);
-  setShowMentionBox(false);
-};
+        setMentionSuggestions([]);
+        setShowMentionBox(false);
+    };
 
     const handleTyping = async (e) => {
         const value = e.target.value;
@@ -270,32 +295,32 @@ const ChatApp = () => {
     };
 
     const renderMessage = (msg) => {
-  let parts = [msg.text];
+        let parts = [msg.text];
 
-  msg.mentions?.forEach((mention) => {
-    parts = parts.flatMap((part) => {
-      if (typeof part !== "string") return [part];
+        msg.mentions?.forEach((mention) => {
+            parts = parts.flatMap((part) => {
+                if (typeof part !== "string") return [part];
 
-      const mentionText = `@${mention.name}`;
+                const mentionText = `@${mention.name}`;
 
-      return part.split(mentionText).flatMap((segment, index, arr) => {
-        if (index === arr.length - 1) return [segment];
+                return part.split(mentionText).flatMap((segment, index, arr) => {
+                    if (index === arr.length - 1) return [segment];
 
-        return [
-          segment,
-          <span
-            key={`${mention._id}-${index}`}
-            className="font-semibold text-indigo-300"
-          >
-            {mentionText}
-          </span>,
-        ];
-      });
-    });
-  });
+                    return [
+                        segment,
+                        <span
+                            key={`${mention._id}-${index}`}
+                            className="font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+                        >
+                            {mentionText}
+                        </span>,
+                    ];
+                });
+            });
+        });
 
-  return parts;
-};
+        return parts;
+    };
 
     const formatTime = (date) =>
         new Date(date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -319,7 +344,7 @@ const ChatApp = () => {
     };
 
     return (
-        <div className="relative flex w-full h-[100dvh] bg-slate-950 text-slate-100 font-sans overflow-hidden antialiased select-none sm:select-text">
+        <div className="relative flex h-full w-full overflow-hidden bg-slate-950">
             {/* Toast Notification */}
             {toastMessage && (
                 <div
@@ -345,7 +370,15 @@ const ChatApp = () => {
                             </div>
                             <h3 className="font-semibold text-slate-100 text-sm sm:text-base">Remove Member</h3>
                         </div>
-                        <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                        <p
+                            className="
+                            text-[13px]
+                            sm:text-sm
+                            leading-6
+                            break-words
+                            whitespace-pre-wrap
+                            "
+                            >
                             Are you sure you want to remove{" "}
                             <strong className="text-slate-200">{userToDelete.name}</strong> from this channel?
                         </p>
@@ -462,14 +495,44 @@ const ChatApp = () => {
             {showSidebarMobile && (
                 <div
                     onClick={() => setShowSidebarMobile(false)}
-                    className="fixed inset-0 bg-black/70 z-30 lg:hidden backdrop-blur-xs transition-opacity"
+                    className="
+                        fixed
+                        inset-0
+                        bg-black/60
+                        backdrop-blur-sm
+                        z-30
+                        lg:hidden
+                        transition-all
+                        duration-300
+                        "
                 />
             )}
 
             {/* Sidebar: Channel Members Drawer */}
             <aside
-                className={`fixed lg:relative z-40 lg:z-auto inset-y-0 left-0 w-full sm:w-80 lg:w-72 bg-slate-900 border-r border-slate-800 flex flex-col transition-transform duration-300 ease-in-out ${showSidebarMobile ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-                    }`}
+                className={`
+                    fixed lg:relative
+                    top-0 left-0
+                    z-40 lg:z-auto
+                    h-screen lg:h-full
+                    w-[260px]
+                    md:w-[280px]
+                    lg:w-72
+                    bg-slate-900
+                    border-r border-slate-800
+                    flex flex-col
+                    shrink-0
+                    lg:translate-x-0
+                    transform
+                    transition-transform
+                    duration-300
+                    ease-in-out
+                    ${
+                        showSidebarMobile
+                            ? "translate-x-0"
+                            : "-translate-x-full lg:translate-x-0"
+                    }
+                `}
             >
                 <div className="h-16 px-4 sm:px-5 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-900/50">
                     <div className="flex items-center gap-2.5">
@@ -492,7 +555,7 @@ const ChatApp = () => {
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-3 space-y-1">
+                <div className="flex-1 overflow-y-auto py-2 px-2 space-y-1">
                     {selectedRoom?.members?.map((member) => {
                         const isOnline = onlineUsers.includes(member._id);
                         return (
@@ -520,7 +583,13 @@ const ChatApp = () => {
                                     <div className="min-w-0">
                                         <div className="text-xs sm:text-sm font-medium text-slate-200 truncate">
                                             {member.name}
+                                            {(member.role === "admin" || member.role === "manager") && (
+                                            <div className="text-[11px] sm:text-[12px] font-small text-yellow-400 truncate">
+                                                {member.role === "admin" ? "Admin" : "Manager"}
+                                            </div>
+                                        )}
                                         </div>
+                                        
                                         <div
                                             className={`text-[10px] sm:text-[11px] ${isOnline ? "text-emerald-400/90" : "text-slate-500"
                                                 }`}
@@ -530,13 +599,15 @@ const ChatApp = () => {
                                     </div>
                                 </div>
 
-                                <button
-                                    onClick={() => setUserToDelete(member)}
-                                    title="Remove from group"
-                                    className="opacity-100 lg:opacity-0 group-hover:opacity-100 p-2 sm:p-1.5 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 rounded-lg transition-all cursor-pointer"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
+                                {(user?.role === "admin" || user?.role === "manager") && (
+                                    <button
+                                        onClick={() => setUserToDelete(member)}
+                                        title="Remove from group"
+                                        className="opacity-100 lg:opacity-0 group-hover:opacity-100 p-2 sm:p-1.5 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 rounded-lg transition-all cursor-pointer"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                )}
                             </div>
                         );
                     })}
@@ -544,7 +615,7 @@ const ChatApp = () => {
             </aside>
 
             {/* Main Chat Area */}
-            <main className="flex flex-col flex-1 h-full bg-slate-950 relative min-w-0">
+            <main className="flex flex-col flex-1 h-full w-full bg-slate-950 relative min-w-0">
                 {!selectedRoom ? (
                     <div className="flex-1 flex flex-col justify-center items-center text-slate-500 gap-3 p-4">
                         <MessageSquareText
@@ -556,8 +627,29 @@ const ChatApp = () => {
                 ) : (
                     <>
                         {/* Header */}
-                        <header className="h-16 border-b border-slate-800 px-3 sm:px-6 flex justify-between items-center bg-slate-900/40 backdrop-blur-md z-10 shrink-0">
-                            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <header
+                            className="
+                            sticky
+                            top-0
+                            z-20
+                            h-16
+
+                            border-b
+                            border-slate-800
+
+                            px-3
+                            sm:px-4
+                            lg:px-6
+
+                            flex
+                            justify-between
+                            items-center
+
+                            bg-slate-900/95
+                            backdrop-blur-xl
+                            "
+                        >
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
                                 <button
                                     onClick={() => setShowSidebarMobile(true)}
                                     className="lg:hidden p-2 hover:bg-slate-800 active:bg-slate-800 rounded-xl text-slate-400 hover:text-slate-200 cursor-pointer shrink-0"
@@ -566,10 +658,10 @@ const ChatApp = () => {
                                     <Users size={20} />
                                 </button>
                                 <div className="min-w-0">
-                                    <h2 className="font-bold text-sm sm:text-base text-slate-100 truncate">
+                                    <h2 className="font-semibold text-sm sm:text-base text-slate-100 truncate">
                                         # {selectedRoom.name}
                                     </h2>
-                                    <div className="text-[10px] sm:text-[11px] text-slate-500 truncate">
+                                    <div className="text-[11px] text-slate-500 truncate">
                                         {selectedRoom.members?.length || 0} participants
                                     </div>
                                 </div>
@@ -577,16 +669,69 @@ const ChatApp = () => {
 
                             <button
                                 onClick={handleOpenAddMember}
-                                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 sm:py-1.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl text-xs font-medium shadow-md shadow-indigo-600/20 transition-all active:scale-95 shrink-0 cursor-pointer"
+                                className="
+                                    flex
+                                    items-center
+                                    justify-center
+
+                                    gap-2
+
+                                    w-10
+                                    h-10
+
+                                    md:w-auto
+                                    md:h-auto
+
+                                    md:px-3.5
+                                    md:py-2
+
+                                    bg-indigo-600
+                                    hover:bg-indigo-500
+                                    active:bg-indigo-700
+
+                                    text-white
+
+                                    rounded-xl
+
+                                    shadow-md
+                                    shadow-indigo-600/20
+
+                                    transition-all
+                                    active:scale-95
+
+                                    shrink-0
+
+                                    cursor-pointer
+                                    "
                             >
                                 <UserPlus size={16} />
-                                <span className="hidden sm:inline">Add Member</span>
+
+                                <span className="hidden md:inline">
+                                    Add Member
+                                </span>
                             </button>
                         </header>
 
                         {/* Pinned Messages Banner */}
                         {pinnedMessages.length > 0 && (
-                            <div className="bg-slate-900/90 backdrop-blur-md border-b border-indigo-500/20 px-3 sm:px-4 py-2 flex items-center justify-between gap-2 sm:gap-3 shadow-md z-10 shrink-0">
+                            <div
+                                className="
+                                sticky
+                                top-16
+                                z-10
+                                bg-slate-900/95
+                                backdrop-blur-xl
+                                border-b
+                                border-indigo-500/20
+                                px-4
+                                py-2
+                                flex
+                                items-center
+                                justify-between
+                                gap-3
+                                shadow-md
+                                "
+                            >
                                 <div
                                     onClick={() =>
                                         scrollToMessage(
@@ -663,7 +808,31 @@ const ChatApp = () => {
                         )}
 
                         {/* Messages Scroll Container */}
-                        <div className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 space-y-4">
+                        <div
+                            className="
+                                flex-1
+                                overflow-y-auto
+
+                                px-2
+                                sm:px-3
+                                md:px-4
+                                lg:px-5
+
+                                pt-2
+                                pb-3
+                                sm:pb-4
+
+                                space-y-3
+                                sm:space-y-4
+
+                                bg-cover
+                                bg-center
+                                bg-no-repeat
+                                "
+                            style={{
+                                backgroundImage: `url(${chatBg})`,
+                            }}
+                        >
                             {displayMessages.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center text-slate-600 space-y-2 p-4">
                                     <MessageSquareText size={32} />
@@ -673,7 +842,15 @@ const ChatApp = () => {
                                 </div>
                             ) : (
                                 displayMessages.map((msg, index) => {
+                                    const currentDate = new Date(msg.createdAt).toDateString();
+
+                                    const previousDate =
+                                        index > 0
+                                            ? new Date(displayMessages[index - 1].createdAt).toDateString()
+                                            : null;
+
                                     const mine = msg.sender?._id === user?._id;
+
                                     const showAvatar =
                                         !mine &&
                                         (index === 0 ||
@@ -681,127 +858,170 @@ const ChatApp = () => {
                                             msg.sender?._id);
 
                                     return (
-                                        <div
-                                            key={msg._id}
-                                            id={`msg-${msg._id}`}
-                                            className={`group relative flex items-end gap-2 sm:gap-2.5 ${mine ? "justify-end" : "justify-start"
-                                                }`}
-                                        >
-                                            {/* Avatar */}
-                                            {!mine && (
-                                                <div className="w-7 h-7 shrink-0">
-                                                    {showAvatar && (
-                                                        <img
-                                                            src={
-                                                                msg.sender?.profilePhoto ||
-                                                                `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                                                    msg.sender?.name || "U"
-                                                                )}&background=1e1b4b&color=818cf8`
-                                                            }
-                                                            alt={msg.sender?.name}
-                                                            className="w-7 h-7 rounded-full object-cover"
-                                                        />
-                                                    )}
+                                        <React.Fragment key={msg._id}>
+
+                                            {/* Date Separator */}
+                                            {currentDate !== previousDate && (
+                                                <div className="flex justify-center my-4">
+                                                    <span className="px-3 py-1 rounded-full bg-slate-800 text-slate-400 text-xs font-medium">
+                                                        {formatMessageDate(msg.createdAt)}
+                                                    </span>
                                                 </div>
                                             )}
 
-                                            {/* Floating Message Action Toolbar (Touch & Desktop friendly) */}
+                                            {/* Message */}
                                             <div
-                                                className={`absolute -top-3.5 z-20 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity bg-slate-900 border border-slate-800 rounded-lg p-0.5 sm:p-1 flex items-center gap-0.5 sm:gap-1 shadow-lg ${mine ? "right-1 sm:right-2" : "left-8 sm:left-9"
-                                                    }`}
+                                                id={`msg-${msg._id}`}
+                                                className={`group relative flex items-end gap-2 w-full ${
+                                                    mine ? "justify-end" : "justify-start"
+                                                }`}
                                             >
-                                                <button
-                                                    onClick={() => pinMessage(msg._id)}
-                                                    title="Pin message"
-                                                    className="p-1 sm:p-1 hover:bg-slate-800 text-slate-400 hover:text-indigo-400 rounded transition-colors cursor-pointer"
-                                                >
-                                                    <Pin size={13} className="rotate-45" />
-                                                </button>
-                                                {mine && (
-                                                    <>
-                                                        <button
-                                                            onClick={() => handleEdit(msg)}
-                                                            title="Edit message"
-                                                            className="p-1 sm:p-1 hover:bg-slate-800 text-slate-400 hover:text-amber-400 rounded transition-colors cursor-pointer"
-                                                        >
-                                                            <Edit2 size={13} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setMsgToDelete(msg._id)}
-                                                            title="Delete message"
-                                                            className="p-1 sm:p-1 hover:bg-slate-800 text-slate-400 hover:text-rose-400 rounded transition-colors cursor-pointer"
-                                                        >
-                                                            <Trash2 size={13} />
-                                                        </button>
-                                                    </>
-                                                )}
-                                            </div>
 
-                                            {/* Bubble */}
-                                            <div
-                                                className={`max-w-[88%] sm:max-w-[75%] lg:max-w-[70%] rounded-2xl p-3 sm:p-3.5 relative transition-all ${mine
-                                                    ? "bg-indigo-600 text-white rounded-br-xs shadow-md shadow-indigo-900/10"
-                                                    : "bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-xs"
-                                                    }`}
-                                            >
-                                                {/* Pinned Tag inside Bubble */}
-                                                {msg.pinned && (
-                                                    <div className="flex items-center gap-1 text-[10px] text-amber-400 font-medium mb-1">
-                                                        <Pin size={11} className="rotate-45 fill-amber-400" />
-                                                        <span>Pinned</span>
+                                                {/* Avatar */}
+                                                {!mine && (
+                                                    <div className="w-8 h-8 shrink-0 self-end">
+                                                        {showAvatar && (
+                                                            <img
+                                                                src={
+                                                                    msg.sender?.profilePhoto ||
+                                                                    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                                                        msg.sender?.name || "U"
+                                                                    )}&background=1e1b4b&color=818cf8`
+                                                                }
+                                                                alt={msg.sender?.name}
+                                                                className="w-8 h-8 rounded-full object-cover"
+                                                            />
+                                                        )}
                                                     </div>
                                                 )}
 
-                                                {/* Sender Name */}
-                                                {!mine && showAvatar && (
-                                                    <div className="text-[11px] font-semibold text-indigo-400 mb-1">
-                                                        {msg.sender?.name}
-                                                    </div>
-                                                )}
-
-                                                {/* Text Content / Edit Field */}
-                                                {editingId === msg._id ? (
-                                                    <div className="space-y-2 mt-1">
-                                                        <textarea
-                                                            value={editingText}
-                                                            onChange={(e) => setEditingText(e.target.value)}
-                                                            className="w-full bg-slate-950/80 border border-indigo-400/50 rounded-lg p-2 text-xs text-white outline-none resize-none"
-                                                            rows={2}
-                                                        />
-                                                        <div className="flex justify-end gap-1.5">
-                                                            <button
-                                                                onClick={() => setEditingId(null)}
-                                                                className="px-2.5 py-1 text-[10px] bg-slate-800 text-slate-300 rounded-md hover:bg-slate-700 cursor-pointer"
-                                                            >
-                                                                Cancel
-                                                            </button>
-                                                            <button
-                                                                onClick={saveEdit}
-                                                                className="px-2.5 py-1 text-[10px] bg-indigo-500 text-white rounded-md hover:bg-indigo-400 cursor-pointer"
-                                                            >
-                                                                Save
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-
-                                                    <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
-                                                         {renderMessage(msg)}
-                                                    </p>
-                                                )}
-
-                                                {/* Timestamp & Read Status */}
+                                                {/* Floating Toolbar */}
                                                 <div
-                                                    className={`flex items-center justify-end gap-1 text-[10px] mt-1.5 ${mine ? "text-indigo-200/80" : "text-slate-500"
+                                                    className={`absolute -top-3.5 z-20 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity bg-slate-900 border border-slate-800 rounded-lg p-1 flex items-center gap-1 shadow-lg ${mine ? "right-2" : "left-9"
                                                         }`}
                                                 >
-                                                    <span>{formatTime(msg.createdAt)}</span>
+                                                    {user?.role !== "member" && (
+                                                        <button
+                                                            onClick={() => pinMessage(msg._id)}
+                                                            className="p-1 hover:bg-slate-800 text-slate-400 hover:text-indigo-400 rounded cursor-pointer"
+                                                        >
+                                                            <Pin size={13} className="rotate-45" />
+                                                        </button>
+                                                    )}
+
                                                     {mine && (
-                                                        <CheckCheck size={13} className="text-indigo-300" />
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleEdit(msg)}
+                                                                className="p-1 hover:bg-slate-800 text-slate-400 hover:text-amber-400 rounded cursor-pointer"
+                                                            >
+                                                                <Edit2 size={13} />
+                                                            </button>
+
+                                                            <button
+                                                                onClick={() => setMsgToDelete(msg._id)}
+                                                                className="p-1 hover:bg-slate-800 text-slate-400 hover:text-rose-400 rounded cursor-pointer"
+                                                            >
+                                                                <Trash2 size={13} />
+                                                            </button>
+                                                        </>
                                                     )}
                                                 </div>
+
+                                                {/* Bubble */}
+                                                <div
+                                                    className={`
+
+                                                    max-w-[85%]
+                                                    sm:max-w-[80%]
+                                                    md:max-w-[72%]
+                                                    xl:max-w-[65%]
+
+                                                    rounded-2xl
+                                                    p-3
+                                                    sm:p-3.5
+                                                    relative
+                                                    transition-all
+
+                                                    ${
+                                                        mine
+                                                            ? "bg-indigo-600 text-white rounded-br-xs shadow-md shadow-indigo-900/10"
+                                                            : "bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-xs"
+                                                    }
+                                                `}
+                                                >
+
+                                                    {/* Pinned */}
+                                                    {msg.pinned && (
+                                                        <div className="flex items-center gap-1 text-[10px] text-amber-400 font-medium mb-1">
+                                                            <Pin
+                                                                size={11}
+                                                                className="rotate-45 fill-amber-400"
+                                                            />
+                                                            <span>Pinned</span>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Sender */}
+                                                    {!mine && showAvatar && (
+                                                        <div className="text-xs font-semibold text-indigo-400 mb-1">
+                                                            {msg.sender?.name}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Edit */}
+                                                    {editingId === msg._id ? (
+                                                        <div className="space-y-2 mt-1">
+                                                            <textarea
+                                                                value={editingText}
+                                                                onChange={(e) =>
+                                                                    setEditingText(e.target.value)
+                                                                }
+                                                                className="w-full bg-slate-950/80 border border-indigo-400/50 rounded-lg p-2 text-xs text-white outline-none resize-none"
+                                                                rows={2}
+                                                            />
+
+                                                            <div className="flex justify-end gap-1.5">
+                                                                <button
+                                                                    onClick={() => setEditingId(null)}
+                                                                    className="px-2.5 py-1 text-[10px] bg-slate-800 text-slate-300 rounded-md"
+                                                                >
+                                                                    Cancel
+                                                                </button>
+
+                                                                <button
+                                                                    onClick={saveEdit}
+                                                                    className="px-2.5 py-1 text-[10px] bg-indigo-500 text-white rounded-md"
+                                                                >
+                                                                    Save
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-[13px] sm:text-sm leading-6 whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                                                            {renderMessage(msg)}
+                                                        </p>
+                                                    )}
+
+                                                    {/* Time */}
+                                                    <div
+                                                        className={`flex items-center justify-end gap-1 text-[11px] mt-2 ${mine
+                                                            ? "text-indigo-200/80"
+                                                            : "text-slate-500"
+                                                            }`}
+                                                    >
+                                                        <span>{formatTime(msg.createdAt)}</span>
+
+                                                        {mine && (
+                                                            <CheckCheck
+                                                                size={13}
+                                                                className="text-indigo-300"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
+                                        </React.Fragment>
                                     );
                                 })
                             )}
@@ -842,25 +1062,73 @@ const ChatApp = () => {
                         )}
 
                         {/* Message Input Box */}
-                        <footer className="p-2.5 sm:p-4 bg-slate-950 border-t border-slate-800 shrink-0">
+                        <footer
+                            className="
+                            sticky
+                            bottom-0
+                            z-20
+                            px-2
+                            py-2
+                            sm:p-4
+                            bg-slate-950/95
+                            backdrop-blur-xl
+                            border-t
+                            border-slate-800
+                            pb-[max(8px,env(safe-area-inset-bottom))]
+                            "
+                        >
                             {typingUsers.length > 0 && (
                                 <div className="text-[10px] sm:text-[11px] text-indigo-400 mb-1.5 italic">
                                     Someone is typing...
                                 </div>
                             )}
-                            <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-900 border border-slate-800 focus-within:border-indigo-500/80 rounded-2xl p-1.5 sm:p-2 transition-all shadow-inner">
+                            <div className="
+                                flex
+                                items-center
+                                gap-2
+                                bg-slate-900
+                                border
+                                border-slate-800
+                                focus-within:border-indigo-500/80
+                                rounded-2xl
+
+                                px-2
+                                py-2
+
+                                sm:p-2
+
+                                transition-all
+                                shadow-inner
+                                ">
                                 <input
                                     type="text"
                                     value={text}
                                     onChange={handleTyping}
                                     onKeyDown={(e) => e.key === "Enter" && handleSend()}
                                     placeholder={`Message #${selectedRoom?.name || "room"}...`}
-                                    className="flex-1 bg-transparent px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm text-slate-200 outline-none placeholder:text-slate-600"
+                                    className="
+                                        flex-1
+                                        bg-transparent
+
+                                        px-2
+                                        sm:px-3
+
+                                        py-2
+
+                                        text-[14px]
+                                        sm:text-sm
+
+                                        text-slate-200
+
+                                        outline-none
+
+                                        placeholder:text-slate-600
+                                        "
                                 />
                                 <button
                                     onClick={handleSend}
                                     disabled={!text.trim()}
-                                    className="p-2.5 sm:p-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 text-white rounded-xl transition-all cursor-pointer shadow-md shadow-indigo-600/20 active:scale-95 shrink-0"
+                                    className="p-3 sm:p-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 text-white rounded-xl transition-all cursor-pointer shadow-md shadow-indigo-600/20 active:scale-95 shrink-0"
                                 >
                                     <Send size={16} />
                                 </button>
