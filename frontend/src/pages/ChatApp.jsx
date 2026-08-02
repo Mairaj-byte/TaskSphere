@@ -310,7 +310,7 @@ const ChatApp = () => {
                         segment,
                         <span
                             key={`${mention._id}-${index}`}
-                            className="font-semibold text-indigo-300"
+                            className="font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
                         >
                             {mentionText}
                         </span>,
@@ -569,13 +569,15 @@ const ChatApp = () => {
                                     </div>
                                 </div>
 
-                                <button
-                                    onClick={() => setUserToDelete(member)}
-                                    title="Remove from group"
-                                    className="opacity-100 lg:opacity-0 group-hover:opacity-100 p-2 sm:p-1.5 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 rounded-lg transition-all cursor-pointer"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
+                                {(user?.role === "admin" || user?.role === "manager") && (
+                                    <button
+                                        onClick={() => setUserToDelete(member)}
+                                        title="Remove from group"
+                                        className="opacity-100 lg:opacity-0 group-hover:opacity-100 p-2 sm:p-1.5 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 rounded-lg transition-all cursor-pointer"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                )}
                             </div>
                         );
                     })}
