@@ -553,7 +553,13 @@ const ChatApp = () => {
                                     <div className="min-w-0">
                                         <div className="text-xs sm:text-sm font-medium text-slate-200 truncate">
                                             {member.name}
+                                            {(member.role === "admin" || member.role === "manager") && (
+                                            <div className="text-[11px] sm:text-[12px] font-small text-yellow-400 truncate">
+                                                {member.role === "admin" ? "Admin" : "Manager"}
+                                            </div>
+                                        )}
                                         </div>
+                                        
                                         <div
                                             className={`text-[10px] sm:text-[11px] ${isOnline ? "text-emerald-400/90" : "text-slate-500"
                                                 }`}
