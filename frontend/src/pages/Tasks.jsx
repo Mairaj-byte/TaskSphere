@@ -44,9 +44,13 @@ const Tasks = () => {
   const [isBulkAssignOpen, setIsBulkAssignOpen] = useState(false);
   const [bulkAssignUserId, setBulkAssignUserId] = useState('');
   const [bulkAssignLoading, setBulkAssignLoading] = useState(false);
+
+  // Bulk create state
   const [isBulkCreateOpen, setIsBulkCreateOpen] = useState(false);
   const [bulkCreateEmployeeId, setBulkCreateEmployeeId] = useState('');
-  const [bulkCreateTasks, setBulkCreateTasks] = useState([{ title: '', priority: 'Medium', dueDate: '' }]);
+  const [bulkCreateTasks, setBulkCreateTasks] = useState([
+    { title: '', description: '', priority: 'Medium', dueDate: '' }
+  ]);
   const [bulkCreateLoading, setBulkCreateLoading] = useState(false);
   const [bulkCreateError, setBulkCreateError] = useState('');
 
@@ -137,8 +141,6 @@ const Tasks = () => {
       fetchUsers();
     }
   }, [user]);
-
-
 
   const resetForm = () => {
     setFormTitle('');
@@ -298,9 +300,8 @@ const Tasks = () => {
 
       const data = await res.json();
       if (res.ok) {
-        await fetchTasks();
         setIsModalOpen(false);
-        fetchTasks();
+        await fetchTasks();
         setToastMsg(modalMode === 'create' ? 'Task created successfully!' : 'Task updated successfully!');
       } else {
         setFormError(data.error || 'Operation failed');
@@ -373,60 +374,67 @@ const Tasks = () => {
     }
   };
 
-      const addBulkTaskRow = () => {
-  setBulkCreateTasks((prev) => [...prev, { title: '', priority: 'Medium', dueDate: '' }]);
-};
+  // ---------- Bulk create ----------
+  const addBulkTaskRow = () => {
+    setBulkCreateTasks(prev => [
+      ...prev,
+      { title: '', description: '', priority: 'Medium', dueDate: '' }
+    ]);
+  };
 
-const removeBulkTaskRow = (index) => {
-  setBulkCreateTasks((prev) => prev.filter((_, i) => i !== index));
-};
+  const removeBulkTaskRow = (index) => {
+    setBulkCreateTasks((prev) => prev.filter((_, i) => i !== index));
+  };
 
-const updateBulkTaskRow = (index, field, value) => {
-  setBulkCreateTasks((prev) => prev.map((row, i) => (i === index ? { ...row, [field]: value } : row)));
-};
+  const updateBulkTaskRow = (index, field, value) => {
+    setBulkCreateTasks((prev) => prev.map((row, i) => (i === index ? { ...row, [field]: value } : row)));
+  };
 
-const resetBulkCreate = () => {
-  setBulkCreateEmployeeId('');
-  setBulkCreateTasks([{ title: '', priority: 'Medium', dueDate: '' }]);
-  setBulkCreateError('');
-};
+  const resetBulkCreate = () => {
+    setBulkCreateEmployeeId('');
+    setBulkCreateTasks([
+      { title: '', description: '', priority: 'Medium', dueDate: '' }
+    ]);
+    setBulkCreateError('');
+  };
 
-const handleBulkCreateSubmit = async () => {
-  setBulkCreateError('');
-  if (!bulkCreateEmployeeId) return setBulkCreateError('Please select an employee.');
+  const handleBulkCreateSubmit = async () => {
+    setBulkCreateError('');
+    if (!bulkCreateEmployeeId) return setBulkCreateError('Please select an employee.');
 
-  const validTasks = bulkCreateTasks.filter((t) => t.title.trim() && t.dueDate);
-  if (validTasks.length === 0) return setBulkCreateError('Add at least one task with a title and due date.');
+    const validTasks = bulkCreateTasks.filter((t) => t.title.trim() && t.dueDate);
+    if (validTasks.length === 0) return setBulkCreateError('Add at least one task with a title and due date.');
 
-  setBulkCreateLoading(true);
-  try {
-    const res = await fetch(`${API_BASE}/tasks/bulk-create`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({
-        assignedTo: bulkCreateEmployeeId,
-        tasks: validTasks.map((t) => ({
-          title: t.title.trim(),
-          priority: t.priority,
-          dueDate: new Date(t.dueDate).toISOString(),
-        })),
-      }),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setToastMsg(`Created ${data.created} task${data.created > 1 ? 's' : ''} successfully!`);
-      setIsBulkCreateOpen(false);
-      resetBulkCreate();
-      fetchTasks();
-    } else {
-      setBulkCreateError(data.error || 'Bulk creation failed.');
+    setBulkCreateLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/tasks/bulk-create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          assignedTo: bulkCreateEmployeeId,
+          tasks: validTasks.map((t) => ({
+            title: t.title.trim(),
+            description: t.description,
+            priority: t.priority,
+            dueDate: new Date(t.dueDate).toISOString(),
+          })),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setToastMsg(`Created ${data.created} task${data.created > 1 ? 's' : ''} successfully!`);
+        setIsBulkCreateOpen(false);
+        resetBulkCreate();
+        fetchTasks();
+      } else {
+        setBulkCreateError(data.error || 'Bulk creation failed.');
+      }
+    } catch (err) {
+      setBulkCreateError('Network error. Failed to create tasks.');
+    } finally {
+      setBulkCreateLoading(false);
     }
-  } catch (err) {
-    setBulkCreateError('Network error. Failed to create tasks.');
-  } finally {
-    setBulkCreateLoading(false);
-  }
-};
+  };
 
   const getStatusBadge = (status) => {
     const statusMap = {
@@ -464,6 +472,9 @@ const handleBulkCreateSubmit = async () => {
     );
   };
 
+  const canManage = ['admin', 'manager'].includes(user?.role);
+  const validBulkCount = bulkCreateTasks.filter(t => t.title.trim() && t.dueDate).length;
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8">
       {/* Inline toast */}
@@ -482,7 +493,7 @@ const handleBulkCreateSubmit = async () => {
             Search, filter, and track tasks across team members.
           </p>
         </div>
-        {['admin', 'manager'].includes(user?.role) && (
+        {canManage && (
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsVoiceModalOpen(true)}
@@ -492,12 +503,12 @@ const handleBulkCreateSubmit = async () => {
               <span>Voice Task</span>
             </button>
             <button
-  onClick={() => { resetBulkCreate(); setIsBulkCreateOpen(true); }}
-  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-800 text-slate-700 dark:text-slate-200 text-sm font-medium rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
->
-  <UserPlus size={18} />
-  <span>Bulk Create</span>
-</button>
+              onClick={() => { resetBulkCreate(); setIsBulkCreateOpen(true); }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-800 text-slate-700 dark:text-slate-200 text-sm font-medium rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+              <UserPlus size={18} />
+              <span>Bulk Create</span>
+            </button>
             <button
               onClick={openCreateModal}
               className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
@@ -511,9 +522,8 @@ const handleBulkCreateSubmit = async () => {
 
       {/* Filter and View Bar */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm mb-6 space-y-4">
-        {/* Row 1: Search + Assignee Filter — own row, margin-based spacing */}
+        {/* Row 1: Search + Assignee Filter */}
         <div className="flex flex-col sm:flex-row gap-3">
-          {/* Search Box */}
           <div className="relative flex-1 w-full mb-3 sm:mb-0">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -525,8 +535,7 @@ const handleBulkCreateSubmit = async () => {
             />
           </div>
 
-          {/* Assignee Filter (name or Employee ID) — admin/manager only */}
-          {['admin', 'manager'].includes(user?.role) && (
+          {canManage && (
             <div className="relative flex-1 w-full">
               <UserPlus size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -540,7 +549,7 @@ const handleBulkCreateSubmit = async () => {
           )}
         </div>
 
-        {/* Row 2: View Switcher — its own row, no longer competing for space */}
+        {/* Row 2: View Switcher */}
         <div className="flex justify-end">
           <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700 overflow-x-auto">
             <button
@@ -598,7 +607,6 @@ const handleBulkCreateSubmit = async () => {
               <GanttChartSquare size={16} />
               <span className="hidden sm:inline">Gantt</span>
             </button>
-
           </div>
         </div>
 
@@ -681,7 +689,7 @@ const handleBulkCreateSubmit = async () => {
       </div>
 
       {/* Bulk Assign Action Bar */}
-      {['admin', 'manager'].includes(user?.role) && selectedTaskIds.length > 0 && (
+      {canManage && selectedTaskIds.length > 0 && (
         <div className="flex items-center justify-between gap-3 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl px-4 py-2.5 mb-4">
           <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
             {selectedTaskIds.length} task{selectedTaskIds.length > 1 ? 's' : ''} selected
@@ -745,9 +753,8 @@ const handleBulkCreateSubmit = async () => {
                 }`}
               >
                 <div>
-                  {/* Assigned Member (top) + Bulk Select */}
                   <div className="flex items-center gap-1.5 mb-2 min-w-0">
-                    {['admin', 'manager'].includes(user?.role) && (
+                    {canManage && (
                       <button
                         onClick={(e) => toggleTaskSelected(task._id, e)}
                         className="shrink-0 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
@@ -767,12 +774,11 @@ const handleBulkCreateSubmit = async () => {
                     </span>
                   </div>
 
-                  {/* Header & Actions */}
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <h3 className="font-semibold text-base text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">
                       {task.title}
                     </h3>
-                    {['admin', 'manager'].includes(user?.role) && (
+                    {canManage && (
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-xs p-0.5 rounded-lg" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={(e) => openEditModal(task, e)}
@@ -792,13 +798,11 @@ const handleBulkCreateSubmit = async () => {
                     )}
                   </div>
 
-                  {/* Status & Priority Badges */}
                   <div className="flex flex-wrap items-center gap-2 mb-3">
                     {getStatusBadge(task.status)}
                     {getPriorityBadge(task.priority)}
                   </div>
 
-                  {/* Tags */}
                   {task.tags?.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mb-3">
                       {task.tags.map((tag, i) => (
@@ -809,24 +813,21 @@ const handleBulkCreateSubmit = async () => {
                     </div>
                   )}
 
-                  {/* Description */}
                   <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-5 leading-relaxed">
                     {task.description || 'No description provided.'}
                   </p>
                 </div>
 
-                {/* Footer Meta (Date & Assignees) */}
                 <div className="pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between mt-auto">
                   <div className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md ${
-                    isOverdue 
-                      ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-semibold animate-pulse' 
+                    isOverdue
+                      ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-semibold animate-pulse'
                       : 'bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 font-medium'
                   }`}>
                     <Calendar size={13} />
                     <span>{new Date(task.dueDate).toLocaleDateString()}</span>
                   </div>
 
-                  {/* Assignees Avatars with Overflow Support */}
                   <div className="flex items-center">
                     <div className="flex -space-x-2 overflow-hidden">
                       {task.assignedTo.slice(0, 3).map((u) => (
@@ -857,14 +858,14 @@ const handleBulkCreateSubmit = async () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                  {['admin', 'manager'].includes(user?.role) && <th className="py-3.5 px-4 w-8"></th>}
+                  {canManage && <th className="py-3.5 px-4 w-8"></th>}
                   <th className="py-3.5 px-4">Task</th>
                   <th className="py-3.5 px-4">Assigned To</th>
                   <th className="py-3.5 px-4">Status</th>
                   <th className="py-3.5 px-4">Priority</th>
                   <th className="py-3.5 px-4">Due Date</th>
                   <th className="py-3.5 px-4">Assignees</th>
-                  {['admin', 'manager'].includes(user?.role) && <th className="py-3.5 px-4 text-right">Actions</th>}
+                  {canManage && <th className="py-3.5 px-4 text-right">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-xs sm:text-sm">
@@ -874,7 +875,7 @@ const handleBulkCreateSubmit = async () => {
                     onClick={() => navigate(`/tasks/${task._id}`)}
                     className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
                   >
-                    {['admin', 'manager'].includes(user?.role) && (
+                    {canManage && (
                       <td className="py-3.5 px-4" onClick={(e) => toggleTaskSelected(task._id, e)}>
                         {selectedTaskIds.includes(task._id) ? (
                           <CheckSquare size={16} className="text-indigo-600 dark:text-indigo-400" />
@@ -912,7 +913,7 @@ const handleBulkCreateSubmit = async () => {
                         ))}
                       </div>
                     </td>
-                    {['admin', 'manager'].includes(user?.role) && (
+                    {canManage && (
                       <td className="py-3.5 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="inline-flex items-center gap-1">
                           <button
@@ -942,7 +943,6 @@ const handleBulkCreateSubmit = async () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm overflow-y-auto">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl max-w-4xl lg:max-w-5xl w-full p-6 shadow-xl my-8 max-h-[90vh] flex flex-col">
-            {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
               <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                 {modalMode === 'create' ? 'Create New Task' : 'Edit Task Details'}
@@ -962,11 +962,9 @@ const handleBulkCreateSubmit = async () => {
               </div>
             )}
 
-            {/* Form Body */}
             <form onSubmit={handleFormSubmit} className="mt-4 flex-1 overflow-y-auto pr-1">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                {/* Left Column: Core Task Details */}
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
@@ -1070,7 +1068,6 @@ const handleBulkCreateSubmit = async () => {
                   </div>
                 </div>
 
-                {/* Right Column: People & Attachments */}
                 <div className="space-y-4 flex flex-col justify-between">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
@@ -1188,7 +1185,6 @@ const handleBulkCreateSubmit = async () => {
                 </div>
               </div>
 
-              {/* Full-width extras: Checklist + Dependencies */}
               <div className="mt-6 space-y-6">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
@@ -1268,7 +1264,6 @@ const handleBulkCreateSubmit = async () => {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="pt-4 mt-6 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
                 <button
                   type="button"
@@ -1366,119 +1361,132 @@ const handleBulkCreateSubmit = async () => {
           </div>
         </div>
       )}
-         {isBulkCreateOpen && (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm overflow-y-auto">
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl max-w-2xl w-full p-6 shadow-xl my-8 max-h-[90vh] flex flex-col">
-      <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
-        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-          Create Multiple Tasks for One Employee
-        </h3>
-        <button
-          onClick={() => { setIsBulkCreateOpen(false); resetBulkCreate(); }}
-          className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg"
-        >
-          <X size={18} />
-        </button>
-      </div>
 
-      {bulkCreateError && (
-        <div className="mt-4 p-3 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2 shrink-0">
-          <AlertCircle size={16} />
-          <span>{bulkCreateError}</span>
+      {/* Bulk Create Modal */}
+      {isBulkCreateOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl max-w-2xl w-full p-6 shadow-xl my-8 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                Create Multiple Tasks for One Employee
+              </h3>
+              <button
+                onClick={() => { setIsBulkCreateOpen(false); resetBulkCreate(); }}
+                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {bulkCreateError && (
+              <div className="mt-4 p-3 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2 shrink-0">
+                <AlertCircle size={16} />
+                <span>{bulkCreateError}</span>
+              </div>
+            )}
+
+            <div className="mt-4 flex-1 overflow-y-auto pr-1 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Select Employee *
+                </label>
+                <select
+                  value={bulkCreateEmployeeId}
+                  onChange={(e) => setBulkCreateEmployeeId(e.target.value)}
+                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                >
+                  <option value="">Select a team member...</option>
+                  {usersList.map((u) => (
+                    <option key={u._id} value={u._id}>
+                      {u.name}{u.employeeId ? ` (${u.employeeId})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  Tasks
+                </label>
+                <div className="space-y-3">
+                  {bulkCreateTasks.map((row, index) => (
+                    <div key={index} className="flex flex-col gap-2 p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-800/20">
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <input
+                          type="text"
+                          placeholder="Task title"
+                          value={row.title}
+                          onChange={(e) => updateBulkTaskRow(index, 'title', e.target.value)}
+                          className="flex-1 px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                        />
+                        <select
+                          value={row.priority}
+                          onChange={(e) => updateBulkTaskRow(index, 'priority', e.target.value)}
+                          className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                        >
+                          <option value="Low">Low</option>
+                          <option value="Medium">Medium</option>
+                          <option value="High">High</option>
+                          <option value="Urgent">Urgent</option>
+                        </select>
+                        <input
+                          type="datetime-local"
+                          value={row.dueDate}
+                          onChange={(e) => updateBulkTaskRow(index, 'dueDate', e.target.value)}
+                          className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                        />
+                        {bulkCreateTasks.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeBulkTaskRow(index)}
+                            className="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </div>
+                      <textarea
+                        value={row.description}
+                        onChange={(e) => updateBulkTaskRow(index, 'description', e.target.value)}
+                        placeholder="Task description..."
+                        rows={2}
+                        className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 resize-none"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={addBulkTaskRow}
+                  className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-lg transition-colors"
+                >
+                  <Plus size={14} /> Add Another Task
+                </button>
+              </div>
+            </div>
+
+            <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => { setIsBulkCreateOpen(false); resetBulkCreate(); }}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkCreateSubmit}
+                disabled={bulkCreateLoading}
+                className="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg transition-colors shadow-sm"
+              >
+                {bulkCreateLoading
+                  ? 'Creating...'
+                  : `Create ${validBulkCount > 0 ? validBulkCount : ''} Task${validBulkCount === 1 ? '' : 's'}`}
+              </button>
+            </div>
+          </div>
         </div>
       )}
-
-      <div className="mt-4 flex-1 overflow-y-auto pr-1 space-y-4">
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Select Employee *
-          </label>
-          <select
-            value={bulkCreateEmployeeId}
-            onChange={(e) => setBulkCreateEmployeeId(e.target.value)}
-            className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-          >
-            <option value="">Select a team member...</option>
-            {usersList.map((u) => (
-              <option key={u._id} value={u._id}>
-                {u.name}{u.employeeId ? ` (${u.employeeId})` : ''}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
-            Tasks
-          </label>
-          <div className="space-y-3">
-            {bulkCreateTasks.map((row, index) => (
-              <div key={index} className="flex flex-col sm:flex-row gap-2 p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-800/20">
-                <input
-                  type="text"
-                  placeholder="Task title"
-                  value={row.title}
-                  onChange={(e) => updateBulkTaskRow(index, 'title', e.target.value)}
-                  className="flex-1 px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
-                />
-                <select
-                  value={row.priority}
-                  onChange={(e) => updateBulkTaskRow(index, 'priority', e.target.value)}
-                  className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
-                >
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                  <option value="Urgent">Urgent</option>
-                </select>
-                <input
-                  type="datetime-local"
-                  value={row.dueDate}
-                  onChange={(e) => updateBulkTaskRow(index, 'dueDate', e.target.value)}
-                  className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
-                />
-                {bulkCreateTasks.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeBulkTaskRow(index)}
-                    className="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={addBulkTaskRow}
-            className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-lg transition-colors"
-          >
-            <Plus size={14} /> Add Another Task
-          </button>
-        </div>
-      </div>
-
-      <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 shrink-0">
-        <button
-          type="button"
-          onClick={() => { setIsBulkCreateOpen(false); resetBulkCreate(); }}
-          className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          onClick={handleBulkCreateSubmit}
-          disabled={bulkCreateLoading}
-          className="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg transition-colors shadow-sm"
-        >
-          {bulkCreateLoading ? 'Creating...' : `Create ${bulkCreateTasks.filter(t => t.title.trim() && t.dueDate).length || ''} Task(s)`}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
 
       <VoiceTaskModal
         open={isVoiceModalOpen}
