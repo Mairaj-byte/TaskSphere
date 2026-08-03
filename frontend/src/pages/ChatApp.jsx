@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 import chatBg from "../assets/chat-bg.jpg";
+const typingTimeout = useRef(null);
 
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
@@ -259,40 +260,25 @@ const ChatApp = () => {
     };
 
     const handleTyping = async (e) => {
-        const value = e.target.value;
+    const value = e.target.value;
+    setText(value);
 
-        setText(value);
+    if (!selectedRoom) return;
 
-        if (!selectedRoom) return;
+    if (value.trim()) {
+        startTyping(selectedRoom._id);
 
-        if (value) {
-            startTyping(selectedRoom._id);
-        } else {
+        clearTimeout(typingTimeout.current);
+
+        typingTimeout.current = setTimeout(() => {
             stopTyping(selectedRoom._id);
-        }
+        }, 1000);
+    } else {
+        stopTyping(selectedRoom._id);
+    }
 
-        const match = value.match(/@([a-zA-Z0-9_]*)$/);
-
-        if (!match) {
-            setMentionSuggestions([]);
-            setShowMentionBox(false);
-            return;
-        }
-
-        try {
-            const res = await searchMentionUsers(
-                selectedRoom._id,
-                match[1]
-            );
-
-            if (res.success) {
-                setMentionSuggestions(res.data);
-                setShowMentionBox(true);
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    };
+    // Your mention search code...
+};
 
     const renderMessage = (msg) => {
         let parts = [msg.text];
@@ -342,6 +328,10 @@ const ChatApp = () => {
             setTimeout(() => el.classList.remove("ring-2", "ring-indigo-500"), 2000);
         }
     };
+
+    const otherTypingUsers = typingUsers.filter(
+    (name) => name !== user?.name
+);
 
     return (
         <div className="relative flex h-full w-full overflow-hidden bg-slate-950">
@@ -1077,11 +1067,12 @@ const ChatApp = () => {
                             pb-[max(8px,env(safe-area-inset-bottom))]
                             "
                         >
-                            {typingUsers.length > 0 && (
-                                <div className="text-[10px] sm:text-[11px] text-indigo-400 mb-1.5 italic">
-                                    Someone is typing...
-                                </div>
-                            )}
+                            {otherTypingUsers.length > 0 && (
+    <div className="text-[10px] sm:text-[11px] text-indigo-400 mb-1.5 italic">
+        {otherTypingUsers.join(", ")} typing...
+    </div>
+)}
+
                             <div className="
                                 flex
                                 items-center

@@ -337,9 +337,10 @@ export const SocketProvider = ({ children }) => {
     });
 
   const stopTyping = (roomId) =>
-    socket?.emit("stop_typing", {
-      roomId,
-    });
+  socket?.emit("stop_typing", {
+    roomId,
+    user: user?.name,
+  });
 
   const markMessageRead = (messageId) =>
     socket?.emit("mark_read", {
