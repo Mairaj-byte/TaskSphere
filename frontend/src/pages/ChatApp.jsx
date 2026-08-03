@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 import chatBg from "../assets/chat-bg.jpg";
-const typingTimeout = useRef(null);
+
 
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
