@@ -1094,7 +1094,7 @@ const ChatApp = () => {
                                 <input
                                     type="text"
                                     value={text}
-                                    onChange={handleTyping}
+                                    // onChange={handleTyping}
                                     onKeyDown={(e) => e.key === "Enter" && handleSend()}
                                     placeholder={`Message #${selectedRoom?.name || "room"}...`}
                                     className="
