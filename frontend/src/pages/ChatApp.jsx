@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 import chatBg from "../assets/chat-bg.jpg";
+const typingTimeout = useRef(null);
 
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
@@ -260,38 +261,23 @@ const ChatApp = () => {
 
     const handleTyping = async (e) => {
         const value = e.target.value;
-
         setText(value);
 
         if (!selectedRoom) return;
 
-        if (value) {
+        if (value.trim()) {
             startTyping(selectedRoom._id);
+
+            clearTimeout(typingTimeout.current);
+
+            typingTimeout.current = setTimeout(() => {
+                stopTyping(selectedRoom._id);
+            }, 1000);
         } else {
             stopTyping(selectedRoom._id);
         }
 
-        const match = value.match(/@([a-zA-Z0-9_]*)$/);
-
-        if (!match) {
-            setMentionSuggestions([]);
-            setShowMentionBox(false);
-            return;
-        }
-
-        try {
-            const res = await searchMentionUsers(
-                selectedRoom._id,
-                match[1]
-            );
-
-            if (res.success) {
-                setMentionSuggestions(res.data);
-                setShowMentionBox(true);
-            }
-        } catch (err) {
-            console.error(err);
-        }
+        // Your mention search code...
     };
 
     const renderMessage = (msg) => {
@@ -343,6 +329,10 @@ const ChatApp = () => {
         }
     };
 
+    const otherTypingUsers = typingUsers.filter(
+        (name) => name !== user?.name
+    );
+
     return (
         <div className="relative flex h-full w-full overflow-hidden bg-slate-950">
             {/* Toast Notification */}
@@ -378,7 +368,7 @@ const ChatApp = () => {
                             break-words
                             whitespace-pre-wrap
                             "
-                            >
+                        >
                             Are you sure you want to remove{" "}
                             <strong className="text-slate-200">{userToDelete.name}</strong> from this channel?
                         </p>
@@ -527,10 +517,9 @@ const ChatApp = () => {
                     transition-transform
                     duration-300
                     ease-in-out
-                    ${
-                        showSidebarMobile
-                            ? "translate-x-0"
-                            : "-translate-x-full lg:translate-x-0"
+                    ${showSidebarMobile
+                        ? "translate-x-0"
+                        : "-translate-x-full lg:translate-x-0"
                     }
                 `}
             >
@@ -584,12 +573,12 @@ const ChatApp = () => {
                                         <div className="text-xs sm:text-sm font-medium text-slate-200 truncate">
                                             {member.name}
                                             {(member.role === "admin" || member.role === "manager") && (
-                                            <div className="text-[11px] sm:text-[12px] font-small text-yellow-400 truncate">
-                                                {member.role === "admin" ? "Admin" : "Manager"}
-                                            </div>
-                                        )}
+                                                <div className="text-[11px] sm:text-[12px] font-small text-yellow-400 truncate">
+                                                    {member.role === "admin" ? "Admin" : "Manager"}
+                                                </div>
+                                            )}
                                         </div>
-                                        
+
                                         <div
                                             className={`text-[10px] sm:text-[11px] ${isOnline ? "text-emerald-400/90" : "text-slate-500"
                                                 }`}
@@ -872,9 +861,8 @@ const ChatApp = () => {
                                             {/* Message */}
                                             <div
                                                 id={`msg-${msg._id}`}
-                                                className={`group relative flex items-end gap-2 w-full ${
-                                                    mine ? "justify-end" : "justify-start"
-                                                }`}
+                                                className={`group relative flex items-end gap-2 w-full ${mine ? "justify-end" : "justify-start"
+                                                    }`}
                                             >
 
                                                 {/* Avatar */}
@@ -943,11 +931,10 @@ const ChatApp = () => {
                                                     relative
                                                     transition-all
 
-                                                    ${
-                                                        mine
+                                                    ${mine
                                                             ? "bg-indigo-600 text-white rounded-br-xs shadow-md shadow-indigo-900/10"
                                                             : "bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-xs"
-                                                    }
+                                                        }
                                                 `}
                                                 >
 
@@ -1077,11 +1064,12 @@ const ChatApp = () => {
                             pb-[max(8px,env(safe-area-inset-bottom))]
                             "
                         >
-                            {typingUsers.length > 0 && (
-                                <div className="text-[10px] sm:text-[11px] text-indigo-400 mb-1.5 italic">
-                                    Someone is typing...
-                                </div>
-                            )}
+                            {/* {otherTypingUsers.length > 0 && (
+    <div className="text-[10px] sm:text-[11px] text-indigo-400 mb-1.5 italic">
+        {otherTypingUsers.join(", ")} typing...
+    </div>
+)} */}
+
                             <div className="
                                 flex
                                 items-center
@@ -1103,7 +1091,8 @@ const ChatApp = () => {
                                 <input
                                     type="text"
                                     value={text}
-                                    onChange={handleTyping}
+                                    onChange={(e) => setText(e.target.value)}
+                                    // onChange={handleTyping}
                                     onKeyDown={(e) => e.key === "Enter" && handleSend()}
                                     placeholder={`Message #${selectedRoom?.name || "room"}...`}
                                     className="

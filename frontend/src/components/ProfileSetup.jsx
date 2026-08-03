@@ -23,7 +23,6 @@ const ProfileSetup = ({ onCancel, onSuccess }) => {
 
   const [formData, setFormData] = useState({
     name: '',
-    employeeId: '',
     dob: '',
     gender: '',
     department: '',
@@ -49,7 +48,6 @@ const ProfileSetup = ({ onCancel, onSuccess }) => {
       const data = res.data;
       setFormData({
         name: data.name || '',
-        employeeId: data.employeeId || '',
         dob: data.dob ? new Date(data.dob).toISOString().split('T')[0] : '',
         gender: data.gender || '',
         department: data.department || '',
@@ -208,13 +206,6 @@ const ProfileSetup = ({ onCancel, onSuccess }) => {
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
-            />
-            <Input
-              label="Employee ID"
-              name="employeeId"
-              placeholder="e.g. EMP-1092"
-              value={formData.employeeId}
-              onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
             />
             <Input
               label="Date of Birth"

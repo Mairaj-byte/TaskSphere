@@ -43,10 +43,12 @@ const userSchema = new mongoose.Schema(
       default: ''
     },
     employeeId: {
-      type: String,
-      trim: true,
-      default: ''
-    },
+  type: String,
+  trim: true,
+  unique: true,
+  sparse: true
+},
+   
     dob: {
       type: Date,
       default: null
