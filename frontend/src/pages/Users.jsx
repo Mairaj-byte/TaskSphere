@@ -15,7 +15,8 @@ import {
   Search,
   Users as UsersIcon,
   CheckCircle2,
-  Image as ImageIcon
+  Image as ImageIcon,
+  BadgeCheck
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -81,6 +82,7 @@ const Users = () => {
   // Form State
   const [formName, setFormName] = useState('');
   const [formEmail, setFormEmail] = useState('');
+  const [formEmployeeId, setFormEmployeeId] = useState('');
   const [formPhoto, setFormPhoto] = useState('');
   const [formPassword, setFormPassword] = useState('');
   const [formRole, setFormRole] = useState('member');
@@ -144,6 +146,7 @@ const Users = () => {
   const resetForm = () => {
     setFormName('');
     setFormEmail('');
+    setFormEmployeeId('');
     setFormPhoto('');
     setFormPassword('');
     setFormRole('member');
@@ -162,6 +165,7 @@ const Users = () => {
     setCurrentUserId(targetUser._id);
     setFormName(targetUser.name || '');
     setFormEmail(targetUser.email || '');
+    setFormEmployeeId(targetUser.employeeId || '');
     setFormPhoto(targetUser.profilePhoto || targetUser.avatar || targetUser.avatarUrl || '');
     setFormRole(targetUser.role || 'member');
     setFormPassword('');
@@ -184,10 +188,13 @@ const Users = () => {
     const payload = {
       name: formName.trim(),
       email: formEmail.trim().toLowerCase(),
+      employeeId: formEmployeeId.trim(),
       profilePhoto: formPhoto.trim(),
       role: formRole
     };
     if (formPassword) payload.password = formPassword;
+
+    
 
     try {
       const url = modalMode === 'create' 
@@ -245,7 +252,8 @@ const Users = () => {
   const filteredUsers = users.filter((u) => {
     const matchesSearch =
       u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.email?.toLowerCase().includes(searchQuery.toLowerCase());
+      u.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.employeeId?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = roleFilter === 'all' || u.role === roleFilter;
     return matchesSearch && matchesRole;
   });
@@ -345,7 +353,7 @@ const Users = () => {
           <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
             type="text"
-            placeholder="Search by name or email..."
+            placeholder="Search by name, email, or ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-slate-900/80 border border-slate-800 rounded-xl text-slate-200 text-sm placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
@@ -388,6 +396,7 @@ const Users = () => {
               <thead>
                 <tr className="border-b border-slate-800 bg-slate-950/50 text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   <th scope="col" className="px-6 py-4">User</th>
+                  <th scope="col" className="px-6 py-4">Employee ID</th>
                   <th scope="col" className="px-6 py-4">Role</th>
                   <th scope="col" className="px-6 py-4">Status</th>
                   <th scope="col" className="px-6 py-4">Joined</th>
@@ -416,6 +425,17 @@ const Users = () => {
                           <div className="text-xs text-slate-400 font-normal mt-0.5">{u.email}</div>
                         </div>
                       </div>
+                    </td>
+
+                    {/* Employee ID */}
+                    <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-300 font-medium">
+                      {u.employeeId ? (
+                        <span className="font-mono bg-slate-800/80 px-2 py-1 rounded text-slate-200 border border-slate-700/50">
+                          {u.employeeId}
+                        </span>
+                      ) : (
+                        <span className="text-slate-500 italic">N/A</span>
+                      )}
                     </td>
 
                     {/* Role Badge */}
@@ -544,6 +564,24 @@ const Users = () => {
                   placeholder="name@company.com"
                   required
                 />
+              </div>
+
+              {/* Employee ID Input */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-300 flex items-center justify-between">
+                  <span>Employee ID</span>
+                  <span className="text-[10px] text-slate-500">Optional</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    className="w-full pl-9 pr-3.5 py-2 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
+                    value={formEmployeeId}
+                    onChange={(e) => setFormEmployeeId(e.target.value)}
+                    placeholder="Ex. EMP-001"
+                  />
+                  <BadgeCheck size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                </div>
               </div>
 
               {/* Profile Photo URL Input */}

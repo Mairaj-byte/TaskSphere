@@ -236,7 +236,7 @@ const ProfileView = ({ onEditClick }) => {
           <div className="space-y-4">
             <DetailItem
               icon={<Hash size={18} />}
-              label="Employee ID"
+              label="Indentity "
               value={profile?.employeeId}
             />
             <DetailItem

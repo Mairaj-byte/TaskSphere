@@ -153,7 +153,7 @@ exports.registerUser = async (req, res) => {
 
     const newUser = new User({
       name,
-      email,
+      email: email.toLowerCase(),
       passwordHash,
       role: 'member'
     });
@@ -173,7 +173,10 @@ exports.getUsers = async (req, res) => {
       const users = await User.find().sort({ name: 1 });
       res.json(users);
     } else {
-      const users = await User.find({ active: true }, '_id name email role profilePhoto designationRole department').sort({ name: 1 });
+      const users = await User.find(
+        { active: true },
+        '_id name email role profilePhoto designationRole department employeeId'
+      ).sort({ name: 1 });
       res.json(users);
     }
   } catch (err) {
@@ -182,7 +185,17 @@ exports.getUsers = async (req, res) => {
 };
 
 exports.createUser = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { 
+    name, 
+    email, 
+    password, 
+    role, 
+    employeeId, 
+    profilePhoto, 
+    designationRole, 
+    department, 
+    workLocation 
+  } = req.body;
 
   try {
     if (!name || !email || !password) {
@@ -194,19 +207,38 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ error: 'Email already registered.' });
     }
 
+    // Check for duplicate employeeId if provided
+    if (employeeId && employeeId.trim() !== '') {
+      const employeeIdExists = await User.findOne({ employeeId: employeeId.trim() });
+      if (employeeIdExists) {
+        return res.status(400).json({ error: 'Employee ID is already in use.' });
+      }
+    }
+
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
+    
+
     const newUser = new User({
-      name,
-      email,
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
       passwordHash,
-      role: role || 'member'
+      role: role || 'member',
+      employeeId: employeeId && employeeId.trim() ? employeeId.trim() : undefined,
+      profilePhoto: profilePhoto ? profilePhoto.trim() : undefined,
+      designationRole: designationRole ? designationRole.trim() : undefined,
+      department: department ? department.trim() : undefined,
+      workLocation: workLocation ? workLocation.trim() : undefined
     });
 
     await newUser.save();
     res.status(201).json(newUser);
   } catch (err) {
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyPattern)[0];
+      return res.status(400).json({ error: `${field} must be unique.` });
+    }
     if (err.name === 'ValidationError') {
       return res.status(400).json({ error: err.message });
     }
@@ -215,7 +247,18 @@ exports.createUser = async (req, res) => {
 };
 
 exports.updateUser = async (req, res) => {
-  const { name, email, password, role, active, designationRole, department, workLocation } = req.body;
+  const { 
+    name, 
+    email, 
+    password, 
+    role, 
+    active, 
+    employeeId, 
+    profilePhoto, 
+    designationRole, 
+    department, 
+    workLocation 
+  } = req.body;
   const userId = req.params.id;
 
   try {
@@ -229,15 +272,30 @@ exports.updateUser = async (req, res) => {
       if (emailExists) {
         return res.status(400).json({ error: 'Email already in use by another user.' });
       }
-      user.email = email;
+      user.email = email.toLowerCase().trim();
     }
 
-    if (name) user.name = name;
+    // Check employee ID uniqueness if modified
+    if (employeeId !== undefined) {
+      const trimmedEmpId = employeeId ? employeeId.trim() : '';
+      if (trimmedEmpId !== '' && trimmedEmpId !== user.employeeId) {
+        const employeeIdExists = await User.findOne({ employeeId: trimmedEmpId });
+        if (employeeIdExists) {
+          return res.status(400).json({ error: 'Employee ID is already in use.' });
+        }
+        user.employeeId = trimmedEmpId;
+      } else if (trimmedEmpId === '') {
+        user.employeeId = undefined;
+      }
+    }
+
+    if (name) user.name = name.trim();
     if (role) user.role = role;
     if (active !== undefined) user.active = active;
-    if (designationRole) user.designationRole = designationRole;
-    if (department) user.department = department;
-    if (workLocation) user.workLocation = workLocation;
+    if (profilePhoto !== undefined) user.profilePhoto = profilePhoto.trim();
+    if (designationRole !== undefined) user.designationRole = designationRole;
+    if (department !== undefined) user.department = department;
+    if (workLocation !== undefined) user.workLocation = workLocation;
 
     if (password) {
       const salt = await bcrypt.genSalt(10);
@@ -247,6 +305,13 @@ exports.updateUser = async (req, res) => {
     await user.save();
     res.json(user);
   } catch (err) {
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyPattern)[0];
+      return res.status(400).json({ error: `${field} must be unique.` });
+    }
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ error: err.message });
+    }
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
@@ -270,7 +335,7 @@ exports.toggleUserActive = async (req, res) => {
   }
 };
 
-// --- NEW: BULK IMPORT CONTROLLER ---
+// --- BULK IMPORT CONTROLLER ---
 
 exports.bulkImportUsers = async (req, res) => {
   if (!req.file) {
@@ -279,23 +344,21 @@ exports.bulkImportUsers = async (req, res) => {
 
   const results = [];
   try {
-    // Pre-hash a default password for all imported users
     const salt = await bcrypt.genSalt(10);
     const defaultPasswordHash = await bcrypt.hash('Welcome@123', salt); 
 
-    // Convert the memory buffer from Multer into a readable stream
     const stream = Readable.from(req.file.buffer);
 
     stream
       .pipe(csv())
       .on('data', (data) => {
-        // Map the CSV headers directly to data variables
         if (data.name && data.email) {
           results.push({
-            name: data.name,
-            email: data.email.toLowerCase(),
+            name: data.name.trim(),
+            email: data.email.toLowerCase().trim(),
             passwordHash: defaultPasswordHash,
             role: data.role || 'member',
+            employeeId: data.employeeId ? data.employeeId.trim() : undefined,
             department: data.department || '',
             designationRole: data.designationRole || ''
           });
@@ -307,16 +370,13 @@ exports.bulkImportUsers = async (req, res) => {
             return res.status(400).json({ error: 'CSV file is empty or missing required name/email columns.' });
           }
 
-          // ordered: false ensures that if an email already exists, 
-          // Mongoose will skip it but still insert the rest of the valid rows
           await User.insertMany(results, { ordered: false });
           
           res.status(200).json({ message: `Successfully processed ${results.length} users.` });
         } catch (dbError) {
           console.error('Bulk Import DB Error:', dbError);
-          // 11000 is MongoDB's duplicate key error code
           if (dbError.code === 11000) {
-             res.status(200).json({ message: 'Import finished. Duplicate emails were skipped.', totalProcessed: results.length });
+             res.status(200).json({ message: 'Import finished. Duplicate entries were skipped.', totalProcessed: results.length });
           } else {
              res.status(500).json({ error: 'An error occurred while saving users to the database.' });
           }
@@ -328,9 +388,8 @@ exports.bulkImportUsers = async (req, res) => {
   }
 };
 
+// --- NOTIFICATION CONTROLLER ---
 
-
-// Mute notification Controller
 exports.toggleNotificationMute = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
