@@ -319,6 +319,83 @@ task.assignedTo.forEach(user => {
   }
 });
 
+     // POST /api/tasks/bulk-create - Create multiple different tasks for ONE employee at once
+router.post('/bulk-create', requireRole(['admin', 'manager']), async (req, res) => {
+  const { assignedTo, tasks } = req.body;
+
+  if (!assignedTo) {
+    return res.status(400).json({ error: 'assignedTo (a single user id) is required.' });
+  }
+  if (!Array.isArray(tasks) || tasks.length === 0) {
+    return res.status(400).json({ error: 'tasks (a non-empty array) is required.' });
+  }
+
+  try {
+    const user = await User.findById(assignedTo);
+    if (!user) return res.status(404).json({ error: 'Employee not found.' });
+
+    const createdTasks = [];
+
+    for (const t of tasks) {
+      if (!t.title || !t.dueDate) continue; // skip incomplete rows
+
+      const task = new Task({
+        title: t.title,
+        description: t.description || '',
+        priority: t.priority || 'Medium',
+        status: 'To Do',
+        startDate: t.startDate || null,
+        dueDate: t.dueDate,
+        estimatedHours: t.estimatedHours || 0,
+        assignedTo: [assignedTo],
+        tags: t.tags || [],
+        checklist: t.checklist || [],
+        dependencies: t.dependencies || [],
+        createdBy: req.user._id,
+        activityLogs: [{ action: 'Task Created', performedBy: req.user._id }],
+      });
+
+      await task.save();
+      createdTasks.push(task);
+      await logAction({ taskId: task._id, userId: req.user._id, action: 'Created' });
+    }
+
+    if (createdTasks.length === 0) {
+      return res.status(400).json({ error: 'No valid tasks to create. Each task needs a title and due date.' });
+    }
+
+    const notification = new Notification({
+      userId: assignedTo,
+      message: `You have been assigned ${createdTasks.length} new task${createdTasks.length > 1 ? 's' : ''}.`,
+      type: 'assignment',
+    });
+    await notification.save();
+    sendInAppNotification(assignedTo, notification);
+
+    const io = getIo();
+    if (io) {
+      io.to('admins').emit('taskUpdated');
+      io.to(assignedTo.toString()).emit('taskUpdated');
+    }
+
+    if (user.email) {
+      const listHtml = createdTasks
+        .map((t) => `<li>${t.title} — due ${new Date(t.dueDate).toLocaleString()}</li>`)
+        .join('');
+      await sendEmail(
+        user.email,
+        'New Tasks Assigned - TaskSphere',
+        `<h2>Hello ${user.name},</h2><p>You have been assigned ${createdTasks.length} new task(s):</p><ul>${listHtml}</ul>`
+      );
+    }
+
+    res.status(201).json({ created: createdTasks.length, tasks: createdTasks });
+  } catch (err) {
+    console.error('POST /api/tasks/bulk-create ERROR:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+    
 
 // PATCH /api/tasks/bulk-assign - assign one user to multiple tasks at once
 router.patch('/bulk-assign', requireRole(['admin', 'manager']), async (req, res) => {
