@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 
 import chatBg from "../assets/chat-bg.jpg";
-const typingTimeout = useRef(null);
 
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
@@ -74,13 +73,19 @@ const ChatApp = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [toastMessage, setToastMessage] = useState(null);
 
+    // Refs — these MUST live inside the component, not at module scope
     const bottomRef = useRef(null);
+    const typingTimeout = useRef(null);
+    const toastTimeout = useRef(null);
+    const mentionRequestId = useRef(0);
+
     const TARGET_ROOM_ID = "6a673c7413146dfc8952c40c";
 
     // Toast helper
     const showToast = (msg, type = "info") => {
         setToastMessage({ msg, type });
-        setTimeout(() => setToastMessage(null), 3000);
+        clearTimeout(toastTimeout.current);
+        toastTimeout.current = setTimeout(() => setToastMessage(null), 3000);
     };
 
     useEffect(() => {
@@ -89,6 +94,14 @@ const ChatApp = () => {
 
     useEffect(() => {
         loadRooms();
+    }, []);
+
+    // Cleanup any pending timers on unmount
+    useEffect(() => {
+        return () => {
+            clearTimeout(typingTimeout.current);
+            clearTimeout(toastTimeout.current);
+        };
     }, []);
 
     const loadRooms = async () => {
@@ -205,6 +218,7 @@ const ChatApp = () => {
             setMentionSuggestions([]);
             setShowMentionBox(false);
 
+            clearTimeout(typingTimeout.current);
             stopTyping(selectedRoom._id);
         } catch (err) {
             console.error(err);
@@ -245,20 +259,21 @@ const ChatApp = () => {
         }
     };
 
-    const selectMention = (user) => {
+    const selectMention = (mentionUser) => {
         setText((prev) =>
-            prev.replace(/@[a-zA-Z0-9_]*$/, `@${user.name} `)
+            prev.replace(/@[a-zA-Z0-9_]*$/, `@${mentionUser.name} `)
         );
 
         setMentionedUsers((prev) => {
-            if (prev.some((u) => u._id === user._id)) return prev;
-            return [...prev, user];
+            if (prev.some((u) => u._id === mentionUser._id)) return prev;
+            return [...prev, mentionUser];
         });
 
         setMentionSuggestions([]);
         setShowMentionBox(false);
     };
 
+    // Wired up: handles typing indicator + live @mention search
     const handleTyping = async (e) => {
         const value = e.target.value;
         setText(value);
@@ -274,10 +289,37 @@ const ChatApp = () => {
                 stopTyping(selectedRoom._id);
             }, 1000);
         } else {
+            clearTimeout(typingTimeout.current);
             stopTyping(selectedRoom._id);
         }
 
-        // Your mention search code...
+        // Mention search: trigger on a trailing "@query" fragment
+        const match = value.match(/@([a-zA-Z0-9_]*)$/);
+
+        if (match) {
+            const query = match[1];
+            const requestId = ++mentionRequestId.current;
+
+            try {
+                const res = await searchMentionUsers(query);
+
+                // Ignore stale/out-of-order responses
+                if (requestId !== mentionRequestId.current) return;
+
+                const results = res?.data || [];
+                setMentionSuggestions(results);
+                setShowMentionBox(results.length > 0);
+            } catch (err) {
+                console.error("Mention search failed:", err);
+                if (requestId === mentionRequestId.current) {
+                    setMentionSuggestions([]);
+                    setShowMentionBox(false);
+                }
+            }
+        } else {
+            setMentionSuggestions([]);
+            setShowMentionBox(false);
+        }
     };
 
     const renderMessage = (msg) => {
@@ -1015,32 +1057,40 @@ const ChatApp = () => {
                             <div ref={bottomRef} />
                         </div>
 
-                        {/* Mention Model      */}
+                        {/* Typing indicator */}
+                        {otherTypingUsers.length > 0 && (
+                            <div className="px-4 pb-1 text-[10px] sm:text-[11px] text-indigo-400 italic">
+                                {otherTypingUsers.join(", ")} typing...
+                            </div>
+                        )}
+
+                        {/* Mention Suggestion Box */}
                         {showMentionBox && mentionSuggestions.length > 0 && (
-                            <div className="mb-2 bg-slate-900 border border-slate-700 rounded-xl max-h-52 overflow-y-auto">
-                                {mentionSuggestions.map((user) => (
+                            <div className="mx-2 sm:mx-4 mb-2 bg-slate-900 border border-slate-700 rounded-xl max-h-52 overflow-y-auto">
+                                {mentionSuggestions.map((mentionUser) => (
                                     <button
-                                        key={user._id}
-                                        onClick={() => selectMention(user)}
-                                        className="w-full flex items-center gap-3 p-3 hover:bg-slate-800 text-left"
+                                        key={mentionUser._id}
+                                        onClick={() => selectMention(mentionUser)}
+                                        className="w-full flex items-center gap-3 p-3 hover:bg-slate-800 text-left cursor-pointer"
                                     >
                                         <img
                                             src={
-                                                user.profilePhoto ||
+                                                mentionUser.profilePhoto ||
                                                 `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                                    user.name
+                                                    mentionUser.name
                                                 )}`
                                             }
+                                            alt={mentionUser.name}
                                             className="w-8 h-8 rounded-full"
                                         />
 
                                         <div>
                                             <div className="text-sm text-white">
-                                                {user.name}
+                                                {mentionUser.name}
                                             </div>
 
                                             <div className="text-xs text-slate-400">
-                                                {user.email}
+                                                {mentionUser.email}
                                             </div>
                                         </div>
                                     </button>
@@ -1064,12 +1114,6 @@ const ChatApp = () => {
                             pb-[max(8px,env(safe-area-inset-bottom))]
                             "
                         >
-                            {/* {otherTypingUsers.length > 0 && (
-    <div className="text-[10px] sm:text-[11px] text-indigo-400 mb-1.5 italic">
-        {otherTypingUsers.join(", ")} typing...
-    </div>
-)} */}
-
                             <div className="
                                 flex
                                 items-center
@@ -1091,8 +1135,7 @@ const ChatApp = () => {
                                 <input
                                     type="text"
                                     value={text}
-                                    onChange={(e) => setText(e.target.value)}
-                                    // onChange={handleTyping}
+                                    onChange={handleTyping}
                                     onKeyDown={(e) => e.key === "Enter" && handleSend()}
                                     placeholder={`Message #${selectedRoom?.name || "room"}...`}
                                     className="
