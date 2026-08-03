@@ -63,15 +63,26 @@ router.post('/parse-voice', requireRole(['admin', 'manager']), async (req, res) 
 
 // GET /api/tasks - Search, Filter, Sort tasks
 router.get('/', async (req, res) => {
-  const { status, priority, dueDate, assignedTo, search, sortBy } = req.query;
+  const { status, priority, dueDate, assignedTo, assignee, search, sortBy } = req.query;
   const query = {};
 
   if (req.user.role === 'member') {
     query.assignedTo = req.user._id;
   } else if (assignedTo) {
     query.assignedTo = assignedTo;
+  } else if (assignee) {
+    // Filter by the assigned team member's name or Employee ID
+    const matchedUsers = await User.find(
+      {
+        $or: [
+          { name: { $regex: assignee, $options: 'i' } },
+          { employeeId: { $regex: assignee, $options: 'i' } },
+        ],
+      },
+      '_id'
+    );
+    query.assignedTo = { $in: matchedUsers.map((u) => u._id) };
   }
-
  if (status === 'pending') {
     query.status = { $in: ['To Do', 'In Progress', 'In Review', 'Completed (Pending Approval)'] };
   } else if (status === 'pending') {
@@ -307,6 +318,58 @@ task.assignedTo.forEach(user => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+
+// PATCH /api/tasks/bulk-assign - assign one user to multiple tasks at once
+router.patch('/bulk-assign', requireRole(['admin', 'manager']), async (req, res) => {
+  const { taskIds, userId } = req.body;
+
+  if (!Array.isArray(taskIds) || taskIds.length === 0 || !userId) {
+    return res.status(400).json({ error: 'taskIds (a non-empty array) and userId are required.' });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    const tasks = await Task.find({ _id: { $in: taskIds } });
+    if (tasks.length === 0) {
+      return res.status(404).json({ error: 'No matching tasks found.' });
+    }
+
+    for (const task of tasks) {
+      const alreadyAssigned = task.assignedTo.some(id => id.toString() === userId);
+      if (!alreadyAssigned) {
+        task.assignedTo.push(userId);
+        await task.save();
+        await logAction({
+          taskId: task._id,
+          userId: req.user._id,
+          action: 'Bulk Assigned',
+          newValue: user.name,
+        });
+      }
+    }
+
+    const io = getIo();
+    if (io) {
+      io.to('admins').emit('taskUpdated');
+      io.to(userId.toString()).emit('taskUpdated');
+    }
+    sendInAppNotification(userId, {
+      message: `You've been assigned to ${tasks.length} task${tasks.length > 1 ? 's' : ''}.`,
+    });
+
+    const populatedTasks = await Task.find({ _id: { $in: taskIds } })
+      .populate('assignedTo', '_id name email role active');
+
+    res.json({ updated: tasks.length, tasks: populatedTasks });
+  } catch (err) {
+    console.error('PATCH /api/tasks/bulk-assign ERROR:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 // PUT /api/tasks/:id
 router.put('/:id', requireRole(['admin', 'manager']), async (req, res) => {

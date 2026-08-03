@@ -4,7 +4,7 @@ import { useAuth, API_BASE } from '../context/AuthContext';
 import {
   Plus, Search, Filter, RefreshCw, Edit2, Trash2, Calendar, AlertCircle,
   LayoutGrid, List, X, Paperclip, CheckCircle2,
-  KanbanSquare, CalendarDays, GanttChartSquare, Mic
+  KanbanSquare, CalendarDays, GanttChartSquare, Mic, UserPlus, CheckSquare, Square
 } from 'lucide-react';
 import KanbanBoard from '../components/KanbanBoard';
 import CalendarView from '../components/CalendarView';
@@ -13,12 +13,11 @@ import VoiceTaskModal from '../components/VoiceTaskModal';
 import { useSocket } from "../context/SocketContext";
 
 const Tasks = () => {
- const { user, token } = useAuth();
+  const { user, token } = useAuth();
   const { socket } = useSocket();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Tasks & View State
   // Tasks & View State
   const [tasks, setTasks] = useState([]);
   const [allTasks, setAllTasks] = useState([]);
@@ -27,18 +26,24 @@ const Tasks = () => {
 
   // Search & Filter State
   const [search, setSearch] = useState('');
- const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
- const [dateFilter, setDateFilter] = useState('');
-const [sortBy, setSortBy] = useState('dueDate:asc');
+  const [dateFilter, setDateFilter] = useState('');
+  const [assigneeFilter, setAssigneeFilter] = useState(''); // name or Employee ID
+  const [sortBy, setSortBy] = useState('dueDate:asc');
 
   // Sync filters with the URL every time it changes (not just on first
-  // mount) — this is what makes clicking Completed → Overdue → Pending
-  // update the list immediately, without needing a page refresh.
+  // mount) — lets Sidebar/Dashboard links update the list without a refresh.
   useEffect(() => {
     setStatusFilter(searchParams.get('status') || '');
     setDateFilter(searchParams.get('dueDate') || '');
   }, [searchParams]);
+
+  // Bulk assignment state
+  const [selectedTaskIds, setSelectedTaskIds] = useState([]);
+  const [isBulkAssignOpen, setIsBulkAssignOpen] = useState(false);
+  const [bulkAssignUserId, setBulkAssignUserId] = useState('');
+  const [bulkAssignLoading, setBulkAssignLoading] = useState(false);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -85,6 +90,7 @@ const [sortBy, setSortBy] = useState('dueDate:asc');
       if (statusFilter) params.append('status', statusFilter);
       if (priorityFilter) params.append('priority', priorityFilter);
       if (dateFilter) params.append('dueDate', dateFilter);
+      if (assigneeFilter) params.append('assignee', assigneeFilter);
       if (sortBy) params.append('sortBy', sortBy);
 
       const res = await fetch(`${API_BASE}/tasks?${params.toString()}`, {
@@ -117,7 +123,7 @@ const [sortBy, setSortBy] = useState('dueDate:asc');
   useEffect(() => {
     fetchTasks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, statusFilter, priorityFilter, dateFilter, sortBy]);
+  }, [search, statusFilter, priorityFilter, dateFilter, assigneeFilter, sortBy]);
 
   useEffect(() => {
     // FIX: previous condition was `user && user.role === 'admin' || 'manager'`
@@ -322,6 +328,46 @@ const [sortBy, setSortBy] = useState('dueDate:asc');
     }
   };
 
+  // ---------- Bulk assignment ----------
+  const toggleTaskSelected = (taskId, e) => {
+    e.stopPropagation();
+    setSelectedTaskIds((prev) =>
+      prev.includes(taskId) ? prev.filter((id) => id !== taskId) : [...prev, taskId]
+    );
+  };
+
+  const clearSelection = () => setSelectedTaskIds([]);
+
+  const handleBulkAssign = async () => {
+    if (!bulkAssignUserId || selectedTaskIds.length === 0) return;
+    setBulkAssignLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/tasks/bulk-assign`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ taskIds: selectedTaskIds, userId: bulkAssignUserId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setToastMsg(`Assigned ${data.updated} task${data.updated !== 1 ? 's' : ''} successfully.`);
+        setIsBulkAssignOpen(false);
+        setBulkAssignUserId('');
+        clearSelection();
+        fetchTasks();
+      } else {
+        alert(data.error || 'Bulk assignment failed.');
+      }
+    } catch (err) {
+      console.error('Bulk assign error', err);
+      alert('Bulk assignment failed.');
+    } finally {
+      setBulkAssignLoading(false);
+    }
+  };
+
   const getStatusBadge = (status) => {
     const statusMap = {
       'To Do': 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
@@ -398,9 +444,10 @@ const [sortBy, setSortBy] = useState('dueDate:asc');
 
       {/* Filter and View Bar */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm mb-6 space-y-4">
-        <div className="flex flex-col md:flex-row items-center gap-3">
+        {/* Row 1: Search + Assignee Filter — own row, margin-based spacing */}
+        <div className="flex flex-col sm:flex-row gap-3">
           {/* Search Box */}
-          <div className="relative flex-1 w-full">
+          <div className="relative flex-1 w-full mb-3 sm:mb-0">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -411,8 +458,24 @@ const [sortBy, setSortBy] = useState('dueDate:asc');
             />
           </div>
 
-          {/* View Switcher Buttons */}
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700 self-end md:self-auto">
+          {/* Assignee Filter (name or Employee ID) — admin/manager only */}
+          {['admin', 'manager'].includes(user?.role) && (
+            <div className="relative flex-1 w-full">
+              <UserPlus size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Filter by team member name or Employee ID..."
+                value={assigneeFilter}
+                onChange={(e) => setAssigneeFilter(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Row 2: View Switcher — its own row, no longer competing for space */}
+        <div className="flex justify-end">
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700 overflow-x-auto">
             <button
               onClick={() => setViewMode('grid')}
               className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'grid'
@@ -539,6 +602,7 @@ const [sortBy, setSortBy] = useState('dueDate:asc');
               setStatusFilter('');
               setPriorityFilter('');
               setDateFilter('');
+              setAssigneeFilter('');
               setSortBy('dueDate:asc');
             }}
             className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors ml-auto"
@@ -548,6 +612,29 @@ const [sortBy, setSortBy] = useState('dueDate:asc');
           </button>
         </div>
       </div>
+
+      {/* Bulk Assign Action Bar */}
+      {['admin', 'manager'].includes(user?.role) && selectedTaskIds.length > 0 && (
+        <div className="flex items-center justify-between gap-3 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl px-4 py-2.5 mb-4">
+          <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
+            {selectedTaskIds.length} task{selectedTaskIds.length > 1 ? 's' : ''} selected
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsBulkAssignOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors"
+            >
+              <UserPlus size={14} /> Assign to Member
+            </button>
+            <button
+              onClick={clearSelection}
+              className="px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg transition-colors"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Task Content */}
       {loading ? (
@@ -577,8 +664,6 @@ const [sortBy, setSortBy] = useState('dueDate:asc');
         <GanttChart tasks={tasks} navigate={navigate} />
       ) : viewMode === 'grid' ? (
         /* GRID VIEW */
-      
-        /* GRID VIEW */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {tasks.map((task) => {
             const daysLeft = Math.round((new Date(task.dueDate) - new Date()) / (24 * 60 * 60 * 1000));
@@ -593,6 +678,28 @@ const [sortBy, setSortBy] = useState('dueDate:asc');
                 }`}
               >
                 <div>
+                  {/* Assigned Member (top) + Bulk Select */}
+                  <div className="flex items-center gap-1.5 mb-2 min-w-0">
+                    {['admin', 'manager'].includes(user?.role) && (
+                      <button
+                        onClick={(e) => toggleTaskSelected(task._id, e)}
+                        className="shrink-0 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                        title={selectedTaskIds.includes(task._id) ? 'Deselect task' : 'Select task'}
+                      >
+                        {selectedTaskIds.includes(task._id) ? (
+                          <CheckSquare size={16} className="text-indigo-600 dark:text-indigo-400" />
+                        ) : (
+                          <Square size={16} />
+                        )}
+                      </button>
+                    )}
+                    <span className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 truncate uppercase tracking-wide">
+                      {task.assignedTo?.length > 0
+                        ? task.assignedTo.map((u) => u.name).join(', ')
+                        : 'Unassigned'}
+                    </span>
+                  </div>
+
                   {/* Header & Actions */}
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <h3 className="font-semibold text-base text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">
@@ -676,7 +783,6 @@ const [sortBy, setSortBy] = useState('dueDate:asc');
             );
           })}
         </div>
-      
       ) : (
         /* LIST VIEW */
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
@@ -684,7 +790,9 @@ const [sortBy, setSortBy] = useState('dueDate:asc');
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  {['admin', 'manager'].includes(user?.role) && <th className="py-3.5 px-4 w-8"></th>}
                   <th className="py-3.5 px-4">Task</th>
+                  <th className="py-3.5 px-4">Assigned To</th>
                   <th className="py-3.5 px-4">Status</th>
                   <th className="py-3.5 px-4">Priority</th>
                   <th className="py-3.5 px-4">Due Date</th>
@@ -699,11 +807,25 @@ const [sortBy, setSortBy] = useState('dueDate:asc');
                     onClick={() => navigate(`/tasks/${task._id}`)}
                     className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
                   >
+                    {['admin', 'manager'].includes(user?.role) && (
+                      <td className="py-3.5 px-4" onClick={(e) => toggleTaskSelected(task._id, e)}>
+                        {selectedTaskIds.includes(task._id) ? (
+                          <CheckSquare size={16} className="text-indigo-600 dark:text-indigo-400" />
+                        ) : (
+                          <Square size={16} className="text-slate-400" />
+                        )}
+                      </td>
+                    )}
                     <td className="py-3.5 px-4 max-w-xs">
                       <p className="font-semibold text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
                         {task.title}
                       </p>
                       <p className="text-xs text-slate-400 truncate mt-0.5">{task.description}</p>
+                    </td>
+                    <td className="py-3.5 px-4 whitespace-nowrap text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                      {task.assignedTo?.length > 0
+                        ? task.assignedTo.map((u) => u.name).join(', ')
+                        : 'Unassigned'}
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap">{getStatusBadge(task.status)}</td>
                     <td className="py-3.5 px-4 whitespace-nowrap">{getPriorityBadge(task.priority)}</td>
@@ -1123,6 +1245,55 @@ const [sortBy, setSortBy] = useState('dueDate:asc');
                 className="px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors shadow-sm"
               >
                 Delete Task
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Assign Modal */}
+      {isBulkAssignOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl max-w-sm w-full p-6 shadow-xl">
+            <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 flex items-center justify-center mx-auto mb-4">
+              <UserPlus size={24} />
+            </div>
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 text-center">
+              Assign {selectedTaskIds.length} Task{selectedTaskIds.length > 1 ? 's' : ''}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 text-center leading-relaxed">
+              Choose a team member to assign to all selected tasks at once.
+            </p>
+
+            <select
+              value={bulkAssignUserId}
+              onChange={(e) => setBulkAssignUserId(e.target.value)}
+              className="w-full mt-4 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            >
+              <option value="">Select a team member...</option>
+              {usersList.map((u) => (
+                <option key={u._id} value={u._id}>
+                  {u.name}{u.employeeId ? ` (${u.employeeId})` : ''}
+                </option>
+              ))}
+            </select>
+
+            <div className="flex justify-center gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setIsBulkAssignOpen(false);
+                  setBulkAssignUserId('');
+                }}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkAssign}
+                disabled={!bulkAssignUserId || bulkAssignLoading}
+                className="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors shadow-sm"
+              >
+                {bulkAssignLoading ? 'Assigning...' : 'Confirm Assignment'}
               </button>
             </div>
           </div>
