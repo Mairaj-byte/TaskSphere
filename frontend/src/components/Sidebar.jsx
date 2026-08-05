@@ -117,35 +117,69 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     : null;
 
   return (
-    <aside className="flex h-screen w-full flex-col border-r border-white/10 bg-[#0a0f1e]/95 p-5 text-gray-200 backdrop-blur-xl overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+    <aside className="
+      flex h-screen w-full flex-col
+      border-r border-[#2A3556]
+      bg-[#16213E]
+      text-[#F4F1EB]
+      p-5
+      overflow-y-auto
+      shadow-[8px_0_30px_rgba(0,0,0,.35)]
+      [&::-webkit-scrollbar]:hidden
+      [-ms-overflow-style:none]
+      [scrollbar-width:none]
+      "
+    >
 
       {/* ================= TOP ================= */}
       <div className="flex-1 space-y-6">
 
         {/* ================= WORKSPACE HEADER ================= */}
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-lg backdrop-blur-xl">
+        <div className="
+          rounded-2xl
+          border border-[#31436A]
+          bg-[#1D2951]
+          p-5
+          shadow-xl
+          "
+        >
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg">
+            <div className="
+              flex h-12 w-12 items-center justify-center
+              rounded-xl
+              bg-[#DC9750]
+              text-[#F4F1EB]
+              shadow-lg
+              "
+            >
               <Layers size={24} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">
+              <h2 className="text-xl font-bold text-[#F7F3ED]">
                 TaskSphere
               </h2>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-[#C9C2B8]">
                 Team Workspace
               </p>
             </div>
           </div>
 
-          <div className="mt-4 flex items-center justify-between rounded-xl bg-black/20 px-3 py-2">
+          <div className="
+            mt-4
+            flex items-center justify-between
+            rounded-xl
+            bg-[#243457]
+            px-3
+            py-2
+            "
+          >
             <div className="flex items-center gap-2">
               <div className="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse"></div>
               <span className="text-xs text-gray-300">
                 Workspace Online
               </span>
             </div>
-            <span className="text-xs text-indigo-300">
+            <span className="text-xs font-semibold text-[#DC9750]">
               v1.0
             </span>
           </div>
@@ -155,20 +189,32 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         <div className="relative">
           <Search
             size={17}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-[#DC9750]"
           />
           <input
             type="text"
             placeholder="Search..."
-            className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-16 text-sm text-white placeholder-gray-500 outline-none transition-all duration-300 focus:border-indigo-500"
+            className="
+            py-3
+            pl-11
+            pr-16
+            w-full
+            rounded-xl
+            border border-[#31436A]
+            bg-[#1D2951]
+            text-[#F4F1EB]
+            placeholder:text-[#BEB5A8]
+            focus:border-[#DC9750]
+            transition-all
+          "
           />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded bg-white/10 px-2 py-1 text-[10px] text-gray-400">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded bg-[#31436A] px-2 py-1 text-[10px] text-[#C9C2B8]">
             Ctrl K
           </span>
         </div>
 
         {/* Navigation */}
-        <p className="px-4 mb-2 text-xs font-semibold uppercase tracking-widest text-gray-500">
+        <p className="px-4 mb-2 text-xs font-semibold uppercase tracking-widest text-[#C9C2B8]">
           Workspace
         </p>
 
@@ -179,15 +225,27 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
                 isActive
-                  ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
-                  : 'text-gray-400 hover:bg-white/10 hover:text-white hover:translate-x-1'
+                  ? `
+                      bg-[#DC9750]/18
+                      border-l-4 border-[#DC9750]
+                      text-[#F4F1EB]
+                      shadow-[0_8px_24px_rgba(220,151,80,.15)]
+                      backdrop-blur-md
+                    `
+                  : `
+                      text-[#C9C2B8]
+                      hover:bg-[#223154]
+                      hover:text-[#F4F1EB]
+                      hover:translate-x-1
+                      hover:shadow-md
+                    `
               }`
             }
           >
             <LayoutDashboard size={18} />
             <div className="flex w-full items-center justify-between">
               <span>Dashboard</span>
-              <span className="rounded-full bg-indigo-500 px-2 py-0.5 text-[10px] font-semibold text-white">
+              <span className="rounded-full bg-[#DC9750] px-2 py-0.5 text-[10px] font-semibold text-[#F4F1EB]">
                 {stats.dashboard}
               </span>
             </div>
@@ -199,8 +257,20 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
                 isActive
-                  ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
-                  : 'text-gray-400 hover:bg-white/10 hover:translate-x-1 hover:text-white'
+                  ? `
+                      bg-[#DC9750]/18
+                      border-l-4 border-[#DC9750]
+                      text-[#F4F1EB]
+                      shadow-[0_8px_24px_rgba(220,151,80,.15)]
+                      backdrop-blur-md
+                    `
+                  : `
+                      text-[#C9C2B8]
+                      hover:bg-[#223154]
+                      hover:text-[#F4F1EB]
+                      hover:translate-x-1
+                      hover:shadow-md
+                    `
               }`
             }
           >
@@ -214,8 +284,20 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
                 isActive
-                  ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
-                  : 'text-gray-400 hover:bg-white/10 hover:translate-x-1 hover:text-white'
+                  ? `
+                      bg-[#DC9750]/18
+                      border-l-4 border-[#DC9750]
+                      text-[#F4F1EB]
+                      shadow-[0_8px_24px_rgba(220,151,80,.15)]
+                      backdrop-blur-md
+                    `
+                  : `
+                      text-[#C9C2B8]
+                      hover:bg-[#223154]
+                      hover:text-[#F4F1EB]
+                      hover:translate-x-1
+                      hover:shadow-md
+                    `
               }`
             }
           >
@@ -229,8 +311,20 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
                 isActive
-                  ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
-                  : 'text-gray-400 hover:bg-white/10 hover:translate-x-1 hover:text-white'
+                  ? `
+                      bg-[#DC9750]/18
+                      border-l-4 border-[#DC9750]
+                      text-[#F4F1EB]
+                      shadow-[0_8px_24px_rgba(220,151,80,.15)]
+                      backdrop-blur-md
+                    `
+                  : `
+                      text-[#C9C2B8]
+                      hover:bg-[#223154]
+                      hover:text-[#F4F1EB]
+                      hover:translate-x-1
+                      hover:shadow-md
+                    `
               }`
             }
           >
@@ -244,8 +338,20 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
                 isActive
-                  ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
-                  : 'text-gray-400 hover:bg-white/10 hover:text-white hover:translate-x-1'
+                  ? `
+                      bg-[#DC9750]/18
+                      border-l-4 border-[#DC9750]
+                      text-[#F4F1EB]
+                      shadow-[0_8px_24px_rgba(220,151,80,.15)]
+                      backdrop-blur-md
+                    `
+                  : `
+                      text-[#C9C2B8]
+                      hover:bg-[#223154]
+                      hover:text-[#F4F1EB]
+                      hover:translate-x-1
+                      hover:shadow-md
+                    `
               }`
             }
           >
@@ -259,15 +365,27 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
                 isActive
-                  ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
-                  : 'text-gray-400 hover:bg-white/10 hover:text-white hover:translate-x-1'
+                  ? `
+                      bg-[#DC9750]/18
+                      border-l-4 border-[#DC9750]
+                      text-[#F4F1EB]
+                      shadow-[0_8px_24px_rgba(220,151,80,.15)]
+                      backdrop-blur-md
+                    `
+                  : `
+                      text-[#C9C2B8]
+                      hover:bg-[#223154]
+                      hover:text-[#F4F1EB]
+                      hover:translate-x-1
+                      hover:shadow-md
+                    `
               }`
             }
           >
             <CheckSquare size={18} />
             <div className="flex w-full items-center justify-between">
               <span>Tasks</span>
-              <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-white">
+              <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-[#F4F1EB]">
                 {stats.tasks}
               </span>
             </div>
@@ -280,8 +398,20 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
                   isActive
-                    ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
-                    : 'text-gray-400 hover:bg-white/10 hover:translate-x-1 hover:text-white'
+                    ? `
+                        bg-[#DC9750]/18
+                        border-l-4 border-[#DC9750]
+                        text-[#F4F1EB]
+                        shadow-[0_8px_24px_rgba(220,151,80,.15)]
+                        backdrop-blur-md
+                      `
+                    : `
+                        text-[#C9C2B8]
+                        hover:bg-[#223154]
+                        hover:text-[#F4F1EB]
+                        hover:translate-x-1
+                        hover:shadow-md
+                      `
                 }`
               }
             >
@@ -297,8 +427,20 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
                   isActive
-                    ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
-                    : 'text-gray-400 hover:bg-white/10 hover:translate-x-1 hover:text-white'
+                    ? `
+                        bg-[#DC9750]/18
+                        border-l-4 border-[#DC9750]
+                        text-[#F4F1EB]
+                        shadow-[0_8px_24px_rgba(220,151,80,.15)]
+                        backdrop-blur-md
+                      `
+                    : `
+                        text-[#C9C2B8]
+                        hover:bg-[#223154]
+                        hover:text-[#F4F1EB]
+                        hover:translate-x-1
+                        hover:shadow-md
+                      `
                 }`
               }
             >
@@ -314,13 +456,13 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       </div>
 
       {/* ================= BOTTOM ================= */}
-      <div className="mt-auto space-y-4 border-t border-white/10 pt-4">
+      <div className="mt-auto space-y-4 border-t border-[#31436A] pt-4">
 
         {/* Admin Button */}
         {user?.role === 'admin' && (
           <button
             onClick={handleCronTrigger}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-500/30 bg-indigo-500/10 py-2 text-xs font-semibold text-indigo-300 hover:bg-indigo-500/20"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#DC9750]/30 bg-[#DC9750]/10 py-2 text-xs font-semibold text-[#DC9750] hover:bg-[#DC9750]/20"
           >
             <Clock size={15} />
             Run Due Check
@@ -328,8 +470,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         )}
 
        {/* ================= TODAY'S SUMMARY ================= */}
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <h3 className="mb-3 text-sm font-semibold text-white">
+        <div className="rounded-2xl border border-[#31436A] bg-[#1D2951] p-4">
+          <h3 className="mb-3 text-sm font-semibold text-[#F4F1EB]">
             Today's Summary
           </h3>
           <div className="space-y-1">
@@ -339,9 +481,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 handleNavClick();
                 navigate('/tasks?status=Approved');
               }}
-              className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-white/10"
+              className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-[#223154]"
             >
-              <span className="text-gray-400">Completed</span>
+              <span className="text-[#C9C2B8]">Completed</span>
               <span className="text-green-400">{stats.completed}</span>
             </button>
             <button
@@ -350,9 +492,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 handleNavClick();
                 navigate('/tasks?status=pending');
               }}
-              className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-white/10"
+              className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-[#223154]"
             >
-              <span className="text-gray-400">Pending</span>
+              <span className="text-[#C9C2B8]">Pending</span>
               <span className="text-yellow-400">{stats.pending}</span>
             </button>
             <button
@@ -361,9 +503,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 handleNavClick();
                 navigate('/tasks?status=Overdue');
               }}
-              className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-white/10"
+              className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-[#223154]"
             >
-              <span className="text-gray-400">Overdue</span>
+              <span className="text-[#C9C2B8]">Overdue</span>
               <span className="text-red-400">{stats.overdue}</span>
             </button>
           </div>
@@ -376,22 +518,22 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             handleNavClick();
             navigate('/tasks?status=Approved');
           }}
-          className="w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left transition-colors hover:bg-white/10"
+          className="w-full rounded-2xl border border-[#31436A] bg-[#1D2951] p-4 text-left transition-colors hover:bg-[#223154]"
         >
-          <h3 className="text-sm font-semibold text-white">
+          <h3 className="text-sm font-semibold text-[#F4F1EB]">
             Productivity
           </h3>
           <div className="mt-4 h-3 rounded-full bg-gray-700">
             <div
-              className="h-3 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-700"
-              style={{ width: `${stats.productivity}%` }}
-            ></div>
+            className="h-3 rounded-full bg-gradient-to-r from-[#C78645] via-[#DC9750] to-[#F2C27D] shadow-[0_0_12px_rgba(220,151,80,0.45)] transition-all duration-700"
+            style={{ width: `${stats.productivity}%` }}
+          ></div>
           </div>
           <div className="mt-3 flex items-center justify-between">
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-[#C9C2B8]">
               Task Completion
             </p>
-            <p className="text-xs font-semibold text-indigo-300">
+            <p className="text-xs font-semibold text-[#DC9750]">
               {stats.productivity}%
             </p>
           </div>
@@ -400,14 +542,14 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         {/* USER CARD */}
         <button
           onClick={() => navigate("/profile")}
-          className="group flex w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 p-3 transition-all duration-300 hover:border-indigo-500 hover:bg-white/10 hover:shadow-lg hover:shadow-indigo-500/20"
+          className="group flex w-full items-center justify-between gap-3 rounded-xl border border-[#31436A] bg-[#1D2951] p-3 transition-all duration-300 hover:border-[#DC9750] hover:bg-[#223154] hover:shadow-lg hover:shadow-[#DC9750]/20"
         >
           <div className="flex items-center gap-3 min-w-0">
             {profilePhotoUrl ? (
               <img
                 src={profilePhotoUrl}
                 alt={user?.name || "User"}
-                className="h-14 w-14 rounded-full border-2 border-indigo-500 object-cover shadow-md"
+                className="h-14 w-14 rounded-full border-2 border-[#DC9750] object-cover shadow-md"
                 onError={(e) => {
                   e.target.style.display = 'none';
                   if (e.target.nextSibling) {
@@ -418,7 +560,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             ) : null}
 
             <div
-              className={`h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-xl font-bold text-white shadow-md ${
+              className={`h-14 w-14 items-center justify-center rounded-full bg-[#DC9750] text-xl font-bold text-[#F4F1EB] shadow-md ${
                 profilePhotoUrl ? 'hidden' : 'flex'
               }`}
             >
@@ -427,22 +569,22 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
             {/* User Info */}
             <div className="min-w-0 flex-1 text-left">
-              <h3 className="truncate text-sm font-bold text-white">
+              <h3 className="truncate text-sm font-bold text-[#F4F1EB]">
                 {user?.name}
               </h3>
-              <p className="truncate text-xs text-indigo-300">
+              <p className="truncate text-xs text-[#DC9750]">
                 {user?.designationRole ||
                   (user?.role === "admin"
                     ? "Administrator"
                     : "Team Member")}
               </p>
               {user?.department && (
-                <p className="truncate text-[11px] text-gray-400">
+                <p className="truncate text-[11px] text-[#C9C2B8]">
                   {user.department}
                 </p>
               )}
               {user?.employeeId && (
-                <p className="truncate text-[10px] text-gray-500">
+                <p className="truncate text-[10px] text-[#C9C2B8]">
                   ID: {user.employeeId}
                 </p>
               )}
@@ -451,14 +593,15 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
           <ChevronRight
             size={18}
-            className="text-gray-500 transition-transform duration-300 group-hover:translate-x-1 shrink-0"
+            className="text-[#C9C2B8] transition-transform duration-300 group-hover:translate-x-1 shrink-0"
           />
         </button>
 
         {/* Logout */}
         <button
           onClick={logout}
-          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition-all duration-300"
+          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-[#C9C2B8] hover:bg-[#DC9750]/10
+hover:text-[#DC9750] hover:text-[#F4F1EB] transition-all duration-300"
         >
           <LogOut size={18} />
           Logout
