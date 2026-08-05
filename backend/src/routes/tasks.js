@@ -343,7 +343,7 @@ router.post('/bulk-create', requireRole(['admin', 'manager']), async (req, res) 
         title: t.title,
         description: t.description || '',
         priority: t.priority || 'Medium',
-        status: 'To Do',
+status: t.status || "To Do",
         startDate: t.startDate || null,
         dueDate: t.dueDate,
         estimatedHours: t.estimatedHours || 0,

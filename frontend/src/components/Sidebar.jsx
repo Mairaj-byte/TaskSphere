@@ -12,9 +12,10 @@ import {
   Clock,
   FolderKanban,
   Layers,
-  MessageSquare, // <--- ADDED THIS IMPORT
+ MessageSquare, // <--- ADDED THIS IMPORT
   Megaphone,
-  Settings
+  Settings,
+  ClipboardCheck
 } from "lucide-react";
 import { API_BASE, useAuth } from "../context/AuthContext";
 
@@ -30,8 +31,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   pending: 0,
   overdue: 0,
 
-  productivity: 0,
+productivity: 0,
 });
+  const [pendingApprovals, setPendingApprovals] = useState(0);
 
   const handleCronTrigger = async () => {
     try {
@@ -96,17 +98,42 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
 }, [token]);
 
+  // Admin-only: count of tasks waiting for approval, shown as a badge
+  // next to the Approvals link.
+  const fetchPendingApprovalsCount = async () => {
+    if (user?.role !== 'admin') return;
+    try {
+      const res = await fetch(
+        `${API_BASE}/tasks?status=${encodeURIComponent('Completed (Pending Approval)')}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (!res.ok) return;
+      const data = await res.json();
+      setPendingApprovals(Array.isArray(data) ? data.length : 0);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  React.useEffect(() => {
+    if (token && user?.role === 'admin') {
+      fetchPendingApprovalsCount();
+    }
+  }, [token, user?.role]);
+
   React.useEffect(() => {
 
     if (!socket) return;
 
     socket.on("taskUpdated", fetchSidebarStats);
+    socket.on("taskUpdated", fetchPendingApprovalsCount);
 
     return () => {
         socket.off("taskUpdated", fetchSidebarStats);
+        socket.off("taskUpdated", fetchPendingApprovalsCount);
     };
 
-}, [socket]);
+}, [socket, user?.role]);
   
 
   // Cleaned up profile photo URL resolution
@@ -272,6 +299,30 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               </span>
             </div>
           </NavLink>
+
+          {user?.role === 'admin' && (
+            <NavLink
+              to="/approvals"
+              onClick={handleNavClick}
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
+                  isActive
+                    ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
+                    : 'text-gray-400 hover:bg-white/10 hover:translate-x-1 hover:text-white'
+                }`
+              }
+            >
+              <ClipboardCheck size={18} />
+              <div className="flex w-full items-center justify-between">
+                <span>Approvals</span>
+                {pendingApprovals > 0 && (
+                  <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-semibold text-white">
+                    {pendingApprovals}
+                  </span>
+                )}
+              </div>
+            </NavLink>
+          )}
 
           {user?.role === 'admin' && (
             <NavLink

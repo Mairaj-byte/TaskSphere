@@ -15,6 +15,7 @@ import GroupDetails from './pages/GroupDetails';
 import ChatApp from './pages/ChatApp';
 import Announcements from './pages/Announcements';
 import AdminSettings from './pages/AdminSettings';
+import Approvals from './pages/Approvals';
 
 
 const AdminRoute = ({ children }) => {
@@ -82,6 +83,14 @@ function App() {
             element={
               <AdminRoute>
                 <AdminSettings />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="approvals"
+            element={
+              <AdminRoute>
+                <Approvals />
               </AdminRoute>
             }
           />

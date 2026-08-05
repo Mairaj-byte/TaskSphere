@@ -48,9 +48,15 @@ const Tasks = () => {
   // Bulk create state
   const [isBulkCreateOpen, setIsBulkCreateOpen] = useState(false);
   const [bulkCreateEmployeeId, setBulkCreateEmployeeId] = useState('');
-  const [bulkCreateTasks, setBulkCreateTasks] = useState([
-    { title: '', description: '', priority: 'Medium', dueDate: '' }
-  ]);
+ const [bulkCreateTasks, setBulkCreateTasks] = useState([
+  {
+    title: "",
+    description: "",
+    priority: "Medium",
+    status: "To Do",
+    dueDate: ""
+  }
+]);
   const [bulkCreateLoading, setBulkCreateLoading] = useState(false);
   const [bulkCreateError, setBulkCreateError] = useState('');
 
@@ -378,7 +384,13 @@ const Tasks = () => {
   const addBulkTaskRow = () => {
     setBulkCreateTasks(prev => [
       ...prev,
-      { title: '', description: '', priority: 'Medium', dueDate: '' }
+     {
+    title: "",
+    description: "",
+    priority: "Medium",
+    status: "To Do",
+    dueDate: ""
+}
     ]);
   };
 
@@ -392,9 +404,15 @@ const Tasks = () => {
 
   const resetBulkCreate = () => {
     setBulkCreateEmployeeId('');
-    setBulkCreateTasks([
-      { title: '', description: '', priority: 'Medium', dueDate: '' }
-    ]);
+   setBulkCreateTasks([
+    {
+        title: "",
+        description: "",
+        priority: "Medium",
+        status: "To Do",
+        dueDate: ""
+    }
+]);
     setBulkCreateError('');
   };
 
@@ -412,12 +430,13 @@ const Tasks = () => {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           assignedTo: bulkCreateEmployeeId,
-          tasks: validTasks.map((t) => ({
-            title: t.title.trim(),
-            description: t.description,
-            priority: t.priority,
-            dueDate: new Date(t.dueDate).toISOString(),
-          })),
+         tasks: validTasks.map((t) => ({
+    title: t.title.trim(),
+    description: t.description,
+    priority: t.priority,
+    status: t.status,
+    dueDate: new Date(t.dueDate).toISOString(),
+})),
         }),
       });
       const data = await res.json();
@@ -1413,28 +1432,56 @@ const Tasks = () => {
                     <div key={index} className="flex flex-col gap-2 p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-800/20">
                       <div className="flex flex-col sm:flex-row gap-2">
                         <input
-                          type="text"
-                          placeholder="Task title"
-                          value={row.title}
-                          onChange={(e) => updateBulkTaskRow(index, 'title', e.target.value)}
-                          className="flex-1 px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
-                        />
-                        <select
-                          value={row.priority}
-                          onChange={(e) => updateBulkTaskRow(index, 'priority', e.target.value)}
-                          className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
-                        >
-                          <option value="Low">Low</option>
-                          <option value="Medium">Medium</option>
-                          <option value="High">High</option>
-                          <option value="Urgent">Urgent</option>
-                        </select>
-                        <input
-                          type="datetime-local"
-                          value={row.dueDate}
-                          onChange={(e) => updateBulkTaskRow(index, 'dueDate', e.target.value)}
-                          className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
-                        />
+                        
+  type="text"
+  placeholder="Task title"
+  value={row.title}
+  onChange={(e) =>
+    updateBulkTaskRow(index, "title", e.target.value)
+  }
+  className="flex-1 px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+/>
+
+<select
+  value={row.priority}
+  onChange={(e) =>
+    updateBulkTaskRow(index, "priority", e.target.value)
+  }
+  className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+>
+  <option value="Low">Low</option>
+  <option value="Medium">Medium</option>
+  <option value="High">High</option>
+  <option value="Urgent">Urgent</option>
+</select>
+
+{/* STATUS DROPDOWN */}
+
+<select
+  value={row.status}
+  onChange={(e) =>
+    updateBulkTaskRow(index, "status", e.target.value)
+  }
+  className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+>
+  <option value="To Do">To Do</option>
+  <option value="In Progress">In Progress</option>
+  <option value="In Review">In Review</option>
+  <option value="Blocked">Blocked</option>
+  <option value="Completed (Pending Approval)">
+    Completed (Pending Approval)
+  </option>
+  <option value="Approved">Approved</option>
+</select>
+
+<input
+  type="datetime-local"
+  value={row.dueDate}
+  onChange={(e) =>
+    updateBulkTaskRow(index, "dueDate", e.target.value)
+  }
+  className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+/>
                         {bulkCreateTasks.length > 1 && (
                           <button
                             type="button"
