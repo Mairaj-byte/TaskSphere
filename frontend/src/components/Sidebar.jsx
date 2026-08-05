@@ -12,7 +12,7 @@ import {
   Clock,
   FolderKanban,
   Layers,
- MessageSquare, // <--- ADDED THIS IMPORT
+  MessageSquare, // <--- ADDED THIS IMPORT
   Megaphone,
   Settings,
   ClipboardCheck
@@ -24,15 +24,15 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { socket } = useSocket();
   const navigate = useNavigate();
   const [stats, setStats] = React.useState({
-  dashboard: 0,
-  tasks: 0,
+    dashboard: 0,
+    tasks: 0,
 
-  completed: 0,
-  pending: 0,
-  overdue: 0,
+    completed: 0,
+    pending: 0,
+    overdue: 0,
 
-productivity: 0,
-});
+    productivity: 0,
+  });
   const [pendingApprovals, setPendingApprovals] = useState(0);
 
   const handleCronTrigger = async () => {
@@ -60,43 +60,43 @@ productivity: 0,
     }
   };
 
-   const fetchSidebarStats = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/tasks/sidebar-stats`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+  const fetchSidebarStats = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/tasks/sidebar-stats`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        if (!res.ok) return;
+      if (!res.ok) return;
 
-        const data = await res.json();
+      const data = await res.json();
 
-       setStats({
-  dashboard: data.total || 0,
+      setStats({
+        dashboard: data.total || 0,
 
-  tasks: data.total || 0,
+        tasks: data.total || 0,
 
-  completed: data.completed || 0,
+        completed: data.completed || 0,
 
-  pending: data.pending || 0,
+        pending: data.pending || 0,
 
-  overdue: data.overdue || 0,
+        overdue: data.overdue || 0,
 
-  productivity: data.productivity || 0,
-});
-      } catch (err) {
-        console.error(err);
-      }
-    };
+        productivity: data.productivity || 0,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-   React.useEffect(() => {
+  React.useEffect(() => {
 
     if (token) {
-        fetchSidebarStats();
+      fetchSidebarStats();
     }
 
-}, [token]);
+  }, [token]);
 
   // Admin-only: count of tasks waiting for approval, shown as a badge
   // next to the Approvals link.
@@ -129,84 +129,53 @@ productivity: 0,
     socket.on("taskUpdated", fetchPendingApprovalsCount);
 
     return () => {
-        socket.off("taskUpdated", fetchSidebarStats);
-        socket.off("taskUpdated", fetchPendingApprovalsCount);
+      socket.off("taskUpdated", fetchSidebarStats);
+      socket.off("taskUpdated", fetchPendingApprovalsCount);
     };
 
-}, [socket, user?.role]);
-  
+  }, [socket, user?.role]);
+
 
   // Cleaned up profile photo URL resolution
   const profilePhotoUrl = user?.profilePhoto
-    ? (user.profilePhoto.startsWith('http') 
-        ? user.profilePhoto 
-        : `${API_BASE.replace(/\/api$/, '')}${user.profilePhoto}`)
+    ? (user.profilePhoto.startsWith('http')
+      ? user.profilePhoto
+      : `${API_BASE.replace(/\/api$/, '')}${user.profilePhoto}`)
     : null;
 
   return (
-    <aside className="
-      flex h-screen w-full flex-col
-      border-r border-[#2A3556]
-      bg-[#16213E]
-      text-[#F4F1EB]
-      p-5
-      overflow-y-auto
-      shadow-[8px_0_30px_rgba(0,0,0,.35)]
-      [&::-webkit-scrollbar]:hidden
-      [-ms-overflow-style:none]
-      [scrollbar-width:none]
-      "
-    >
+    <aside className="flex h-screen w-full flex-col  text-slate-200 border-r border-slate-800/80 p-4 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 
       {/* ================= TOP ================= */}
       <div className="flex-1 space-y-6">
 
         {/* ================= WORKSPACE HEADER ================= */}
-        <div className="
-          rounded-2xl
-          border border-[#31436A]
-          bg-[#1D2951]
-          p-5
-          shadow-xl
-          "
-        >
+        <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
           <div className="flex items-center gap-3">
-            <div className="
-              flex h-12 w-12 items-center justify-center
-              rounded-xl
-              bg-[#DC9750]
-              text-[#F4F1EB]
-              shadow-lg
-              "
-            >
-              <Layers size={24} />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#dc9750] text-[#1e2640] font-bold">
+              <Layers size={20} />
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-[#F7F3ED]">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-base font-semibold tracking-tight text-white truncate">
                 TaskSphere
               </h2>
-              <p className="text-xs text-[#C9C2B8]">
+              <p className="text-xs text-slate-400 truncate">
                 Team Workspace
               </p>
             </div>
           </div>
 
-          <div className="
-            mt-4
-            flex items-center justify-between
-            rounded-xl
-            bg-[#243457]
-            px-3
-            py-2
-            "
-          >
+          <div className="mt-3.5 flex items-center justify-between rounded-lg bg-slate-900/80 px-2.5 py-1.5">
             <div className="flex items-center gap-2">
-              <div className="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse"></div>
-              <span className="text-xs text-gray-300">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="text-[11px] font-medium text-slate-300">
                 Workspace Online
               </span>
             </div>
-            <span className="text-xs font-semibold text-[#DC9750]">
+            <span className="text-[10px] font-mono font-medium text-[#dc9750] bg-[#dc9750]/10 px-1.5 py-0.5 rounded">
               v1.0
             </span>
           </div>
@@ -215,446 +184,255 @@ productivity: 0,
         {/* ================= SEARCH ================= */}
         <div className="relative">
           <Search
-            size={17}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-[#DC9750]"
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
           />
           <input
             type="text"
             placeholder="Search..."
-            className="
-            py-3
-            pl-11
-            pr-16
-            w-full
-            rounded-xl
-            border border-[#31436A]
-            bg-[#1D2951]
-            text-[#F4F1EB]
-            placeholder:text-[#BEB5A8]
-            focus:border-[#DC9750]
-            transition-all
-          "
+            className="w-full rounded-lg border border-slate-800 bg-slate-900/50 py-2 pl-9 pr-14 text-xs text-slate-200 placeholder:text-slate-500 focus:border-[#dc9750] focus:outline-none transition-colors"
           />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded bg-[#31436A] px-2 py-1 text-[10px] text-[#C9C2B8]">
-            Ctrl K
-          </span>
+          <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-slate-700 bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400">
+            ⌘K
+          </kbd>
         </div>
 
-        {/* Navigation */}
-        <p className="px-4 mb-2 text-xs font-semibold uppercase tracking-widest text-[#C9C2B8]">
-          Workspace
-        </p>
+        {/* ================= NAVIGATION ================= */}
+        <div>
+          <p className="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+            Workspace
+          </p>
 
-        <nav className="flex flex-col gap-1.5">
-          <NavLink
-            to="/"
-            onClick={handleNavClick}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                isActive
-                  ? `
-                      bg-[#DC9750]/18
-                      border-l-4 border-[#DC9750]
-                      text-[#F4F1EB]
-                      shadow-[0_8px_24px_rgba(220,151,80,.15)]
-                      backdrop-blur-md
-                    `
-                  : `
-                      text-[#C9C2B8]
-                      hover:bg-[#223154]
-                      hover:text-[#F4F1EB]
-                      hover:translate-x-1
-                      hover:shadow-md
-                    `
-              }`
-            }
-          >
-            <LayoutDashboard size={18} />
-            <div className="flex w-full items-center justify-between">
-              <span>Dashboard</span>
-              <span className="rounded-full bg-[#DC9750] px-2 py-0.5 text-[10px] font-semibold text-[#F4F1EB]">
-                {stats.dashboard}
-              </span>
-            </div>
-          </NavLink>
+          <nav className="flex flex-col gap-1">
+            {[
+              { to: "/", icon: LayoutDashboard, label: "Dashboard", badge: stats.dashboard, badgeBg: "bg-[#dc9750]/15 text-[#dc9750]" },
+              { to: "/chat", icon: MessageSquare, label: "Discussion" },
+              { to: "/announcements", icon: Megaphone, label: "Announcements" },
+              { to: "/profile", icon: UserCircle, label: "My Profile" },
+              { to: "/groups", icon: FolderKanban, label: "Projects" },
+              { to: "/tasks", icon: CheckSquare, label: "Tasks", badge: stats.tasks, badgeBg: "bg-rose-500/15 text-rose-400" },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={handleNavClick}
+                  className={({ isActive }) =>
+                    `group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isActive
+                      ? "bg-[#dc9750]/10 text-[#dc9750]"
+                      : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
+                    }`
+                  }
+                >
+                  <Icon size={18} className="shrink-0 transition-colors" />
+                  <div className="flex w-full items-center justify-between">
+                    <span>{item.label}</span>
+                    {item.badge !== undefined && (
+                      <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-medium ${item.badgeBg}`}>
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
+                </NavLink>
+              );
+            })}
 
-          <NavLink
-            to="/chat"
-            onClick={handleNavClick}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                isActive
-                  ? `
-                      bg-[#DC9750]/18
-                      border-l-4 border-[#DC9750]
-                      text-[#F4F1EB]
-                      shadow-[0_8px_24px_rgba(220,151,80,.15)]
-                      backdrop-blur-md
-                    `
-                  : `
-                      text-[#C9C2B8]
-                      hover:bg-[#223154]
-                      hover:text-[#F4F1EB]
-                      hover:translate-x-1
-                      hover:shadow-md
-                    `
-              }`
-            }
-          >
-           <MessageSquare size={19} />
-            <span>Discussion</span>
-          </NavLink>
+            {/* Admin Section */}
+            {user?.role === "admin" && (
+              <>
+                <div className="my-2 border-t border-slate-800/80" />
+                <p className="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  Admin
+                </p>
 
-          <NavLink
-            to="/announcements"
-            onClick={handleNavClick}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                isActive
-                  ? `
-                      bg-[#DC9750]/18
-                      border-l-4 border-[#DC9750]
-                      text-[#F4F1EB]
-                      shadow-[0_8px_24px_rgba(220,151,80,.15)]
-                      backdrop-blur-md
-                    `
-                  : `
-                      text-[#C9C2B8]
-                      hover:bg-[#223154]
-                      hover:text-[#F4F1EB]
-                      hover:translate-x-1
-                      hover:shadow-md
-                    `
-              }`
-            }
-          >
-            <Megaphone size={18} />
-            <span>Announcements</span>
-          </NavLink>
+                <NavLink
+                  to="/approvals"
+                  onClick={handleNavClick}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isActive
+                      ? "bg-[#dc9750]/10 text-[#dc9750]"
+                      : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
+                    }`
+                  }
+                >
+                  <ClipboardCheck size={18} className="shrink-0" />
+                  <div className="flex w-full items-center justify-between">
+                    <span>Approvals</span>
+                    {pendingApprovals > 0 && (
+                      <span className="rounded-md bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400">
+                        {pendingApprovals}
+                      </span>
+                    )}
+                  </div>
+                </NavLink>
 
-          <NavLink
-            to="/profile"
-            onClick={handleNavClick}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                isActive
-                  ? `
-                      bg-[#DC9750]/18
-                      border-l-4 border-[#DC9750]
-                      text-[#F4F1EB]
-                      shadow-[0_8px_24px_rgba(220,151,80,.15)]
-                      backdrop-blur-md
-                    `
-                  : `
-                      text-[#C9C2B8]
-                      hover:bg-[#223154]
-                      hover:text-[#F4F1EB]
-                      hover:translate-x-1
-                      hover:shadow-md
-                    `
-              }`
-            }
-          >
-            <UserCircle size={18} />
-            <span>My Profile</span>
-          </NavLink>
+                <NavLink
+                  to="/users"
+                  onClick={handleNavClick}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isActive
+                      ? "bg-[#dc9750]/10 text-[#dc9750]"
+                      : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
+                    }`
+                  }
+                >
+                  <UsersRound size={18} className="shrink-0" />
+                  Manage Team
+                </NavLink>
 
-          <NavLink
-            to="/groups"
-            onClick={handleNavClick}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                isActive
-                  ? `
-                      bg-[#DC9750]/18
-                      border-l-4 border-[#DC9750]
-                      text-[#F4F1EB]
-                      shadow-[0_8px_24px_rgba(220,151,80,.15)]
-                      backdrop-blur-md
-                    `
-                  : `
-                      text-[#C9C2B8]
-                      hover:bg-[#223154]
-                      hover:text-[#F4F1EB]
-                      hover:translate-x-1
-                      hover:shadow-md
-                    `
-              }`
-            }
-          >
-            <FolderKanban size={18} />
-            <span>Projects</span>
-          </NavLink>
-
-          <NavLink
-            to="/tasks"
-            onClick={handleNavClick}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                isActive
-                  ? `
-                      bg-[#DC9750]/18
-                      border-l-4 border-[#DC9750]
-                      text-[#F4F1EB]
-                      shadow-[0_8px_24px_rgba(220,151,80,.15)]
-                      backdrop-blur-md
-                    `
-                  : `
-                      text-[#C9C2B8]
-                      hover:bg-[#223154]
-                      hover:text-[#F4F1EB]
-                      hover:translate-x-1
-                      hover:shadow-md
-                    `
-              }`
-            }
-          >
-            <CheckSquare size={18} />
-            <div className="flex w-full items-center justify-between">
-              <span>Tasks</span>
-              <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-[#F4F1EB]">
-                {stats.tasks}
-              </span>
-            </div>
-          </NavLink>
-
-          {user?.role === 'admin' && (
-            <NavLink
-              to="/approvals"
-              onClick={handleNavClick}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                  isActive
-                    ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
-                    : 'text-gray-400 hover:bg-white/10 hover:translate-x-1 hover:text-white'
-                }`
-              }
-            >
-              <ClipboardCheck size={18} />
-              <div className="flex w-full items-center justify-between">
-                <span>Approvals</span>
-                {pendingApprovals > 0 && (
-                  <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-semibold text-white">
-                    {pendingApprovals}
-                  </span>
-                )}
-              </div>
-            </NavLink>
-          )}
-
-          {user?.role === 'admin' && (
-            <NavLink
-              to="/users"
-              onClick={handleNavClick}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                  isActive
-                    ? `
-                        bg-[#DC9750]/18
-                        border-l-4 border-[#DC9750]
-                        text-[#F4F1EB]
-                        shadow-[0_8px_24px_rgba(220,151,80,.15)]
-                        backdrop-blur-md
-                      `
-                    : `
-                        text-[#C9C2B8]
-                        hover:bg-[#223154]
-                        hover:text-[#F4F1EB]
-                        hover:translate-x-1
-                        hover:shadow-md
-                      `
-                }`
-              }
-            >
-             <UsersRound size={18} />
-              Manage Team
-            </NavLink>
-          )}
-
-          {user?.role === 'admin' && (
-            <NavLink
-              to="/settings"
-              onClick={handleNavClick}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                  isActive
-                    ? `
-                        bg-[#DC9750]/18
-                        border-l-4 border-[#DC9750]
-                        text-[#F4F1EB]
-                        shadow-[0_8px_24px_rgba(220,151,80,.15)]
-                        backdrop-blur-md
-                      `
-                    : `
-                        text-[#C9C2B8]
-                        hover:bg-[#223154]
-                        hover:text-[#F4F1EB]
-                        hover:translate-x-1
-                        hover:shadow-md
-                      `
-                }`
-              }
-            >
-              <Settings size={18} />
-              Admin Settings
-            </NavLink>
-          )}
-          
-
-
-          
-        </nav>
+                <NavLink
+                  to="/settings"
+                  onClick={handleNavClick}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isActive
+                      ? "bg-[#dc9750]/10 text-[#dc9750]"
+                      : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
+                    }`
+                  }
+                >
+                  <Settings size={18} className="shrink-0" />
+                  Admin Settings
+                </NavLink>
+              </>
+            )}
+          </nav>
+        </div>
       </div>
 
       {/* ================= BOTTOM ================= */}
-      <div className="mt-auto space-y-4 border-t border-[#31436A] pt-4">
+      <div className="mt-6 space-y-3 border-t border-slate-800/80 pt-4">
 
-        {/* Admin Button */}
-        {user?.role === 'admin' && (
+        {/* Admin Trigger Button */}
+        {user?.role === "admin" && (
           <button
             onClick={handleCronTrigger}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#DC9750]/30 bg-[#DC9750]/10 py-2 text-xs font-semibold text-[#DC9750] hover:bg-[#DC9750]/20"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#dc9750]/30 bg-[#dc9750]/5 py-2 text-xs font-medium text-[#dc9750] hover:bg-[#dc9750]/10 transition-colors"
           >
-            <Clock size={15} />
+            <Clock size={14} />
             Run Due Check
           </button>
         )}
 
-       {/* ================= TODAY'S SUMMARY ================= */}
-        <div className="rounded-2xl border border-[#31436A] bg-[#1D2951] p-4">
-          <h3 className="mb-3 text-sm font-semibold text-[#F4F1EB]">
+        {/* TODAY'S SUMMARY */}
+        <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3.5">
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
             Today's Summary
           </h3>
-          <div className="space-y-1">
+          <div className="space-y-1 text-xs">
             <button
               type="button"
               onClick={() => {
                 handleNavClick();
-                navigate('/tasks?status=Approved');
+                navigate("/tasks?status=Approved");
               }}
-              className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-[#223154]"
+              className="flex w-full items-center justify-between rounded-md px-2 py-1 text-slate-300 hover:bg-slate-800/50 transition-colors"
             >
-              <span className="text-[#C9C2B8]">Completed</span>
-              <span className="text-green-400">{stats.completed}</span>
+              <span>Completed</span>
+              <span className="font-mono font-medium text-emerald-400">{stats.completed}</span>
             </button>
+
             <button
               type="button"
               onClick={() => {
                 handleNavClick();
-                navigate('/tasks?status=pending');
+                navigate("/tasks?status=pending");
               }}
-              className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-[#223154]"
+              className="flex w-full items-center justify-between rounded-md px-2 py-1 text-slate-300 hover:bg-slate-800/50 transition-colors"
             >
-              <span className="text-[#C9C2B8]">Pending</span>
-              <span className="text-yellow-400">{stats.pending}</span>
+              <span>Pending</span>
+              <span className="font-mono font-medium text-amber-400">{stats.pending}</span>
             </button>
+
             <button
               type="button"
               onClick={() => {
                 handleNavClick();
-                navigate('/tasks?status=Overdue');
+                navigate("/tasks?status=Overdue");
               }}
-              className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-[#223154]"
+              className="flex w-full items-center justify-between rounded-md px-2 py-1 text-slate-300 hover:bg-slate-800/50 transition-colors"
             >
-              <span className="text-[#C9C2B8]">Overdue</span>
-              <span className="text-red-400">{stats.overdue}</span>
+              <span>Overdue</span>
+              <span className="font-mono font-medium text-rose-400">{stats.overdue}</span>
             </button>
           </div>
         </div>
 
-        {/* ================= PRODUCTIVITY ================= */}
+        {/* PRODUCTIVITY METRIC */}
         <button
           type="button"
           onClick={() => {
             handleNavClick();
-            navigate('/tasks?status=Approved');
+            navigate("/tasks?status=Approved");
           }}
-          className="w-full rounded-2xl border border-[#31436A] bg-[#1D2951] p-4 text-left transition-colors hover:bg-[#223154]"
+          className="w-full rounded-xl border border-slate-800 bg-slate-900/40 p-3.5 text-left hover:border-slate-700 transition-colors"
         >
-          <h3 className="text-sm font-semibold text-[#F4F1EB]">
-            Productivity
-          </h3>
-          <div className="mt-4 h-3 rounded-full bg-gray-700">
-            <div
-            className="h-3 rounded-full bg-gradient-to-r from-[#C78645] via-[#DC9750] to-[#F2C27D] shadow-[0_0_12px_rgba(220,151,80,0.45)] transition-all duration-700"
-            style={{ width: `${stats.productivity}%` }}
-          ></div>
-          </div>
-          <div className="mt-3 flex items-center justify-between">
-            <p className="text-xs text-[#C9C2B8]">
-              Task Completion
-            </p>
-            <p className="text-xs font-semibold text-[#DC9750]">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+              Productivity
+            </h3>
+            <span className="text-xs font-mono font-semibold text-[#dc9750]">
               {stats.productivity}%
-            </p>
+            </span>
+          </div>
+          <div className="mt-2.5 h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-[#dc9750] transition-all duration-500"
+              style={{ width: `${stats.productivity}%` }}
+            ></div>
           </div>
         </button>
 
         {/* USER CARD */}
         <button
           onClick={() => navigate("/profile")}
-          className="group flex w-full items-center justify-between gap-3 rounded-xl border border-[#31436A] bg-[#1D2951] p-3 transition-all duration-300 hover:border-[#DC9750] hover:bg-[#223154] hover:shadow-lg hover:shadow-[#DC9750]/20"
+          className="group flex w-full items-center justify-between rounded-xl border border-slate-800 bg-slate-900/40 p-2.5 hover:border-slate-700 transition-colors"
         >
           <div className="flex items-center gap-3 min-w-0">
             {profilePhotoUrl ? (
               <img
                 src={profilePhotoUrl}
                 alt={user?.name || "User"}
-                className="h-14 w-14 rounded-full border-2 border-[#DC9750] object-cover shadow-md"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  if (e.target.nextSibling) {
-                    e.target.nextSibling.style.display = 'flex';
-                  }
-                }}
+                className="h-9 w-9 rounded-lg border border-slate-700 object-cover shrink-0"
+                // onError={(e) => {
+                //   e.currentTarget.style.display = "none";
+                //   if (e.currentTarget.nextElementSibling) {
+                //     (e.currentTarget.nextElementSibling as HTMLElement).style.display = "flex";
+                //   }
+                // }}
               />
             ) : null}
 
             <div
-              className={`h-14 w-14 items-center justify-center rounded-full bg-[#DC9750] text-xl font-bold text-[#F4F1EB] shadow-md ${
-                profilePhotoUrl ? 'hidden' : 'flex'
-              }`}
+              className={`h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#dc9750] text-sm font-bold text-[#1e2640] ${profilePhotoUrl ? "hidden" : "flex"
+                }`}
             >
               {user?.name?.charAt(0).toUpperCase() || "U"}
             </div>
 
-            {/* User Info */}
-            <div className="min-w-0 flex-1 text-left">
-              <h3 className="truncate text-sm font-bold text-[#F4F1EB]">
+            <div className="min-w-0 flex-1 text-left leading-tight">
+              <h3 className="truncate text-xs font-semibold text-white">
                 {user?.name}
               </h3>
-              <p className="truncate text-xs text-[#DC9750]">
+              <p className="truncate text-[11px] text-[#dc9750] mt-0.5">
                 {user?.designationRole ||
-                  (user?.role === "admin"
-                    ? "Administrator"
-                    : "Team Member")}
+                  (user?.role === "admin" ? "Administrator" : "Team Member")}
               </p>
-              {user?.department && (
-                <p className="truncate text-[11px] text-[#C9C2B8]">
-                  {user.department}
-                </p>
-              )}
-              {user?.employeeId && (
-                <p className="truncate text-[10px] text-[#C9C2B8]">
-                  ID: {user.employeeId}
-                </p>
-              )}
             </div>
           </div>
 
           <ChevronRight
-            size={18}
-            className="text-[#C9C2B8] transition-transform duration-300 group-hover:translate-x-1 shrink-0"
+            size={16}
+            className="text-slate-500 group-hover:text-slate-300 transition-colors shrink-0"
           />
         </button>
 
-        {/* Logout */}
+        {/* LOGOUT */}
         <button
           onClick={logout}
-          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-[#C9C2B8] hover:bg-[#DC9750]/10
-hover:text-[#DC9750] hover:text-[#F4F1EB] transition-all duration-300"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium text-slate-400 hover:bg-rose-500/10 hover:text-rose-400 transition-colors"
         >
-          <LogOut size={18} />
+          <LogOut size={16} />
           Logout
         </button>
 
