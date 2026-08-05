@@ -12,7 +12,7 @@ import {
   Clock,
   FolderKanban,
   Layers,
- MessageSquare, // <--- ADDED THIS IMPORT
+  MessageSquare,
   Megaphone,
   Settings,
   ClipboardCheck
@@ -24,26 +24,21 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { socket } = useSocket();
   const navigate = useNavigate();
   const [stats, setStats] = React.useState({
-  dashboard: 0,
-  tasks: 0,
-
-  completed: 0,
-  pending: 0,
-  overdue: 0,
-
-productivity: 0,
-});
+    dashboard: 0,
+    tasks: 0,
+    completed: 0,
+    pending: 0,
+    overdue: 0,
+    productivity: 0,
+  });
   const [pendingApprovals, setPendingApprovals] = useState(0);
 
   const handleCronTrigger = async () => {
     try {
       const res = await fetch(`${API_BASE}/tasks/test-cron`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
       if (res.ok) {
         alert('Cron reminder and overdue system processed successfully!');
       } else {
@@ -63,43 +58,27 @@ productivity: 0,
    const fetchSidebarStats = async () => {
       try {
         const res = await fetch(`${API_BASE}/tasks/sidebar-stats`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
-
         if (!res.ok) return;
-
         const data = await res.json();
-
-       setStats({
-  dashboard: data.total || 0,
-
-  tasks: data.total || 0,
-
-  completed: data.completed || 0,
-
-  pending: data.pending || 0,
-
-  overdue: data.overdue || 0,
-
-  productivity: data.productivity || 0,
-});
+        setStats({
+          dashboard: data.total || 0,
+          tasks: data.total || 0,
+          completed: data.completed || 0,
+          pending: data.pending || 0,
+          overdue: data.overdue || 0,
+          productivity: data.productivity || 0,
+        });
       } catch (err) {
         console.error(err);
       }
     };
 
    React.useEffect(() => {
+    if (token) fetchSidebarStats();
+   }, [token]);
 
-    if (token) {
-        fetchSidebarStats();
-    }
-
-}, [token]);
-
-  // Admin-only: count of tasks waiting for approval, shown as a badge
-  // next to the Approvals link.
   const fetchPendingApprovalsCount = async () => {
     if (user?.role !== 'admin') return;
     try {
@@ -122,21 +101,17 @@ productivity: 0,
   }, [token, user?.role]);
 
   React.useEffect(() => {
-
     if (!socket) return;
-
     socket.on("taskUpdated", fetchSidebarStats);
     socket.on("taskUpdated", fetchPendingApprovalsCount);
-
+    socket.on("projectUpdated", fetchPendingApprovalsCount); // Listen for project approvals too
     return () => {
         socket.off("taskUpdated", fetchSidebarStats);
         socket.off("taskUpdated", fetchPendingApprovalsCount);
+        socket.off("projectUpdated", fetchPendingApprovalsCount);
     };
-
-}, [socket, user?.role]);
+  }, [socket, user?.role]);
   
-
-  // Cleaned up profile photo URL resolution
   const profilePhotoUrl = user?.profilePhoto
     ? (user.profilePhoto.startsWith('http') 
         ? user.profilePhoto 
@@ -157,90 +132,36 @@ productivity: 0,
       [scrollbar-width:none]
       "
     >
-
-      {/* ================= TOP ================= */}
       <div className="flex-1 space-y-6">
-
-        {/* ================= WORKSPACE HEADER ================= */}
-        <div className="
-          rounded-2xl
-          border border-[#31436A]
-          bg-[#1D2951]
-          p-5
-          shadow-xl
-          "
-        >
+        <div className="rounded-2xl border border-[#31436A] bg-[#1D2951] p-5 shadow-xl">
           <div className="flex items-center gap-3">
-            <div className="
-              flex h-12 w-12 items-center justify-center
-              rounded-xl
-              bg-[#DC9750]
-              text-[#F4F1EB]
-              shadow-lg
-              "
-            >
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#DC9750] text-[#F4F1EB] shadow-lg">
               <Layers size={24} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-[#F7F3ED]">
-                TaskSphere
-              </h2>
-              <p className="text-xs text-[#C9C2B8]">
-                Team Workspace
-              </p>
+              <h2 className="text-xl font-bold text-[#F7F3ED]">TaskSphere</h2>
+              <p className="text-xs text-[#C9C2B8]">Team Workspace</p>
             </div>
           </div>
-
-          <div className="
-            mt-4
-            flex items-center justify-between
-            rounded-xl
-            bg-[#243457]
-            px-3
-            py-2
-            "
-          >
+          <div className="mt-4 flex items-center justify-between rounded-xl bg-[#243457] px-3 py-2">
             <div className="flex items-center gap-2">
               <div className="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse"></div>
-              <span className="text-xs text-gray-300">
-                Workspace Online
-              </span>
+              <span className="text-xs text-gray-300">Workspace Online</span>
             </div>
-            <span className="text-xs font-semibold text-[#DC9750]">
-              v1.0
-            </span>
+            <span className="text-xs font-semibold text-[#DC9750]">v1.0</span>
           </div>
         </div>
 
-        {/* ================= SEARCH ================= */}
         <div className="relative">
-          <Search
-            size={17}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-[#DC9750]"
-          />
+          <Search size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#DC9750]" />
           <input
             type="text"
             placeholder="Search..."
-            className="
-            py-3
-            pl-11
-            pr-16
-            w-full
-            rounded-xl
-            border border-[#31436A]
-            bg-[#1D2951]
-            text-[#F4F1EB]
-            placeholder:text-[#BEB5A8]
-            focus:border-[#DC9750]
-            transition-all
-          "
+            className="py-3 pl-11 pr-16 w-full rounded-xl border border-[#31436A] bg-[#1D2951] text-[#F4F1EB] placeholder:text-[#BEB5A8] focus:border-[#DC9750] transition-all"
           />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded bg-[#31436A] px-2 py-1 text-[10px] text-[#C9C2B8]">
-            Ctrl K
-          </span>
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded bg-[#31436A] px-2 py-1 text-[10px] text-[#C9C2B8]">Ctrl K</span>
         </div>
 
-        {/* Navigation */}
         <p className="px-4 mb-2 text-xs font-semibold uppercase tracking-widest text-[#C9C2B8]">
           Workspace
         </p>
@@ -251,30 +172,15 @@ productivity: 0,
             onClick={handleNavClick}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                isActive
-                  ? `
-                      bg-[#DC9750]/18
-                      border-l-4 border-[#DC9750]
-                      text-[#F4F1EB]
-                      shadow-[0_8px_24px_rgba(220,151,80,.15)]
-                      backdrop-blur-md
-                    `
-                  : `
-                      text-[#C9C2B8]
-                      hover:bg-[#223154]
-                      hover:text-[#F4F1EB]
-                      hover:translate-x-1
-                      hover:shadow-md
-                    `
+                isActive ? `bg-[#DC9750]/18 border-l-4 border-[#DC9750] text-[#F4F1EB] shadow-[0_8px_24px_rgba(220,151,80,.15)] backdrop-blur-md`
+                         : `text-[#C9C2B8] hover:bg-[#223154] hover:text-[#F4F1EB] hover:translate-x-1 hover:shadow-md`
               }`
             }
           >
             <LayoutDashboard size={18} />
             <div className="flex w-full items-center justify-between">
               <span>Dashboard</span>
-              <span className="rounded-full bg-[#DC9750] px-2 py-0.5 text-[10px] font-semibold text-[#F4F1EB]">
-                {stats.dashboard}
-              </span>
+              <span className="rounded-full bg-[#DC9750] px-2 py-0.5 text-[10px] font-semibold text-[#F4F1EB]">{stats.dashboard}</span>
             </div>
           </NavLink>
 
@@ -283,26 +189,13 @@ productivity: 0,
             onClick={handleNavClick}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                isActive
-                  ? `
-                      bg-[#DC9750]/18
-                      border-l-4 border-[#DC9750]
-                      text-[#F4F1EB]
-                      shadow-[0_8px_24px_rgba(220,151,80,.15)]
-                      backdrop-blur-md
-                    `
-                  : `
-                      text-[#C9C2B8]
-                      hover:bg-[#223154]
-                      hover:text-[#F4F1EB]
-                      hover:translate-x-1
-                      hover:shadow-md
-                    `
+                isActive ? `bg-[#DC9750]/18 border-l-4 border-[#DC9750] text-[#F4F1EB] shadow-[0_8px_24px_rgba(220,151,80,.15)] backdrop-blur-md`
+                         : `text-[#C9C2B8] hover:bg-[#223154] hover:text-[#F4F1EB] hover:translate-x-1 hover:shadow-md`
               }`
             }
           >
            <MessageSquare size={19} />
-            <span>Discussion</span>
+           <span>Discussion</span>
           </NavLink>
 
           <NavLink
@@ -310,21 +203,8 @@ productivity: 0,
             onClick={handleNavClick}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                isActive
-                  ? `
-                      bg-[#DC9750]/18
-                      border-l-4 border-[#DC9750]
-                      text-[#F4F1EB]
-                      shadow-[0_8px_24px_rgba(220,151,80,.15)]
-                      backdrop-blur-md
-                    `
-                  : `
-                      text-[#C9C2B8]
-                      hover:bg-[#223154]
-                      hover:text-[#F4F1EB]
-                      hover:translate-x-1
-                      hover:shadow-md
-                    `
+                isActive ? `bg-[#DC9750]/18 border-l-4 border-[#DC9750] text-[#F4F1EB] shadow-[0_8px_24px_rgba(220,151,80,.15)] backdrop-blur-md`
+                         : `text-[#C9C2B8] hover:bg-[#223154] hover:text-[#F4F1EB] hover:translate-x-1 hover:shadow-md`
               }`
             }
           >
@@ -337,21 +217,8 @@ productivity: 0,
             onClick={handleNavClick}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                isActive
-                  ? `
-                      bg-[#DC9750]/18
-                      border-l-4 border-[#DC9750]
-                      text-[#F4F1EB]
-                      shadow-[0_8px_24px_rgba(220,151,80,.15)]
-                      backdrop-blur-md
-                    `
-                  : `
-                      text-[#C9C2B8]
-                      hover:bg-[#223154]
-                      hover:text-[#F4F1EB]
-                      hover:translate-x-1
-                      hover:shadow-md
-                    `
+                isActive ? `bg-[#DC9750]/18 border-l-4 border-[#DC9750] text-[#F4F1EB] shadow-[0_8px_24px_rgba(220,151,80,.15)] backdrop-blur-md`
+                         : `text-[#C9C2B8] hover:bg-[#223154] hover:text-[#F4F1EB] hover:translate-x-1 hover:shadow-md`
               }`
             }
           >
@@ -364,21 +231,8 @@ productivity: 0,
             onClick={handleNavClick}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                isActive
-                  ? `
-                      bg-[#DC9750]/18
-                      border-l-4 border-[#DC9750]
-                      text-[#F4F1EB]
-                      shadow-[0_8px_24px_rgba(220,151,80,.15)]
-                      backdrop-blur-md
-                    `
-                  : `
-                      text-[#C9C2B8]
-                      hover:bg-[#223154]
-                      hover:text-[#F4F1EB]
-                      hover:translate-x-1
-                      hover:shadow-md
-                    `
+                isActive ? `bg-[#DC9750]/18 border-l-4 border-[#DC9750] text-[#F4F1EB] shadow-[0_8px_24px_rgba(220,151,80,.15)] backdrop-blur-md`
+                         : `text-[#C9C2B8] hover:bg-[#223154] hover:text-[#F4F1EB] hover:translate-x-1 hover:shadow-md`
               }`
             }
           >
@@ -386,47 +240,15 @@ productivity: 0,
             <span>Projects</span>
           </NavLink>
 
-          <NavLink
-            to="/tasks"
-            onClick={handleNavClick}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                isActive
-                  ? `
-                      bg-[#DC9750]/18
-                      border-l-4 border-[#DC9750]
-                      text-[#F4F1EB]
-                      shadow-[0_8px_24px_rgba(220,151,80,.15)]
-                      backdrop-blur-md
-                    `
-                  : `
-                      text-[#C9C2B8]
-                      hover:bg-[#223154]
-                      hover:text-[#F4F1EB]
-                      hover:translate-x-1
-                      hover:shadow-md
-                    `
-              }`
-            }
-          >
-            <CheckSquare size={18} />
-            <div className="flex w-full items-center justify-between">
-              <span>Tasks</span>
-              <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-[#F4F1EB]">
-                {stats.tasks}
-              </span>
-            </div>
-          </NavLink>
-
+          {/* APPROVALS MOVED HERE: Below Projects, Above Tasks */}
           {user?.role === 'admin' && (
             <NavLink
               to="/approvals"
               onClick={handleNavClick}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                  isActive
-                    ? 'bg-indigo-500/20 text-white border-l-4 border-indigo-500'
-                    : 'text-gray-400 hover:bg-white/10 hover:translate-x-1 hover:text-white'
+                  isActive ? `bg-indigo-500/20 text-white border-l-4 border-indigo-500`
+                           : `text-gray-400 hover:bg-white/10 hover:translate-x-1 hover:text-white`
                 }`
               }
             >
@@ -442,32 +264,38 @@ productivity: 0,
             </NavLink>
           )}
 
+          <NavLink
+            to="/tasks"
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
+                isActive ? `bg-[#DC9750]/18 border-l-4 border-[#DC9750] text-[#F4F1EB] shadow-[0_8px_24px_rgba(220,151,80,.15)] backdrop-blur-md`
+                         : `text-[#C9C2B8] hover:bg-[#223154] hover:text-[#F4F1EB] hover:translate-x-1 hover:shadow-md`
+              }`
+            }
+          >
+            <CheckSquare size={18} />
+            <div className="flex w-full items-center justify-between">
+              <span>Tasks</span>
+              <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-[#F4F1EB]">
+                {stats.tasks}
+              </span>
+            </div>
+          </NavLink>
+
           {user?.role === 'admin' && (
             <NavLink
               to="/users"
               onClick={handleNavClick}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                  isActive
-                    ? `
-                        bg-[#DC9750]/18
-                        border-l-4 border-[#DC9750]
-                        text-[#F4F1EB]
-                        shadow-[0_8px_24px_rgba(220,151,80,.15)]
-                        backdrop-blur-md
-                      `
-                    : `
-                        text-[#C9C2B8]
-                        hover:bg-[#223154]
-                        hover:text-[#F4F1EB]
-                        hover:translate-x-1
-                        hover:shadow-md
-                      `
+                  isActive ? `bg-[#DC9750]/18 border-l-4 border-[#DC9750] text-[#F4F1EB] shadow-[0_8px_24px_rgba(220,151,80,.15)] backdrop-blur-md`
+                           : `text-[#C9C2B8] hover:bg-[#223154] hover:text-[#F4F1EB] hover:translate-x-1 hover:shadow-md`
                 }`
               }
             >
              <UsersRound size={18} />
-              Manage Team
+             Manage Team
             </NavLink>
           )}
 
@@ -477,21 +305,8 @@ productivity: 0,
               onClick={handleNavClick}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                  isActive
-                    ? `
-                        bg-[#DC9750]/18
-                        border-l-4 border-[#DC9750]
-                        text-[#F4F1EB]
-                        shadow-[0_8px_24px_rgba(220,151,80,.15)]
-                        backdrop-blur-md
-                      `
-                    : `
-                        text-[#C9C2B8]
-                        hover:bg-[#223154]
-                        hover:text-[#F4F1EB]
-                        hover:translate-x-1
-                        hover:shadow-md
-                      `
+                  isActive ? `bg-[#DC9750]/18 border-l-4 border-[#DC9750] text-[#F4F1EB] shadow-[0_8px_24px_rgba(220,151,80,.15)] backdrop-blur-md`
+                           : `text-[#C9C2B8] hover:bg-[#223154] hover:text-[#F4F1EB] hover:translate-x-1 hover:shadow-md`
                 }`
               }
             >
@@ -500,16 +315,10 @@ productivity: 0,
             </NavLink>
           )}
           
-
-
-          
         </nav>
       </div>
 
-      {/* ================= BOTTOM ================= */}
       <div className="mt-auto space-y-4 border-t border-[#31436A] pt-4">
-
-        {/* Admin Button */}
         {user?.role === 'admin' && (
           <button
             onClick={handleCronTrigger}
@@ -520,7 +329,6 @@ productivity: 0,
           </button>
         )}
 
-       {/* ================= TODAY'S SUMMARY ================= */}
         <div className="rounded-2xl border border-[#31436A] bg-[#1D2951] p-4">
           <h3 className="mb-3 text-sm font-semibold text-[#F4F1EB]">
             Today's Summary
@@ -528,10 +336,7 @@ productivity: 0,
           <div className="space-y-1">
             <button
               type="button"
-              onClick={() => {
-                handleNavClick();
-                navigate('/tasks?status=Approved');
-              }}
+              onClick={() => { handleNavClick(); navigate('/tasks?status=Approved'); }}
               className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-[#223154]"
             >
               <span className="text-[#C9C2B8]">Completed</span>
@@ -539,10 +344,7 @@ productivity: 0,
             </button>
             <button
               type="button"
-              onClick={() => {
-                handleNavClick();
-                navigate('/tasks?status=pending');
-              }}
+              onClick={() => { handleNavClick(); navigate('/tasks?status=pending'); }}
               className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-[#223154]"
             >
               <span className="text-[#C9C2B8]">Pending</span>
@@ -550,10 +352,7 @@ productivity: 0,
             </button>
             <button
               type="button"
-              onClick={() => {
-                handleNavClick();
-                navigate('/tasks?status=Overdue');
-              }}
+              onClick={() => { handleNavClick(); navigate('/tasks?status=Overdue'); }}
               className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-[#223154]"
             >
               <span className="text-[#C9C2B8]">Overdue</span>
@@ -562,18 +361,12 @@ productivity: 0,
           </div>
         </div>
 
-        {/* ================= PRODUCTIVITY ================= */}
         <button
           type="button"
-          onClick={() => {
-            handleNavClick();
-            navigate('/tasks?status=Approved');
-          }}
+          onClick={() => { handleNavClick(); navigate('/tasks?status=Approved'); }}
           className="w-full rounded-2xl border border-[#31436A] bg-[#1D2951] p-4 text-left transition-colors hover:bg-[#223154]"
         >
-          <h3 className="text-sm font-semibold text-[#F4F1EB]">
-            Productivity
-          </h3>
+          <h3 className="text-sm font-semibold text-[#F4F1EB]">Productivity</h3>
           <div className="mt-4 h-3 rounded-full bg-gray-700">
             <div
             className="h-3 rounded-full bg-gradient-to-r from-[#C78645] via-[#DC9750] to-[#F2C27D] shadow-[0_0_12px_rgba(220,151,80,0.45)] transition-all duration-700"
@@ -581,16 +374,11 @@ productivity: 0,
           ></div>
           </div>
           <div className="mt-3 flex items-center justify-between">
-            <p className="text-xs text-[#C9C2B8]">
-              Task Completion
-            </p>
-            <p className="text-xs font-semibold text-[#DC9750]">
-              {stats.productivity}%
-            </p>
+            <p className="text-xs text-[#C9C2B8]">Task Completion</p>
+            <p className="text-xs font-semibold text-[#DC9750]">{stats.productivity}%</p>
           </div>
         </button>
 
-        {/* USER CARD */}
         <button
           onClick={() => navigate("/profile")}
           className="group flex w-full items-center justify-between gap-3 rounded-xl border border-[#31436A] bg-[#1D2951] p-3 transition-all duration-300 hover:border-[#DC9750] hover:bg-[#223154] hover:shadow-lg hover:shadow-[#DC9750]/20"
@@ -603,9 +391,7 @@ productivity: 0,
                 className="h-14 w-14 rounded-full border-2 border-[#DC9750] object-cover shadow-md"
                 onError={(e) => {
                   e.target.style.display = 'none';
-                  if (e.target.nextSibling) {
-                    e.target.nextSibling.style.display = 'flex';
-                  }
+                  if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
                 }}
               />
             ) : null}
@@ -618,46 +404,29 @@ productivity: 0,
               {user?.name?.charAt(0).toUpperCase() || "U"}
             </div>
 
-            {/* User Info */}
             <div className="min-w-0 flex-1 text-left">
-              <h3 className="truncate text-sm font-bold text-[#F4F1EB]">
-                {user?.name}
-              </h3>
+              <h3 className="truncate text-sm font-bold text-[#F4F1EB]">{user?.name}</h3>
               <p className="truncate text-xs text-[#DC9750]">
-                {user?.designationRole ||
-                  (user?.role === "admin"
-                    ? "Administrator"
-                    : "Team Member")}
+                {user?.designationRole || (user?.role === "admin" ? "Administrator" : "Team Member")}
               </p>
               {user?.department && (
-                <p className="truncate text-[11px] text-[#C9C2B8]">
-                  {user.department}
-                </p>
+                <p className="truncate text-[11px] text-[#C9C2B8]">{user.department}</p>
               )}
               {user?.employeeId && (
-                <p className="truncate text-[10px] text-[#C9C2B8]">
-                  ID: {user.employeeId}
-                </p>
+                <p className="truncate text-[10px] text-[#C9C2B8]">ID: {user.employeeId}</p>
               )}
             </div>
           </div>
-
-          <ChevronRight
-            size={18}
-            className="text-[#C9C2B8] transition-transform duration-300 group-hover:translate-x-1 shrink-0"
-          />
+          <ChevronRight size={18} className="text-[#C9C2B8] transition-transform duration-300 group-hover:translate-x-1 shrink-0" />
         </button>
 
-        {/* Logout */}
         <button
           onClick={logout}
-          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-[#C9C2B8] hover:bg-[#DC9750]/10
-hover:text-[#DC9750] hover:text-[#F4F1EB] transition-all duration-300"
+          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-[#C9C2B8] hover:bg-[#DC9750]/10 hover:text-[#DC9750] transition-all duration-300"
         >
           <LogOut size={18} />
           Logout
         </button>
-
       </div>
     </aside>
   );

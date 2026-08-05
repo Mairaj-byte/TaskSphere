@@ -151,6 +151,7 @@ const TaskDetails = () => {
       'Completed (Pending Approval)': 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800',
       'Approved': 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
       'Rejected': 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 border-rose-200 dark:border-rose-800',
+      'Overdue': 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300 border-red-300 dark:border-red-800',
     };
     const defaultStyle = 'bg-slate-100 text-slate-700 border-slate-200';
 
@@ -236,7 +237,7 @@ const TaskDetails = () => {
                 {/* Assignee Actions */}
                 {isAssignee && !isAdmin && (
                   <>
-                    {task.status === 'To Do' && (
+                    {(task.status === 'To Do' || task.status === 'Overdue') && (
                       <button
                         onClick={() => handleStatusChange('In Progress')}
                         className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-lg shadow-sm transition-colors"
@@ -245,7 +246,7 @@ const TaskDetails = () => {
                         <span>Start Work</span>
                       </button>
                     )}
-                    {(task.status === 'In Progress' || task.status === 'Rejected') && (
+                    {(task.status === 'To Do' || task.status === 'In Progress' || task.status === 'Rejected' || task.status === 'Overdue') && (
                       <button
                         onClick={() => handleStatusChange('Completed (Pending Approval)')}
                         className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-lg shadow-sm transition-colors"
@@ -260,7 +261,7 @@ const TaskDetails = () => {
                 {/* Manager / Admin Actions */}
                 {isAdmin && (
                   <>
-                    {task.status === 'To Do' && (
+                    {(task.status === 'To Do' || task.status === 'Overdue') && (
                       <button
                         onClick={() => handleStatusChange('In Progress')}
                         className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-colors"
@@ -269,7 +270,7 @@ const TaskDetails = () => {
                         <span>Start Work</span>
                       </button>
                     )}
-                    {task.status === 'In Progress' && (
+                    {(task.status === 'To Do' || task.status === 'In Progress' || task.status === 'Rejected' || task.status === 'Overdue') && (
                       <button
                         onClick={() => handleStatusChange('Completed (Pending Approval)')}
                         className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors"
@@ -320,17 +321,16 @@ const TaskDetails = () => {
               </div>
             )}
 
+            {/* ATTACHMENTS SECTION - Fixed the member restriction */}
             <div className="py-6 space-y-4">
               <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
                 Attachments
               </h4>
 
-              {user?.role !== "member" && (
-  <FileUpload
-    taskId={task._id}
-    onUpload={refreshTaskFiles}
-  />
-)}
+              <FileUpload
+                taskId={task._id}
+                onUpload={refreshTaskFiles}
+              />
 
               <FileList
                 taskId={task._id}
