@@ -146,7 +146,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         {/* ================= WORKSPACE HEADER ================= */}
         <div className="rounded-2xl border border-[#31436A] bg-[#1D2951] p-5 shadow-xl">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#DC9750] text-[#F4F1EB] shadow-lg">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#DC9750] text-[#1e2640] shadow-lg">
               <Layers size={24} />
             </div>
             <div>
@@ -173,7 +173,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <input
             type="text"
             placeholder="Search..."
-            className="py-3 pl-11 pr-16 w-full rounded-xl border border-[#31436A] bg-[#1D2951] text-[#F4F1EB] placeholder:text-[#BEB5A8] focus:border-[#DC9750] transition-all"
+            className="py-3 pl-11 pr-16 w-full rounded-xl border border-[#31436A] bg-[#1D2951] text-[#F4F1EB] placeholder:text-[#BEB5A8] focus:border-[#DC9750] transition-all outline-none"
           />
           <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded bg-[#31436A] px-2 py-1 text-[10px] text-[#C9C2B8]">
             Ctrl K
@@ -188,12 +188,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
           <nav className="flex flex-col gap-1.5">
             {[
-              { to: "/", icon: LayoutDashboard, label: "Dashboard", badge: stats.dashboard, badgeBg: "bg-[#DC9750]" },
+              { to: "/", icon: LayoutDashboard, label: "Dashboard", badge: stats.dashboard, badgeBg: "bg-[#DC9750] text-[#1e2640]" },
               { to: "/chat", icon: MessageSquare, label: "Discussion" },
               { to: "/announcements", icon: Megaphone, label: "Announcements" },
               { to: "/profile", icon: UserCircle, label: "My Profile" },
               { to: "/groups", icon: FolderKanban, label: "Projects" },
-              { to: "/tasks", icon: CheckSquare, label: "Tasks", badge: stats.tasks, badgeBg: "bg-red-500" },
+              { to: "/tasks", icon: CheckSquare, label: "Tasks", badge: stats.tasks, badgeBg: "bg-red-500 text-white" },
             ].map((item) => {
               const Icon = item.icon;
               return (
@@ -202,7 +202,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   to={item.to}
                   onClick={handleNavClick}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
+                    `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300 active:scale-[0.98] ${
                       isActive
                         ? `bg-[#DC9750]/18 border-l-4 border-[#DC9750] text-[#F4F1EB] shadow-[0_8px_24px_rgba(220,151,80,.15)] backdrop-blur-md`
                         : `text-[#C9C2B8] hover:bg-[#223154] hover:text-[#F4F1EB] hover:translate-x-1 hover:shadow-md`
@@ -213,7 +213,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   <div className="flex w-full items-center justify-between">
                     <span>{item.label}</span>
                     {item.badge !== undefined && (
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold text-[#F4F1EB] ${item.badgeBg}`}>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${item.badgeBg}`}>
                         {item.badge}
                       </span>
                     )}
@@ -234,10 +234,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   to="/approvals"
                   onClick={handleNavClick}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
+                    `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300 active:scale-[0.98] ${
                       isActive
-                        ? `bg-indigo-500/20 text-white border-l-4 border-indigo-500`
-                        : `text-gray-400 hover:bg-white/10 hover:translate-x-1 hover:text-white`
+                        ? `bg-[#DC9750]/18 border-l-4 border-[#DC9750] text-[#F4F1EB] shadow-[0_8px_24px_rgba(220,151,80,.15)] backdrop-blur-md`
+                        : `text-[#C9C2B8] hover:bg-[#223154] hover:text-[#F4F1EB] hover:translate-x-1 hover:shadow-md`
                     }`
                   }
                 >
@@ -245,7 +245,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   <div className="flex w-full items-center justify-between">
                     <span>Approvals</span>
                     {pendingApprovals > 0 && (
-                      <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-semibold text-white">
+                      <span className="rounded-full bg-[#DC9750] px-2 py-0.5 text-[10px] font-bold text-[#1e2640] shadow-sm">
                         {pendingApprovals}
                       </span>
                     )}
@@ -256,7 +256,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   to="/users"
                   onClick={handleNavClick}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
+                    `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300 active:scale-[0.98] ${
                       isActive
                         ? `bg-[#DC9750]/18 border-l-4 border-[#DC9750] text-[#F4F1EB] shadow-[0_8px_24px_rgba(220,151,80,.15)] backdrop-blur-md`
                         : `text-[#C9C2B8] hover:bg-[#223154] hover:text-[#F4F1EB] hover:translate-x-1 hover:shadow-md`
@@ -271,7 +271,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   to="/settings"
                   onClick={handleNavClick}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
+                    `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300 active:scale-[0.98] ${
                       isActive
                         ? `bg-[#DC9750]/18 border-l-4 border-[#DC9750] text-[#F4F1EB] shadow-[0_8px_24px_rgba(220,151,80,.15)] backdrop-blur-md`
                         : `text-[#C9C2B8] hover:bg-[#223154] hover:text-[#F4F1EB] hover:translate-x-1 hover:shadow-md`
@@ -293,7 +293,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         {user?.role === "admin" && (
           <button
             onClick={handleCronTrigger}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#DC9750]/30 bg-[#DC9750]/10 py-2 text-xs font-semibold text-[#DC9750] hover:bg-[#DC9750]/20 transition-colors"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#DC9750]/30 bg-[#DC9750]/10 py-2.5 text-xs font-semibold text-[#DC9750] hover:bg-[#DC9750]/20 active:scale-[0.98] transition-all"
           >
             <Clock size={15} />
             Run Due Check
@@ -314,8 +314,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               }}
               className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-[#223154]"
             >
-              <span className="text-[#C9C2B8]">Completed</span>
-              <span className="text-green-400 font-mono">{stats.completed}</span>
+              <span className="text-[#C9C2B8] text-xs font-medium">Completed</span>
+              <span className="text-emerald-400 font-mono text-xs font-semibold">{stats.completed}</span>
             </button>
 
             <button
@@ -326,8 +326,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               }}
               className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-[#223154]"
             >
-              <span className="text-[#C9C2B8]">Pending</span>
-              <span className="text-yellow-400 font-mono">{stats.pending}</span>
+              <span className="text-[#C9C2B8] text-xs font-medium">Pending</span>
+              <span className="text-yellow-400 font-mono text-xs font-semibold">{stats.pending}</span>
             </button>
 
             <button
@@ -338,8 +338,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               }}
               className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-[#223154]"
             >
-              <span className="text-[#C9C2B8]">Overdue</span>
-              <span className="text-rose-400 font-mono">{stats.overdue}</span>
+              <span className="text-[#C9C2B8] text-xs font-medium">Overdue</span>
+              <span className="text-rose-400 font-mono text-xs font-semibold">{stats.overdue}</span>
             </button>
           </div>
         </div>
@@ -351,7 +351,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             handleNavClick();
             navigate("/tasks?status=Approved");
           }}
-          className="w-full rounded-2xl border border-[#31436A] bg-[#1D2951] p-4 text-left transition-colors hover:bg-[#223154]"
+          className="w-full rounded-2xl border border-[#31436A] bg-[#1D2951] p-4 text-left transition-colors hover:bg-[#223154] active:scale-[0.98]"
         >
           <h3 className="text-sm font-semibold text-[#F4F1EB]">Productivity</h3>
           <div className="mt-4 h-3 rounded-full bg-gray-700 overflow-hidden">
@@ -371,7 +371,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         {/* USER PROFILE */}
         <button
           onClick={() => navigate("/profile")}
-          className="group flex w-full items-center justify-between gap-3 rounded-xl border border-[#31436A] bg-[#1D2951] p-3 transition-all duration-300 hover:border-[#DC9750] hover:bg-[#223154] hover:shadow-lg hover:shadow-[#DC9750]/20"
+          className="group flex w-full items-center justify-between gap-3 rounded-xl border border-[#31436A] bg-[#1D2951] p-3 transition-all duration-300 hover:border-[#DC9750] hover:bg-[#223154] hover:shadow-lg hover:shadow-[#DC9750]/20 active:scale-[0.98]"
         >
           <div className="flex items-center gap-3 min-w-0">
             {profilePhotoUrl ? (
@@ -400,7 +400,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               <h3 className="truncate text-sm font-bold text-[#F4F1EB]">
                 {user?.name}
               </h3>
-              <p className="truncate text-xs text-[#DC9750] mt-0.5">
+              <p className="truncate text-xs text-[#DC9750] mt-0.5 font-medium">
                 {user?.designationRole ||
                   (user?.role === "admin" ? "Administrator" : "Team Member")}
               </p>
@@ -420,7 +420,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         {/* LOGOUT */}
         <button
           onClick={logout}
-          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-[#C9C2B8] hover:bg-[#DC9750]/10 hover:text-[#DC9750] transition-all duration-300"
+          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-[#C9C2B8] hover:bg-[#DC9750]/10 hover:text-[#DC9750] active:scale-[0.98] transition-all duration-300"
         >
           <LogOut size={18} />
           Logout
