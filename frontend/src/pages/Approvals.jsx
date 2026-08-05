@@ -4,7 +4,9 @@ import { useSocket } from '../context/SocketContext';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { 
-    Search, Filter, CheckCircle, XCircle, ChevronLeft, ChevronRight, Folder, LayoutList, AlignLeft, Flag, Users, Calendar, X, MessageSquare, Send, FileText
+    Search, Filter, CheckCircle2, XCircle, ChevronLeft, ChevronRight, 
+    Folder, LayoutList, AlignLeft, Flag, Users, Calendar, X, 
+    MessageSquare, FileText, ArrowUpRight, Sparkles, AlertCircle, Clock
 } from 'lucide-react';
 
 const Approvals = () => {
@@ -137,75 +139,114 @@ const Approvals = () => {
     const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
     const paginatedItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-    const getPriorityColor = (priority) => {
-        if (priority === 'High' || priority === 'Urgent') return 'text-rose-400';
-        if (priority === 'Medium') return 'text-amber-400';
-        return 'text-emerald-400';
+    const getPriorityBadge = (priority) => {
+        switch(priority) {
+            case 'High':
+            case 'Urgent':
+                return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+            case 'Medium':
+                return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+            default:
+                return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+        }
     };
 
     return (
-        <div className="p-6 h-full overflow-y-auto bg-[#0B101E] text-slate-100 selection:bg-indigo-500 selection:text-white">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div className="min-h-full p-4 md:p-8 text-slate-100 selection:bg-[#5C45FD] selection:text-white font-sans">
+            
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-white tracking-tight">Approval Center</h1>
-                    <p className="text-sm text-slate-400 mt-1">Review and manage pending items.</p>
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="h-2 w-2 rounded-full bg-[#dc9750] animate-pulse"></span>
+                        <span className="text-xs font-bold tracking-widest text-[#dc9750] uppercase">Review Workspace</span>
+                    </div>
+                    <h1 className="text-3xl font-extrabold text-white tracking-tight">Approval Center</h1>
+                    <p className="text-sm text-slate-400 mt-1">Review team submissions, provide feedback, and make decisions.</p>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                    <div className="relative">
-                        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                {/* Search & Filter Inputs */}
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                    <div className="relative w-full sm:w-64">
+                        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input
                             type="text"
-                            placeholder="Search..."
+                            placeholder="Search submissions..."
                             value={searchQuery}
                             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                            className="w-full sm:w-64 py-2.5 pl-10 pr-4 rounded-xl border border-slate-700 bg-[#121826] text-white placeholder:text-slate-500 focus:border-indigo-500 outline-none transition-all text-sm"
+                            className="w-full py-2.5 pl-10 pr-4 rounded-xl border border-slate-800 bg-[#121826] text-white placeholder:text-slate-500 focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] outline-none transition-all text-sm shadow-inner"
                         />
                     </div>
-                    <select
-                        value={priorityFilter}
-                        onChange={(e) => { setPriorityFilter(e.target.value); setCurrentPage(1); }}
-                        className="py-2.5 pl-3 pr-8 rounded-xl border border-slate-700 bg-[#121826] text-white outline-none focus:border-indigo-500 text-sm"
-                    >
-                        <option value="">All Priorities</option>
-                        <option value="High">High Priority</option>
-                        <option value="Medium">Medium Priority</option>
-                        <option value="Low">Low Priority</option>
-                    </select>
+                    <div className="relative w-full sm:w-auto">
+                        <select
+                            value={priorityFilter}
+                            onChange={(e) => { setPriorityFilter(e.target.value); setCurrentPage(1); }}
+                            className="w-full py-2.5 pl-4 pr-10 rounded-xl border border-slate-800 bg-[#121826] text-white outline-none focus:border-[#dc9750] text-sm appearance-none cursor-pointer"
+                        >
+                            <option value="">All Priorities</option>
+                            <option value="High">High Priority</option>
+                            <option value="Medium">Medium Priority</option>
+                            <option value="Low">Low Priority</option>
+                        </select>
+                        <Filter size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    </div>
                 </div>
             </div>
 
-            <div className="flex border-b border-slate-800 mb-6">
+            {/* Custom Tab Switcher styled with active target theme */}
+            <div className="flex items-center border-b border-slate-800/80 mb-8 gap-2">
                 <button
                     onClick={() => { setActiveTab('tasks'); setCurrentPage(1); }}
-                    className={`pb-3 px-6 text-sm font-semibold transition-colors ${
-                        activeTab === 'tasks' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-slate-400 hover:text-white'
+                    className={`relative pb-4 px-4 text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+                        activeTab === 'tasks' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
                     }`}
                 >
-                    Standalone Tasks ({standaloneTasks.length})
+                    <LayoutList size={16} className={activeTab === 'tasks' ? 'text-[#dc9750]' : 'text-slate-400'} />
+                    Standalone Tasks 
+                    <span className={`ml-1.5 px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'tasks' ? 'bg-[#dc9750]/20 text-[#dc9750]' : 'bg-slate-800 text-slate-400'}`}>
+                        {standaloneTasks.length}
+                    </span>
+                    {activeTab === 'tasks' && (
+                        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#dc9750] rounded-t-full"></span>
+                    )}
                 </button>
+                
                 <button
                     onClick={() => { setActiveTab('projects'); setCurrentPage(1); }}
-                    className={`pb-3 px-6 text-sm font-semibold transition-colors ${
-                        activeTab === 'projects' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-slate-400 hover:text-white'
+                    className={`relative pb-4 px-4 text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+                        activeTab === 'projects' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
                     }`}
                 >
-                    Project Approvals ({projects.length + projectTasks.length})
+                    <Folder size={16} className={activeTab === 'projects' ? 'text-[#dc9750]' : 'text-slate-400'} />
+                    Project Approvals 
+                    <span className={`ml-1.5 px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'projects' ? 'bg-[#dc9750]/20 text-[#dc9750]' : 'bg-slate-800 text-slate-400'}`}>
+                        {projects.length + projectTasks.length}
+                    </span>
+                    {activeTab === 'projects' && (
+                        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#dc9750] rounded-t-full"></span>
+                    )}
                 </button>
             </div>
 
+            {/* Main Content Area */}
             {loading ? (
-                <div className="flex justify-center py-20">
-                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-500"></div>
+                <div className="flex flex-col items-center justify-center py-24">
+                    <div className="relative h-12 w-12">
+                        <div className="absolute inset-0 rounded-full border-2 border-[#dc9750]/20"></div>
+                        <div className="absolute inset-0 rounded-full border-2 border-[#dc9750] border-t-transparent animate-spin"></div>
+                    </div>
+                    <p className="text-sm text-slate-400 mt-4 font-medium animate-pulse">Syncing approvals...</p>
                 </div>
             ) : filteredItems.length === 0 ? (
-                <div className="text-center py-20 border border-dashed border-slate-800 rounded-2xl bg-[#121826]/50">
-                    <CheckCircle className="mx-auto h-12 w-12 text-slate-700 mb-3" />
-                    <h3 className="text-lg font-medium text-white">All Caught Up!</h3>
-                    <p className="text-sm text-slate-400">No pending items in this category.</p>
+                <div className="flex flex-col items-center justify-center py-20 border border-slate-800/60 rounded-3xl bg-[#121826]/40 backdrop-blur-sm text-center">
+                    <div className="h-16 w-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4 shadow-lg shadow-emerald-500/5">
+                        <CheckCircle2 size={32} />
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-1">Queue Clear</h3>
+                    <p className="text-sm text-slate-400 max-w-sm">There are no pending approvals matching your current filters.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                     {paginatedItems.map(item => (
                         <div 
                             key={item._id} 
@@ -213,60 +254,54 @@ const Approvals = () => {
                                 setViewingItem(item);
                                 setFeedback('');
                             }}
-                            className="group cursor-pointer bg-[#121826] border border-slate-800 rounded-2xl p-5 hover:border-indigo-500/50 hover:bg-[#121826]/80 hover:shadow-lg transition-all flex flex-col justify-between"
+                            className="group relative cursor-pointer bg-[#121826] border border-slate-800/80 hover:border-[#dc9750]/50 rounded-2xl p-6 transition-all duration-300 flex flex-col justify-between hover:shadow-xl hover:shadow-[#dc9750]/5 hover:-translate-y-0.5"
                         >
                             <div>
-                                <div className="flex justify-between items-start mb-3">
-                                    <div className="flex items-center gap-2 max-w-[70%]">
-                                        {activeTab === 'projects' && (
-                                            item._itemType === 'project' ? 
-                                            <Folder size={16} className="text-indigo-400 shrink-0" /> : 
-                                            <LayoutList size={16} className="text-sky-400 shrink-0" />
-                                        )}
-                                        <h3 className="text-base font-bold text-white truncate group-hover:text-indigo-300 transition-colors">
+                                <div className="flex justify-between items-start gap-4 mb-3">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="p-2.5 rounded-xl bg-[#0B101E] border border-slate-800 group-hover:border-[#dc9750]/30 transition-colors">
+                                            {item._itemType === 'project' ? (
+                                                <Folder size={18} className="text-[#dc9750]" />
+                                            ) : (
+                                                <LayoutList size={18} className="text-sky-400" />
+                                            )}
+                                        </div>
+                                        <h3 className="text-base font-bold text-white truncate group-hover:text-[#dc9750] transition-colors">
                                             {item.title || item.name}
                                         </h3>
                                     </div>
-                                    <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold whitespace-nowrap uppercase tracking-wider">
+                                    <span className="shrink-0 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/50 text-slate-300 text-[11px] font-semibold tracking-wide">
                                         {item._itemType === 'project' ? 'Project' : 'Task'}
                                     </span>
                                 </div>
                                 
-                                <p className="text-sm text-slate-400 line-clamp-2 mb-5 leading-relaxed font-medium">
-                                    {item.description || "No description provided."}
+                                <p className="text-sm text-slate-400 line-clamp-2 mb-6 leading-relaxed">
+                                    {item.description || "No specific details provided for this review item."}
                                 </p>
-                                
-                                <div className="grid grid-cols-2 gap-y-4 text-sm mb-2">
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-1">Submitted By</span>
-                                        <span className="text-white font-semibold truncate">{item.createdBy?.name || item.assignedTo?.[0]?.name || 'System'}</span>
-                                    </div>
-                                    
-                                    {item._itemType !== 'project' && activeTab === 'projects' && (
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-1">From Project</span>
-                                            <span className="text-indigo-400 font-semibold truncate">Project Task</span>
-                                        </div>
-                                    )}
+                            </div>
 
-                                    {(activeTab === 'tasks' || item._itemType === 'projectTask') && (
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-1">Priority</span>
-                                            <span className={`font-bold ${getPriorityColor(item.priority)}`}>
-                                                {item.priority}
-                                            </span>
+                            <div className="pt-4 border-t border-slate-800/60 flex items-center justify-between gap-4 text-xs text-slate-400">
+                                <div className="flex items-center gap-4 min-w-0">
+                                    <div className="flex items-center gap-1.5 truncate">
+                                        <Users size={14} className="text-slate-500 shrink-0" />
+                                        <span className="truncate">{item.createdBy?.name || item.assignedTo?.[0]?.name || 'System'}</span>
+                                    </div>
+                                    {item.priority && (
+                                        <div className={`px-2 py-0.5 rounded-md border text-[10px] font-bold ${getPriorityBadge(item.priority)}`}>
+                                            {item.priority}
                                         </div>
                                     )}
                                 </div>
-                            </div>
-                            
-                            <div className="flex items-center gap-3 mt-6 pt-4 border-t border-slate-800/60">
+
                                 <button
-                                    onClick={(e) => { e.stopPropagation(); setViewingItem(item); setFeedback(''); }}
-                                    className="w-full flex items-center justify-center gap-2 bg-[#5C45FD]/10 text-[#5C45FD] border border-[#5C45FD]/30 hover:bg-[#5C45FD] hover:text-white py-2.5 rounded-xl transition-all font-bold text-sm"
+                                    onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        setViewingItem(item); 
+                                        setFeedback(''); 
+                                    }}
+                                    className="flex items-center gap-1.5 text-xs font-bold text-[#dc9750] group-hover:translate-x-0.5 transition-transform shrink-0"
                                 >
-                                    <MessageSquare size={16} />
-                                    Review & Action
+                                    Review <ArrowUpRight size={14} />
                                 </button>
                             </div>
                         </div>
@@ -274,191 +309,140 @@ const Approvals = () => {
                 </div>
             )}
 
+            {/* Pagination Controls */}
             {totalPages > 1 && (
-                <div className="flex justify-between items-center mt-6 p-4 bg-[#121826] border border-slate-800 rounded-2xl">
+                <div className="flex justify-between items-center mt-8 p-4 bg-[#121826] border border-slate-800 rounded-2xl">
                     <button
                         disabled={currentPage === 1}
                         onClick={() => setCurrentPage(p => p - 1)}
-                        className="p-2 rounded-lg bg-[#0B101E] border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 disabled:opacity-50 transition-colors"
+                        className="p-2 rounded-xl bg-[#0B101E] border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 disabled:opacity-40 transition-colors"
                     >
                         <ChevronLeft size={18} />
                     </button>
-                    <span className="text-sm text-slate-400 font-medium">
+                    <span className="text-xs text-slate-400 font-medium">
                         Page <span className="text-white font-bold">{currentPage}</span> of {totalPages}
                     </span>
                     <button
                         disabled={currentPage === totalPages}
                         onClick={() => setCurrentPage(p => p + 1)}
-                        className="p-2 rounded-lg bg-[#0B101E] border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 disabled:opacity-50 transition-colors"
+                        className="p-2 rounded-xl bg-[#0B101E] border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 disabled:opacity-40 transition-colors"
                     >
                         <ChevronRight size={18} />
                     </button>
                 </div>
             )}
 
-            {/* =========================================================
-                FULL-FEATURED REVIEW MODAL WITH ATTACHMENTS
-            ========================================================= */}
+            {/* Review Modal */}
             {viewingItem && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B101E]/95 p-4 backdrop-blur-md animate-in fade-in zoom-in-95 duration-200">
-                    <div className="w-full max-w-[900px] max-h-[90vh] rounded-3xl border border-slate-800 bg-[#121826] shadow-2xl flex flex-col overflow-hidden relative">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="w-full max-w-4xl max-h-[90vh] rounded-3xl border border-slate-800 bg-[#121826] shadow-2xl flex flex-col overflow-hidden">
                         
-                        {/* Header */}
-                        <div className="flex items-center justify-between border-b border-slate-800/60 bg-[#121826] px-6 py-5 shrink-0">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-[#121826]">
                             <div className="flex items-center gap-3">
-                                <span className="flex items-center justify-center h-10 w-10 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-                                    {viewingItem._itemType === 'project' ? <Folder size={20} /> : <CheckCircle size={20} />}
-                                </span>
+                                <div className="p-2.5 rounded-xl bg-[#dc9750]/10 border border-[#dc9750]/20 text-[#dc9750]">
+                                    {viewingItem._itemType === 'project' ? <Folder size={20} /> : <LayoutList size={20} />}
+                                </div>
                                 <div>
-                                    <h2 className="text-xl font-bold text-white tracking-tight">Review Submission</h2>
-                                    <p className="text-xs text-slate-400 font-medium capitalize tracking-wider">
-                                        {viewingItem._itemType === 'project' ? 'Project Approval' : 'Task Approval'}
+                                    <h2 className="text-lg font-bold text-white">Review Request</h2>
+                                    <p className="text-xs text-slate-400">
+                                        Submitted by <span className="text-slate-200 font-medium">{viewingItem.createdBy?.name || viewingItem.assignedTo?.[0]?.name || 'System'}</span>
                                     </p>
                                 </div>
                             </div>
                             <button 
                                 onClick={() => { setViewingItem(null); setFeedback(''); }} 
-                                className="rounded-xl p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors border border-transparent hover:border-slate-700"
+                                className="rounded-xl p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
                             >
-                                <X className="h-6 w-6" />
+                                <X size={20} />
                             </button>
                         </div>
 
-                        {/* Scrollable Body */}
-                        <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                
-                                {/* Left Section: Content */}
-                                <div className="md:col-span-2 space-y-6">
-                                    <div className="rounded-2xl border border-slate-800/80 bg-[#0B101E] p-6 shadow-inner">
-                                        <h1 className="text-2xl font-black text-white tracking-tight mb-6">
-                                            {viewingItem.title || viewingItem.name}
-                                        </h1>
-                                        
-                                        <div className="space-y-2 mb-8">
-                                            <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                                                <AlignLeft className="h-3.5 w-3.5" /> Description / Work Details
-                                            </h3>
-                                            <div className="rounded-xl border border-slate-800 bg-[#121826] p-4 text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
-                                                {viewingItem.description || "No description provided."}
-                                            </div>
-                                        </div>
-
-                                        {/* ATTACHMENT REVIEW BLOCK */}
-                                        <div className="space-y-2">
-                                            <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                                                <FileText className="h-3.5 w-3.5" /> Attachments
-                                            </h3>
-                                            
-                                            <div className="rounded-xl border border-slate-800 bg-[#121826] overflow-hidden">
-                                              <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3 bg-[#0B101E]">
-                                                <div>
-                                                  <h4 className="text-sm font-bold text-white">Attached Files</h4>
-                                                  <p className="text-xs text-slate-500">{(viewingItem.attachments || []).length} files attached</p>
-                                                </div>
-                                              </div>
-                                              
-                                              {(viewingItem.attachments && viewingItem.attachments.length > 0) ? (
-                                                 <div className="p-4 grid grid-cols-1 gap-3">
-                                                    {viewingItem.attachments.map((att, i) => {
-                                                       const attName = typeof att === 'string' ? `Attachment ${i+1}` : att.name;
-                                                       const attUrl = typeof att === 'string' ? att : att.url;
-                                                       return (
-                                                           <a key={i} href={attUrl} download={attName} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 rounded-xl border border-slate-700 bg-[#0B101E] hover:border-indigo-500 transition-colors group">
-                                                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-500/20 text-indigo-400">
-                                                                 <FileText className="h-5 w-5" />
-                                                              </div>
-                                                              <div className="min-w-0 flex-1">
-                                                                 <p className="text-sm font-bold text-white truncate group-hover:text-indigo-300">{attName}</p>
-                                                                 <p className="text-[10px] text-slate-500 uppercase tracking-wider">Click to view/download</p>
-                                                              </div>
-                                                           </a>
-                                                       );
-                                                    })}
-                                                 </div>
-                                              ) : (
-                                                 <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
-                                                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800/50 mb-3 border border-slate-700">
-                                                     <FileText className="h-4 w-4 text-slate-400" />
-                                                   </div>
-                                                   <h5 className="text-sm font-bold text-slate-300">No files uploaded.</h5>
-                                                 </div>
-                                              )}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Action Box: Instructions & Feedback */}
-                                    <div className="rounded-2xl border border-slate-800/80 bg-[#0B101E] p-6 shadow-inner">
-                                        <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
-                                            <MessageSquare className="h-3.5 w-3.5" /> Instructions & Feedback
-                                        </h3>
-                                        <p className="text-xs text-slate-400 mb-3">
-                                            Provide instructions for revisions or leave a congratulatory note. Members will receive this via notification.
-                                        </p>
-                                        <textarea
-                                            value={feedback}
-                                            onChange={(e) => setFeedback(e.target.value)}
-                                            placeholder="Write your feedback here..."
-                                            className="w-full h-32 rounded-xl border border-slate-700 bg-[#121826] p-4 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none resize-none transition-all"
-                                        />
-                                    </div>
+                        {/* Modal Body */}
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                            
+                            {/* Main Info */}
+                            <div>
+                                <h1 className="text-2xl font-bold text-white mb-3">
+                                    {viewingItem.title || viewingItem.name}
+                                </h1>
+                                <div className="p-4 rounded-2xl border border-slate-800 bg-[#0B101E] text-sm text-slate-300 leading-relaxed">
+                                    {viewingItem.description || "No additional description provided."}
                                 </div>
+                            </div>
 
-                                {/* Right Section: Metadata & Action Buttons */}
-                                <div className="space-y-6">
-                                    <div className="rounded-2xl border border-slate-800/80 bg-[#0B101E] p-5 shadow-inner space-y-5">
-                                        <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 border-b border-slate-800 pb-2">Properties</h3>
-                                        
-                                        {viewingItem._itemType !== 'project' && (
-                                            <div className="space-y-1">
-                                                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Priority</span>
-                                                <div className="flex items-center gap-2 text-sm font-bold text-white">
-                                                    <Flag className={`h-4 w-4 ${getPriorityColor(viewingItem.priority)}`} />
-                                                    {viewingItem.priority}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <div className="space-y-1">
-                                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Submitted By</span>
-                                            <div className="flex items-center gap-2 text-sm font-bold text-white">
-                                                <Users className="h-4 w-4 text-indigo-400" />
-                                                {viewingItem.createdBy?.name || viewingItem.assignedTo?.[0]?.name || 'System'}
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-1">
-                                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Due Date / Timeline</span>
-                                            <div className="flex items-center gap-2 text-sm font-bold text-white">
-                                                <Calendar className="h-4 w-4 text-emerald-400" />
-                                                {viewingItem.dueDate ? new Date(viewingItem.dueDate).toLocaleDateString() : "No deadline"}
-                                            </div>
-                                        </div>
+                            {/* Attachments Section */}
+                            <div>
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                                    <FileText size={14} /> Attachments
+                                </h3>
+                                {viewingItem.attachments && viewingItem.attachments.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {viewingItem.attachments.map((att, i) => {
+                                            const attName = typeof att === 'string' ? `Attachment ${i+1}` : att.name;
+                                            const attUrl = typeof att === 'string' ? att : att.url;
+                                            return (
+                                                <a 
+                                                    key={i} 
+                                                    href={attUrl} 
+                                                    download={attName} 
+                                                    target="_blank" 
+                                                    rel="noreferrer" 
+                                                    className="flex items-center gap-3 p-3 rounded-xl border border-slate-800 bg-[#0B101E] hover:border-[#dc9750]/50 transition-colors group"
+                                                >
+                                                    <div className="p-2 rounded-lg bg-[#dc9750]/10 text-[#dc9750]">
+                                                        <FileText size={16} />
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-xs font-bold text-white truncate group-hover:text-[#dc9750] transition-colors">{attName}</p>
+                                                        <span className="text-[10px] text-slate-500">Click to view file</span>
+                                                    </div>
+                                                </a>
+                                            );
+                                        })}
                                     </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="rounded-2xl border border-slate-800/80 bg-[#0B101E] p-5 shadow-inner space-y-3">
-                                        <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 border-b border-slate-800 pb-2 mb-4">Final Decision</h3>
-                                        
-                                        <button
-                                            onClick={() => handleProcessApproval('approve')}
-                                            className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#00E676] px-4 py-3 text-sm font-bold text-[#0B101E] hover:bg-[#00C853] transition-all shadow-lg shadow-[#00E676]/20"
-                                        >
-                                            <CheckCircle className="h-5 w-5" /> Approve Submission
-                                        </button>
-                                        
-                                        <button
-                                            onClick={() => handleProcessApproval('reject')}
-                                            className="w-full flex items-center justify-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm font-bold text-rose-500 hover:bg-rose-500 hover:text-white transition-all"
-                                        >
-                                            <XCircle className="h-5 w-5" /> Reject & Request Changes
-                                        </button>
+                                ) : (
+                                    <div className="p-4 rounded-xl border border-dashed border-slate-800 bg-[#0B101E]/50 text-center text-xs text-slate-500">
+                                        No media files attached to this submission.
                                     </div>
-                                </div>
+                                )}
+                            </div>
 
+                            {/* Feedback Input */}
+                            <div>
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-2">
+                                    <MessageSquare size={14} /> Decision Note / Feedback
+                                </h3>
+                                <textarea
+                                    value={feedback}
+                                    onChange={(e) => setFeedback(e.target.value)}
+                                    placeholder="Add notes for your decision (Required for rejection)..."
+                                    className="w-full h-28 rounded-2xl border border-slate-800 bg-[#0B101E] p-4 text-sm text-white placeholder:text-slate-500 focus:border-[#dc9750] outline-none resize-none transition-all"
+                                />
                             </div>
                         </div>
+
+                        {/* Modal Actions - Button Styles Updated to Match Reference Code */}
+                        <div className="border-t border-slate-800 p-4 bg-[#121826] flex items-center justify-end gap-3">
+                            {/* Reject Button */}
+                            <button
+                                onClick={() => handleProcessApproval('reject')}
+                                className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all active:scale-[0.98] text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 border border-rose-500/20"
+                            >
+                                <XCircle size={16} className="text-rose-400" />
+                                Reject Submission
+                            </button>
+
+                            {/* Approve Button (Matches Reference Active State Styling) */}
+                            <button
+                                onClick={() => handleProcessApproval('approve')}
+                                className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all active:scale-[0.98] bg-[#dc9750] text-[#1e2640] shadow-sm hover:bg-[#c8853e]"
+                            >
+                                <CheckCircle2 size={16} className="text-[#1e2640]" />
+                                Approve Submission
+                            </button>
+                        </div>
+
                     </div>
                 </div>
             )}
