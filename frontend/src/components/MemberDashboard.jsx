@@ -122,13 +122,17 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
     <div className="mx-auto max-w-7xl space-y-8 p-2 sm:p-4 text-slate-100">
 
       {/* 1. HERO & USER COCKPIT HEADER */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r
+        from-[#16213E]
+        via-[#1D2951]
+        to-[#16213E]
+        border-[#31436A] p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#DC9750]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-[#DC9750]/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
-            <div className="relative flex items-center justify-center shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-500 text-white font-bold text-2xl shadow-lg shadow-indigo-500/25 ring-4 ring-white/10 overflow-hidden">
+            <div className="relative flex items-center justify-center shrink-0 w-16 h-16 rounded-2xl bg-[#DC9750] text-white font-bold text-2xl shadow-lg shadow-indigo-500/25 ring-4 ring-[#31436A] overflow-hidden">
               {profilePhotoUrl ? (
               <img
                 src={profilePhotoUrl}
@@ -149,7 +153,7 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
 
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold tracking-wider text-indigo-400 uppercase bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
+                <span className="text-xs font-semibold tracking-wider text-[#DC9750] uppercase bg-[#DC9750]/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
                   {getGreeting()}
                 </span>
               </div>
@@ -157,7 +161,7 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
                 {user?.name || 'Workspace Member'}
               </h1>
               <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-                Here's your personal focus hub for today. You've completed <span className="text-indigo-400 font-semibold">{completionPercentage}%</span> of assigned goals.
+                Here's your personal focus hub for today. You've completed <span className="text-[#DC9750] font-semibold">{completionPercentage}%</span> of assigned goals.
               </p>
             </div>
           </div>
@@ -165,7 +169,7 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
           <div className="flex items-center gap-3 self-start lg:self-center">
             <button
               onClick={handleDownloadReport}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700/60 font-medium text-xs sm:text-sm transition-all shadow-md hover:shadow-indigo-500/10 active:scale-95"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1D2951] hover:bg-[#243457] text-slate-200 border border-[#31436A] font-medium text-xs sm:text-sm transition-all shadow-md hover:shadow-indigo-500/10 active:scale-95"
             >
               <Download size={16} className="text-slate-400" />
               <span>Report</span>
@@ -173,7 +177,7 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
 
             <button
               onClick={() => navigate('/tasks')}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium text-xs sm:text-sm shadow-lg shadow-indigo-600/30 transition-all active:scale-95"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r bg-[#DC9750] hover:bg-[#C78645] text-white font-medium text-xs sm:text-sm shadow-lg shadow-indigo-600/30 transition-all active:scale-95"
             >
               <span>Workspace Tasks</span>
               <ArrowUpRight size={16} />
@@ -184,12 +188,12 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
 
       {/* 2. FEATURED ANNOUNCEMENT SPOTLIGHT BANNER */}
       {!announcementLoading && latestAnnouncement && (
-        <div className="group relative overflow-hidden rounded-2xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/40 via-slate-900 to-slate-900/90 p-5 backdrop-blur-xl shadow-xl transition-all duration-300 hover:border-indigo-500/50">
+        <div className="group relative overflow-hidden rounded-2xl border border-[#31436A] bg-gradient-to-r from-[#1D2951] via-[#16213E] to-[#1D2951] p-5 backdrop-blur-xl shadow-xl transition-all duration-300 hover:border-indigo-500/50">
           <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
 
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
             <div className="flex items-start gap-4">
-              <div className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 shrink-0 shadow-inner">
+              <div className="p-3 rounded-2xl bg-[#DC9750]/10 border border-[#DC9750]/30 text-[#DC9750] shrink-0 shadow-inner">
                 <Megaphone size={22} className="animate-pulse" />
               </div>
 
@@ -225,7 +229,7 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
               ) : (
                 <button
                   onClick={() => acknowledge(latestAnnouncement._id)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/20 transition active:scale-95"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#DC9750] hover:bg-[#C78645] text-white text-xs font-semibold shadow-md shadow-indigo-600/20 transition active:scale-95"
                 >
                   <CheckCircle2 size={15} /> Acknowledge Notice
                 </button>
@@ -245,10 +249,10 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
       {/* 3. BENTO METRICS BAR */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1 */}
-        <div className="relative group overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 p-5 backdrop-blur-md hover:border-indigo-500/40 transition-all duration-300">
+        <div className="relative group overflow-hidden rounded-2xl border border-[#31436A] bg-[#1D2951] p-5 backdrop-blur-md hover:border-[#DC9750] hover:shadow-lg hover:shadow-[#DC9750]/15 transition-all duration-300">
           <div className="flex items-center justify-between text-xs font-semibold tracking-wider text-slate-400 uppercase">
             <span>Active Tasks</span>
-            <div className="p-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+            <div className="p-2 rounded-xl bg-[#DC9750]/10 border border-[#DC9750]/30 text-[#DC9750]">
               <CheckSquare size={18} />
             </div>
           </div>
@@ -257,12 +261,15 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
             <span className="text-xs text-slate-400">assigned to you</span>
           </div>
           <div className="mt-3 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-            <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${Math.min(myTasks.length * 10, 100)}%` }} />
+            <div className="bg-gradient-to-r
+                            from-[#C78645]
+                            via-[#DC9750]
+                            to-[#F2C27D] h-1.5 rounded-full" style={{ width: `${Math.min(myTasks.length * 10, 100)}%` }} />
           </div>
         </div>
 
         {/* Metric 2 */}
-        <div className="relative group overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 p-5 backdrop-blur-md hover:border-amber-500/40 transition-all duration-300">
+        <div className="relative group overflow-hidden rounded-2xl border border-white/10 bg-[#1D2951] p-5 backdrop-blur-md hover:border-[#DC9750] hover:shadow-lg hover:shadow-[#DC9750]/15 transition-all duration-300">
           <div className="flex items-center justify-between text-xs font-semibold tracking-wider text-slate-400 uppercase">
             <span>Due Today</span>
             <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
@@ -279,7 +286,7 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
         </div>
 
         {/* Metric 3 */}
-        <div className="relative group overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 p-5 backdrop-blur-md hover:border-emerald-500/40 transition-all duration-300">
+        <div className="relative group overflow-hidden rounded-2xl border border-white/10 bg-[#1D2951] p-5 backdrop-blur-md hover:border-emerald-500/40 transition-all duration-300">
           <div className="flex items-center justify-between text-xs font-semibold tracking-wider text-slate-400 uppercase">
             <span>In Review</span>
             <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
@@ -296,7 +303,7 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
         </div>
 
         {/* Metric 4 */}
-        <div className="relative group overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 p-5 backdrop-blur-md hover:border-rose-500/40 transition-all duration-300">
+        <div className="relative group overflow-hidden rounded-2xl border border-white/10 bg-[#1D2951] p-5 backdrop-blur-md hover:border-rose-500/40 transition-all duration-300">
           <div className="flex items-center justify-between text-xs font-semibold tracking-wider text-slate-400 uppercase">
             <span>Needs Revisions</span>
             <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400">
@@ -317,7 +324,7 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         {/* LEFT FOCUS: Interactive Task Feed (7 Cols) */}
-        <div className="lg:col-span-7 rounded-3xl border border-white/10 bg-slate-900/50 p-6 backdrop-blur-xl space-y-5 flex flex-col justify-between">
+        <div className="lg:col-span-7 rounded-3xl border border-[#31436A] bg-[#1D2951] p-6 backdrop-blur-xl space-y-5 flex flex-col justify-between">
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
               <div className="flex items-center gap-2">
@@ -326,13 +333,13 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
               </div>
 
               {/* Filter Pills */}
-              <div className="flex items-center gap-1 rounded-xl bg-slate-950 p-1 border border-white/10">
+              <div className="flex items-center gap-1 rounded-xl bg-slate-950 p-1 border border-[#31436A]">
                 {['All', 'Today', 'This Week', 'Overdue'].map(tab => (
                   <button
                     key={tab}
                     onClick={() => setFilter(tab)}
                     className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${filter === tab
-                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                        ? 'bg-[#DC9750] text-white shadow-md shadow-indigo-600/30'
                         : 'text-slate-400 hover:text-white hover:bg-white/5'
                       }`}
                   >
@@ -361,7 +368,7 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
                     <div
                       key={task._id}
                       onClick={() => navigate(`/tasks/${task._id}`)}
-                      className="group flex items-center justify-between rounded-2xl border border-white/5 bg-slate-800/40 p-4 hover:bg-slate-800/80 hover:border-indigo-500/30 cursor-pointer transition-all duration-200 shadow-sm"
+                      className="group flex items-center justify-between rounded-2xl border border-white/5 bg-[#243457] p-4 hover:bg-[#2A3B63] hover:border-[#DC9750] cursor-pointer transition-all duration-200 shadow-sm"
                     >
                       <div className="flex items-center gap-3.5">
                         <div className={`w-2.5 h-2.5 rounded-full ${isOverdue ? 'bg-rose-500 shadow-sm shadow-rose-500' : 'bg-indigo-400'}`} />
@@ -382,7 +389,7 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
                         <span className="text-xs font-medium text-slate-400 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5 opacity-0 group-hover:opacity-100 transition-opacity">
                           Open
                         </span>
-                        <div className="p-1.5 rounded-lg bg-white/5 text-slate-400 group-hover:text-white group-hover:bg-indigo-600 transition-all">
+                        <div className="p-1.5 rounded-lg bg-white/5 text-slate-400 group-hover:text-white group-hover:bg-[#DC9750] transition-all">
                           <ArrowRight size={14} />
                         </div>
                       </div>
@@ -402,7 +409,7 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
         </div>
 
         {/* RIGHT FOCUS: Feedback & Revisions Stream (5 Cols) */}
-        <div className="lg:col-span-5 rounded-3xl border border-white/10 bg-slate-900/50 p-6 backdrop-blur-xl space-y-4 flex flex-col justify-between">
+        <div className="lg:col-span-5 rounded-3xl border border-[#31436A] bg-[#1D2951] p-6 backdrop-blur-xl space-y-4 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between border-b border-white/5 pb-4">
               <div className="flex items-center gap-2">
@@ -426,7 +433,7 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
                   <div
                     key={task._id}
                     onClick={() => navigate(`/tasks/${task._id}`)}
-                    className="group rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4 space-y-2.5 cursor-pointer hover:bg-rose-500/10 hover:border-rose-500/40 transition-all duration-200"
+                    className="group rounded-2xl border border-[#DC9750]/30 bg-[#243457] p-4 space-y-2.5 cursor-pointer hover:bg-[#2A3B63] hover:border-[#DC9750] transition-all duration-200"
                   >
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-bold text-slate-100 group-hover:text-rose-300 transition-colors">
@@ -447,7 +454,7 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-white/5 text-xs text-slate-400 text-center">
+          <div className="pt-4 border-t border-white/5 text-xs text-[#C9C2B8] text-center">
             Click on any item to view details & submit revisions
           </div>
         </div>
