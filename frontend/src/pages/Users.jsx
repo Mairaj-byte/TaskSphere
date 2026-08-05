@@ -31,8 +31,8 @@ const UserAvatar = ({ targetUser }) => {
   // Cleaned up profile photo URL resolution
   const profilePhotoUrl = rawPhoto
     ? (rawPhoto.startsWith('http')
-        ? rawPhoto
-        : `${API_BASE.replace(/\/api$/, '')}${rawPhoto.startsWith('/') ? '' : '/'}${rawPhoto}`)
+      ? rawPhoto
+      : `${API_BASE.replace(/\/api$/, '')}${rawPhoto.startsWith('/') ? '' : '/'}${rawPhoto}`)
     : null;
 
   return (
@@ -108,7 +108,7 @@ const Users = () => {
       });
 
       const data = await res.json();
-      
+
       if (res.ok) {
         toast.success(data.message || 'Import successful!');
         fetchUsers();
@@ -194,13 +194,13 @@ const Users = () => {
     };
     if (formPassword) payload.password = formPassword;
 
-    
+
 
     try {
-      const url = modalMode === 'create' 
-        ? `${API_BASE}/users` 
+      const url = modalMode === 'create'
+        ? `${API_BASE}/users`
         : `${API_BASE}/users/${currentUserId}`;
-        
+
       const res = await fetch(url, {
         method: modalMode === 'create' ? 'POST' : 'PUT',
         headers: {
@@ -278,39 +278,39 @@ const Users = () => {
   }
 
   return (
-   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 text-slate-200 min-h-screen">
   {/* Header Row */}
-  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-[#dc9750]/30">
+  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-[#dc9750]/20">
     <div>
-      <h1 className="text-3xl font-extrabold text-slate-100 tracking-tight">
+      <h1 className="text-3xl font-bold text-slate-100 tracking-tight">
         Team <span className="text-[#dc9750]">Management</span>
       </h1>
       <p className="text-sm text-slate-400 mt-1">
         Manage user permissions, update profiles, and control platform access.
       </p>
     </div>
-    
+
     <div className="flex items-center gap-3">
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        onChange={handleCsvUpload} 
-        accept=".csv" 
-        className="hidden" 
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleCsvUpload}
+        accept=".csv"
+        className="hidden"
       />
-      
-      <button 
+
+      <button
         onClick={() => fileInputRef.current.click()}
         disabled={importing}
-        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-900/50 hover:bg-slate-800 text-slate-300 font-medium text-sm transition-all duration-200 disabled:opacity-50 hover:border-slate-600 shadow-sm"
+        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-[#dc9750]/20 bg-[#1e2640]/70 hover:bg-[#283354] text-slate-200 font-medium text-sm transition-all duration-200 disabled:opacity-50 shadow-sm"
       >
-        {importing ? <Loader2 size={18} className="animate-spin text-[#dc9750]" /> : <Upload size={18} />}
+        {importing ? <Loader2 size={18} className="animate-spin text-[#dc9750]" /> : <Upload size={18} className="text-[#dc9750]" />}
         <span>{importing ? 'Importing...' : 'Import CSV'}</span>
       </button>
 
-      <button 
-        onClick={openCreateModal} 
-        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#dc9750] hover:bg-[#c08446] text-white font-medium text-sm transition-all duration-200 shadow-lg shadow-[#dc9750]/25 active:scale-[0.98]"
+      <button
+        onClick={openCreateModal}
+        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#dc9750] hover:bg-[#c08446] text-[#161c30] font-semibold text-sm transition-all duration-200 shadow-md shadow-[#dc9750]/15 active:scale-[0.98]"
       >
         <UserPlus size={18} />
         <span>Add Member</span>
@@ -320,30 +320,32 @@ const Users = () => {
 
   {/* Quick Stats Overview */}
   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-    <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-4 flex items-center justify-between backdrop-blur-sm">
+    <div className="bg-[#1e2640]/60 border border-[#dc9750]/20 rounded-2xl p-5 flex items-center justify-between backdrop-blur-md shadow-sm">
       <div>
-        <p className="text-xs font-medium text-slate-400">Total Accounts</p>
+        <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Accounts</p>
         <p className="text-2xl font-bold text-slate-100 mt-1">{totalCount}</p>
       </div>
-      <div className="p-3 bg-[#dc9750]/10 text-[#dc9750] rounded-lg">
+      <div className="p-3 bg-[#dc9750]/15 text-[#dc9750] rounded-xl border border-[#dc9750]/20">
         <UsersIcon size={20} />
       </div>
     </div>
-    <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-4 flex items-center justify-between backdrop-blur-sm">
+
+    <div className="bg-[#1e2640]/60 border border-[#dc9750]/20 rounded-2xl p-5 flex items-center justify-between backdrop-blur-md shadow-sm">
       <div>
-        <p className="text-xs font-medium text-slate-400">Active Members</p>
+        <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Active Members</p>
         <p className="text-2xl font-bold text-emerald-400 mt-1">{activeCount}</p>
       </div>
-      <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-lg">
+      <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
         <CheckCircle2 size={20} />
       </div>
     </div>
-    <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-4 flex items-center justify-between backdrop-blur-sm">
+
+    <div className="bg-[#1e2640]/60 border border-[#dc9750]/20 rounded-2xl p-5 flex items-center justify-between backdrop-blur-md shadow-sm">
       <div>
-        <p className="text-xs font-medium text-slate-400">Administrators</p>
-        <p className="text-2xl font-bold text-rose-400 mt-1">{adminCount}</p>
+        <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Administrators</p>
+        <p className="text-2xl font-bold text-amber-400 mt-1">{adminCount}</p>
       </div>
-      <div className="p-3 bg-rose-500/10 text-rose-400 rounded-lg">
+      <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
         <ShieldAlert size={20} />
       </div>
     </div>
@@ -352,13 +354,13 @@ const Users = () => {
   {/* Filters & Controls */}
   <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
     <div className="relative w-full sm:w-80">
-      <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+      <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
       <input
         type="text"
         placeholder="Search by name, email, or ID..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        className="w-full pl-10 pr-4 py-2 bg-slate-900/80 border border-slate-800 rounded-xl text-slate-200 text-sm placeholder:text-slate-500 focus:outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] transition-all"
+        className="w-full pl-10 pr-4 py-2.5 bg-[#1e2640]/80 border border-[#dc9750]/20 rounded-xl text-slate-100 text-sm placeholder:text-slate-500 focus:outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] transition-all"
       />
     </div>
 
@@ -367,36 +369,36 @@ const Users = () => {
       <select
         value={roleFilter}
         onChange={(e) => setRoleFilter(e.target.value)}
-        className="bg-slate-900/80 border border-slate-800 text-slate-300 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-[#dc9750] transition-colors"
+        className="bg-[#1e2640]/80 border border-[#dc9750]/20 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#dc9750] transition-colors cursor-pointer"
       >
-        <option value="all" className="bg-slate-900 text-slate-100">All Roles</option>
-        <option value="admin" className="bg-slate-900 text-slate-100">Admin</option>
-        <option value="manager" className="bg-slate-900 text-slate-100">Manager</option>
-        <option value="member" className="bg-slate-900 text-slate-100">Team Member</option>
+        <option value="all" className="bg-[#1e2640] text-slate-100">All Roles</option>
+        <option value="admin" className="bg-[#1e2640] text-slate-100">Admin</option>
+        <option value="manager" className="bg-[#1e2640] text-slate-100">Manager</option>
+        <option value="member" className="bg-[#1e2640] text-slate-100">Team Member</option>
       </select>
     </div>
   </div>
 
   {/* Main Content Table Area */}
   {loading ? (
-    <div className="flex flex-col items-center justify-center py-24 gap-3">
+    <div className="flex flex-col items-center justify-center py-24 gap-3 bg-[#1e2640]/30 border border-[#dc9750]/20 rounded-2xl">
       <Loader2 className="w-8 h-8 text-[#dc9750] animate-spin" />
-      <p className="text-xs text-slate-500">Fetching team members...</p>
+      <p className="text-xs text-slate-400">Fetching team members...</p>
     </div>
   ) : filteredUsers.length === 0 ? (
-    <div className="flex flex-col items-center justify-center py-16 text-center bg-slate-900/30 border border-slate-800/60 rounded-2xl">
-      <User className="w-12 h-12 text-slate-600 mb-3" />
-      <h3 className="text-slate-300 font-semibold text-base">No Users Found</h3>
-      <p className="text-slate-500 text-xs mt-1 max-w-sm">
+    <div className="flex flex-col items-center justify-center py-16 text-center bg-[#1e2640]/30 border border-[#dc9750]/20 rounded-2xl">
+      <User className="w-12 h-12 text-slate-500 mb-3" />
+      <h3 className="text-slate-200 font-semibold text-base">No Users Found</h3>
+      <p className="text-slate-400 text-xs mt-1 max-w-sm">
         No accounts matched your search criteria. Try adjusting your query or filter options.
       </p>
     </div>
   ) : (
-    <div className="bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden">
+    <div className="bg-[#1e2640]/50 border border-[#dc9750]/20 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-slate-300 border-collapse">
           <thead>
-            <tr className="border-b border-slate-800 bg-[#dc9750] text-xs font-bold text-slate-950 uppercase tracking-wider">
+            <tr className="border-b border-[#283354] bg-[#1a2138] text-xs font-semibold text-slate-400 uppercase tracking-wider">
               <th scope="col" className="px-6 py-4">User</th>
               <th scope="col" className="px-6 py-4">Employee ID</th>
               <th scope="col" className="px-6 py-4">Role</th>
@@ -405,11 +407,11 @@ const Users = () => {
               <th scope="col" className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60">
+          <tbody className="divide-y divide-[#283354]/60">
             {filteredUsers.map((u) => (
               <tr
                 key={u._id}
-                className={`transition-colors hover:bg-slate-800/40 ${!u.active ? 'opacity-60 bg-slate-950/30' : ''}`}
+                className={`transition-colors hover:bg-[#283354]/40 ${!u.active ? 'opacity-60 bg-[#161c30]/50' : ''}`}
               >
                 {/* User Profile Photo & Details */}
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -419,7 +421,7 @@ const Users = () => {
                       <div className="font-semibold text-slate-100 flex items-center gap-2">
                         <span>{u.name}</span>
                         {u._id === user._id && (
-                          <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] font-bold text-[#dc9750] bg-[#dc9750]/10 border border-[#dc9750]/30 px-2 py-0.5 rounded-full">
                             You
                           </span>
                         )}
@@ -432,7 +434,7 @@ const Users = () => {
                 {/* Employee ID */}
                 <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-300 font-medium">
                   {u.employeeId ? (
-                    <span className="font-mono bg-slate-800/80 px-2 py-1 rounded text-slate-200 border border-slate-700/50">
+                    <span className="font-mono bg-[#161c30] px-2.5 py-1 rounded-md text-slate-300 border border-[#283354]/30">
                       {u.employeeId}
                     </span>
                   ) : (
@@ -444,17 +446,17 @@ const Users = () => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="inline-flex items-center gap-1.5 text-xs font-medium">
                     {u.role === 'admin' ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-500/10 text-rose-400 border border-rose-500/20 font-semibold">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#dc9750]/15 text-[#dc9750] border border-[#dc9750]/30 font-semibold">
                         <ShieldAlert size={14} />
                         <span>Admin</span>
                       </span>
                     ) : u.role === 'manager' ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20 font-semibold">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 font-semibold">
                         <Shield size={14} />
                         <span>Manager</span>
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#283354]/60 text-slate-300 border border-[#283354]">
                         <User size={14} />
                         <span>Team Member</span>
                       </span>
@@ -464,11 +466,10 @@ const Users = () => {
 
                 {/* Status Badge */}
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                    u.active
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${u.active
                       ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                       : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                  }`}>
+                    }`}>
                     {u.active ? 'Active' : 'Deactivated'}
                   </span>
                 </td>
@@ -487,7 +488,7 @@ const Users = () => {
                   <div className="flex items-center justify-end gap-1">
                     <button
                       onClick={() => openEditModal(u)}
-                      className="p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors"
+                      className="p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-[#283354] transition-colors"
                       title="Edit Account"
                     >
                       <Edit2 size={16} />
@@ -495,13 +496,12 @@ const Users = () => {
                     <button
                       onClick={() => handleToggleActive(u)}
                       disabled={u._id === user._id}
-                      className={`p-2 rounded-lg transition-colors ${
-                        u._id === user._id
+                      className={`p-2 rounded-lg transition-colors ${u._id === user._id
                           ? 'opacity-30 cursor-not-allowed text-slate-600'
                           : u.active
                             ? 'text-slate-400 hover:text-rose-400 hover:bg-rose-500/10'
                             : 'text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20'
-                      }`}
+                        }`}
                       title={u.active ? 'Deactivate Account' : 'Activate Account'}
                     >
                       <Power size={16} />
@@ -518,17 +518,17 @@ const Users = () => {
 
   {/* USER CREATE / EDIT MODAL */}
   {isModalOpen && (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#161c30]/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="bg-[#1e2640] border border-[#283354] rounded-2xl w-full max-w-md p-6 shadow-2xl shadow-black/50 relative space-y-6">
 
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-4 border-b border-[#283354]">
           <h3 className="text-lg font-semibold text-slate-100">
             {modalMode === 'create' ? 'Add New Team Member' : 'Edit Member Profile'}
           </h3>
           <button
             onClick={() => setIsModalOpen(false)}
-            className="text-slate-400 hover:text-slate-200 p-1 rounded-lg hover:bg-slate-800 transition-colors"
+            className="text-slate-400 hover:text-slate-200 p-1 rounded-lg hover:bg-[#283354] transition-colors"
           >
             <X size={18} />
           </button>
@@ -536,7 +536,7 @@ const Users = () => {
 
         {/* Error Message */}
         {formError && (
-          <div className="flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-rose-400 text-xs">
+          <div className="flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-xs">
             <AlertCircle size={16} className="shrink-0" />
             <span>{formError}</span>
           </div>
@@ -548,7 +548,7 @@ const Users = () => {
             <label className="text-xs font-medium text-slate-300">Full Name *</label>
             <input
               type="text"
-              className="w-full px-3.5 py-2 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] transition-all placeholder:text-slate-600"
+              className="w-full px-3.5 py-2 bg-[#161c30] border border-[#283354] rounded-xl text-slate-100 text-sm focus:outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] transition-all placeholder:text-slate-600"
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
               placeholder="Ex. Sarah Connor"
@@ -560,7 +560,7 @@ const Users = () => {
             <label className="text-xs font-medium text-slate-300">Work Email *</label>
             <input
               type="email"
-              className="w-full px-3.5 py-2 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] transition-all placeholder:text-slate-600"
+              className="w-full px-3.5 py-2 bg-[#161c30] border border-[#283354] rounded-xl text-slate-100 text-sm focus:outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] transition-all placeholder:text-slate-600"
               value={formEmail}
               onChange={(e) => setFormEmail(e.target.value)}
               placeholder="name@company.com"
@@ -577,7 +577,7 @@ const Users = () => {
             <div className="relative">
               <input
                 type="text"
-                className="w-full pl-9 pr-3.5 py-2 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] transition-all placeholder:text-slate-600"
+                className="w-full pl-9 pr-3.5 py-2 bg-[#161c30] border border-[#283354] rounded-xl text-slate-100 text-sm focus:outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] transition-all placeholder:text-slate-600"
                 value={formEmployeeId}
                 onChange={(e) => setFormEmployeeId(e.target.value)}
                 placeholder="Ex. EMP-001"
@@ -595,10 +595,10 @@ const Users = () => {
             <div className="relative">
               <input
                 type="text"
-                className="w-full pl-9 pr-3.5 py-2 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] transition-all placeholder:text-slate-600"
+                className="w-full pl-9 pr-3.5 py-2 bg-[#161c30] border border-[#283354] rounded-xl text-slate-100 text-sm focus:outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] transition-all placeholder:text-slate-600"
                 value={formPhoto}
                 onChange={(e) => setFormPhoto(e.target.value)}
-                placeholder="https://example.com/photo.jpg or /uploads/photo.jpg"
+                placeholder="https://example.com/photo.jpg"
               />
               <ImageIcon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
             </div>
@@ -610,7 +610,7 @@ const Users = () => {
             </label>
             <input
               type="password"
-              className="w-full px-3.5 py-2 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] transition-all placeholder:text-slate-600"
+              className="w-full px-3.5 py-2 bg-[#161c30] border border-[#283354] rounded-xl text-slate-100 text-sm focus:outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] transition-all placeholder:text-slate-600"
               value={formPassword}
               onChange={(e) => setFormPassword(e.target.value)}
               placeholder={modalMode === 'create' ? '••••••••' : 'Optional password reset'}
@@ -621,21 +621,21 @@ const Users = () => {
           <div className="space-y-1">
             <label className="text-xs font-medium text-slate-300">System Role</label>
             <select
-              className="w-full px-3.5 py-2 bg-slate-950/50 border border-slate-800 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] transition-all"
+              className="w-full px-3.5 py-2 bg-[#161c30] border border-[#283354] rounded-xl text-slate-100 text-sm focus:outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] transition-all"
               value={formRole}
               onChange={(e) => setFormRole(e.target.value)}
             >
-              <option value="member" className="bg-slate-900 text-slate-100">Team Member</option>
-              <option value="manager" className="bg-slate-900 text-slate-100">Manager</option>
-              <option value="admin" className="bg-slate-900 text-slate-100">Admin</option>
+              <option value="member" className="bg-[#1e2640] text-slate-100">Team Member</option>
+              <option value="manager" className="bg-[#1e2640] text-slate-100">Manager</option>
+              <option value="admin" className="bg-[#1e2640] text-slate-100">Admin</option>
             </select>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#283354]">
             <button
               type="button"
-              className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-sm transition-colors"
+              className="px-4 py-2 rounded-xl bg-[#283354] hover:bg-[#283354]/80 text-slate-300 font-medium text-sm transition-colors"
               onClick={() => setIsModalOpen(false)}
             >
               Cancel
@@ -643,7 +643,7 @@ const Users = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[#dc9750] hover:bg-[#c08446] text-white font-medium text-sm transition-colors shadow-lg shadow-[#dc9750]/20 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#dc9750] hover:bg-[#c08446] text-[#161c30] font-semibold text-sm transition-colors shadow-md shadow-[#dc9750]/20 disabled:opacity-50"
             >
               {submitting && <Loader2 size={14} className="animate-spin" />}
               <span>{modalMode === 'create' ? 'Create Account' : 'Save Changes'}</span>
