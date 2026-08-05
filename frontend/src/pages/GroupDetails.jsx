@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { API_BASE, useAuth } from "../context/AuthContext";
 import KanbanBoard from "../components/KanbanBoard";
+import { toast } from "react-hot-toast";
 import {
   Users,
   Plus,
@@ -17,11 +18,23 @@ import {
   UserPlus,
   Loader2,
   Sparkles,
+  Send,
+  AlignLeft,
+  Flag,
+  CheckSquare,
+  ArrowLeft,
+  FileText,
+  MessageSquare,
+  History
 } from "lucide-react";
+// IMPORT YOUR FILE UPLOAD COMPONENTS HERE:
+import FileUpload from "../components/FileUpload";
+import FileList from "../components/FileList";
 
 const GroupDetails = () => {
   const { id } = useParams();
   const { token } = useAuth();
+  const navigate = useNavigate();
 
   const [group, setGroup] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -32,7 +45,12 @@ const GroupDetails = () => {
   const [showMemberModal, setShowMemberModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  
   const [editingTask, setEditingTask] = useState(null);
+  const [viewingTask, setViewingTask] = useState(null);
+  
+  // File Refresh state
+  const [refreshFiles, setRefreshFiles] = useState(false);
 
   const [editForm, setEditForm] = useState({
     title: "",
@@ -49,6 +67,12 @@ const GroupDetails = () => {
     priority: "Medium",
     dueDate: "",
   });
+
+  const [commentInput, setCommentInput] = useState("");
+
+  const refreshTaskFiles = () => {
+    setRefreshFiles(prev => !prev);
+  };
 
   useEffect(() => {
     fetchGroup();
@@ -181,8 +205,40 @@ const GroupDetails = () => {
       if (!res.ok) throw new Error(data.error);
 
       await fetchTasks();
+      if (viewingTask && viewingTask._id === editingTask._id) {
+          setViewingTask(data);
+      }
       setShowEditModal(false);
       setEditingTask(null);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleSubmitTask = async (taskId) => {
+    try {
+      const res = await fetch(`${API_BASE}/tasks/${taskId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: "Completed (Pending Approval)" }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to submit task");
+
+      if (typeof toast !== 'undefined' && toast.success) {
+         toast.success("Task submitted for Admin approval!");
+      } else {
+         alert("Task submitted for Admin approval!");
+      }
+      
+      await fetchTasks();
+      if (viewingTask && viewingTask._id === taskId) {
+         setViewingTask(data); 
+      }
     } catch (err) {
       alert(err.message);
     }
@@ -218,30 +274,29 @@ const GroupDetails = () => {
       task.status !== "Completed"
   ).length;
 
-  const progress =
-    tasks.length === 0 ? 0 : Math.round((completedTasks / tasks.length) * 100);
+  const progress = tasks.length === 0 ? 0 : Math.round((completedTasks / tasks.length) * 100);
 
-  const getPriorityBadge = (priority) => {
-    switch (priority) {
-      case "Urgent":
-        return "bg-rose-500/10 text-rose-400 border-rose-500/20";
-      case "High":
-        return "bg-amber-500/10 text-amber-400 border-amber-500/20";
-      case "Medium":
-        return "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
-      default:
-        return "bg-slate-500/10 text-slate-400 border-slate-500/20";
+  const getBadgeStyle = (type, value) => {
+    if (type === 'status') {
+      if (value === 'Approved' || value === 'Completed') return "border-[#00E676] text-[#00E676]";
+      if (value === 'Pending' || value === 'Completed (Pending Approval)') return "border-[#FFC400] text-[#FFC400]";
+      return "border-[#2979FF] text-[#2979FF]";
     }
+    if (type === 'priority') {
+      if (value === 'High' || value === 'Urgent') return "border-[#FF1744] text-[#FF1744]";
+      if (value === 'Medium') return "border-[#FFC400] text-[#FFC400]";
+      return "border-[#00E676] text-[#00E676]";
+    }
+    return "border-slate-500 text-slate-500";
   };
 
   return (
-    
-    <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 space-y-8 text-slate-100 min-h-screen bg-slate-950 selection:bg-indigo-500 selection:text-white">
-      {/* Dynamic Background Glow Accent */}
+    <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 space-y-8 text-slate-100 min-h-screen bg-[#0B101E] selection:bg-indigo-500 selection:text-white">
+      {/* Background Accent */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[500px] bg-gradient-to-b from-indigo-600/10 via-purple-600/5 to-transparent blur-3xl pointer-events-none -z-10" />
 
       {/* Group Header */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl shadow-indigo-950/20">
+      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#121826]/80 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl">
         <div className="absolute top-0 right-0 -mr-20 -mt-20 h-80 w-80 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/3 -ml-20 -mb-20 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
 
@@ -259,7 +314,7 @@ const GroupDetails = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-slate-950/60 p-4 backdrop-blur-xl shadow-inner hover:border-white/20 transition-all duration-300">
+          <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#0B101E]/60 p-4 backdrop-blur-xl shadow-inner hover:border-white/20 transition-all duration-300">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-indigo-400 ring-1 ring-indigo-500/30 shadow-md">
               <Users className="h-6 w-6" />
             </div>
@@ -283,7 +338,7 @@ const GroupDetails = () => {
             </span>
             <span className="text-emerald-400 font-bold tracking-wide">{progress}%</span>
           </div>
-          <div className="h-3 w-full overflow-hidden rounded-full bg-slate-950/80 p-0.5 border border-slate-800">
+          <div className="h-3 w-full overflow-hidden rounded-full bg-[#0B101E]/80 p-0.5 border border-slate-800">
             <div
               className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400 transition-all duration-1000 ease-out shadow-lg shadow-emerald-500/20"
               style={{ width: `${progress}%` }}
@@ -311,7 +366,7 @@ const GroupDetails = () => {
           return (
             <div
               key={idx}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/40 p-5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-slate-700 hover:shadow-xl hover:shadow-black/40"
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#121826]/80 p-5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-slate-700 hover:shadow-xl hover:shadow-black/40"
             >
               <div className="flex items-center justify-between text-slate-400">
                 <span className="text-xs font-semibold uppercase tracking-wider">{stat.label}</span>
@@ -326,7 +381,7 @@ const GroupDetails = () => {
       </div>
 
       {/* Team Members Section */}
-      <div className="rounded-3xl border border-white/10 bg-slate-900/50 p-6 sm:p-8 backdrop-blur-2xl shadow-xl">
+      <div className="rounded-3xl border border-white/10 bg-[#121826]/80 p-6 sm:p-8 backdrop-blur-2xl shadow-xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h2 className="text-xl font-bold text-white tracking-tight">Team Members</h2>
@@ -336,7 +391,7 @@ const GroupDetails = () => {
           </div>
           <button
             onClick={() => setShowMemberModal(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition-all duration-200 hover:bg-indigo-500 active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#5C45FD] px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:bg-[#4E39DF] active:scale-95"
           >
             <UserPlus className="h-4 w-4" /> Add Member
           </button>
@@ -347,7 +402,7 @@ const GroupDetails = () => {
             group.members.map((member) => (
               <div
                 key={member._id}
-                className="group flex items-center gap-3.5 rounded-2xl border border-slate-800/80 bg-slate-950/40 p-3.5 transition-all duration-300 hover:border-slate-700 hover:bg-slate-950/80 hover:shadow-lg"
+                className="group flex items-center gap-3.5 rounded-2xl border border-slate-800/80 bg-[#0B101E]/60 p-3.5 transition-all duration-300 hover:border-slate-700 hover:bg-[#0B101E]/80 hover:shadow-lg"
               >
                 {member.profilePhoto ? (
                   <img
@@ -377,14 +432,14 @@ const GroupDetails = () => {
       </div>
 
       {/* Tasks Section */}
-      <div className="rounded-3xl border border-white/10 bg-slate-900/50 p-6 sm:p-8 backdrop-blur-2xl shadow-xl">
+      <div className="rounded-3xl border border-white/10 bg-[#121826]/80 p-6 sm:p-8 backdrop-blur-2xl shadow-xl">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-1.5 rounded-2xl bg-slate-950/80 p-1.5 border border-slate-800 w-fit shadow-inner">
+          <div className="flex items-center gap-1.5 rounded-2xl bg-[#0B101E]/80 p-1.5 border border-slate-800 w-fit shadow-inner">
             <button
               onClick={() => setView("list")}
               className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all duration-200 ${
                 view === "list"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                  ? "bg-[#5C45FD] text-white shadow-md"
                   : "text-slate-400 hover:text-white hover:bg-slate-900"
               }`}
             >
@@ -395,7 +450,7 @@ const GroupDetails = () => {
               onClick={() => setView("kanban")}
               className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all duration-200 ${
                 view === "kanban"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                  ? "bg-[#5C45FD] text-white shadow-md"
                   : "text-slate-400 hover:text-white hover:bg-slate-900"
               }`}
             >
@@ -405,15 +460,15 @@ const GroupDetails = () => {
 
           <button
             onClick={() => setShowTaskModal(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-600/25 transition-all duration-200 hover:bg-emerald-500 active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 w-fit"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#00E676] px-4 py-2.5 text-sm font-bold text-[#0B101E] shadow-lg transition-all duration-200 hover:bg-[#00C853] active:scale-95 w-fit"
           >
-            <Plus className="h-4 w-4" /> New Task
+            <Plus className="h-4 w-4 font-bold" /> New Task
           </button>
         </div>
 
         {view === "list" ? (
           tasks.length === 0 ? (
-            <div className="text-center py-16 border border-dashed border-slate-800 rounded-2xl bg-slate-950/30">
+            <div className="text-center py-16 border border-dashed border-slate-800 rounded-2xl bg-[#0B101E]/30">
               <p className="text-sm font-medium text-slate-400">No tasks created yet for this project.</p>
             </div>
           ) : (
@@ -421,7 +476,8 @@ const GroupDetails = () => {
               {tasks.map((task) => (
                 <div
                   key={task._id}
-                  className="group relative rounded-2xl border border-slate-800/80 bg-slate-950/40 p-5 transition-all duration-300 hover:border-slate-700 hover:bg-slate-950/80 hover:shadow-xl"
+                  onClick={() => setViewingTask(task)}
+                  className="group relative cursor-pointer rounded-2xl border border-slate-800/80 bg-[#0B101E]/60 p-5 transition-all duration-300 hover:border-indigo-500/50 hover:bg-[#121826]/80 hover:shadow-xl hover:shadow-indigo-500/10"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1.5 flex-1">
@@ -429,33 +485,22 @@ const GroupDetails = () => {
                         <h3 className="font-semibold text-white text-base group-hover:text-indigo-300 transition-colors">
                           {task.title}
                         </h3>
-                        <span className="rounded-full bg-slate-800/80 px-3 py-0.5 text-xs font-semibold text-slate-300 border border-slate-700/60">
+                        <span className={`rounded-full px-3 py-0.5 text-xs font-bold uppercase tracking-wider border ${getBadgeStyle('status', task.status)}`}>
                           {task.status || "Pending"}
                         </span>
                       </div>
-                      <p className="text-sm text-slate-400 leading-relaxed max-w-3xl font-normal">
+                      <p className="text-sm text-slate-400 leading-relaxed max-w-3xl font-normal line-clamp-1">
                         {task.description || "No description provided."}
                       </p>
                     </div>
-
-                    <button
-                      onClick={() => openEditModal(task)}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900/90 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:border-indigo-500/40 hover:bg-indigo-600/10 hover:text-indigo-300 transition-all shadow-sm"
-                    >
-                      <Edit3 className="h-3.5 w-3.5" /> Edit
-                    </button>
                   </div>
 
-                  <div className="mt-4 flex flex-wrap items-center gap-2.5 pt-3.5 border-t border-slate-800/60">
-                    <span
-                      className={`inline-flex items-center rounded-lg border px-2.5 py-1 text-xs font-semibold ${getPriorityBadge(
-                        task.priority
-                      )}`}
-                    >
+                  <div className="mt-4 flex flex-wrap items-center gap-3 pt-3.5 border-t border-slate-800/60">
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${getBadgeStyle('priority', task.priority)}`}>
                       {task.priority} Priority
                     </span>
 
-                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/60 px-2.5 py-1 text-xs font-medium text-slate-300">
+                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-[#121826]/60 px-2.5 py-1 text-xs font-medium text-slate-300">
                       <Calendar className="h-3.5 w-3.5 text-slate-400" />
                       Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "No date"}
                     </span>
@@ -476,10 +521,221 @@ const GroupDetails = () => {
         )}
       </div>
 
+      {/* =========================================================
+          FULL-FEATURED TASK VIEW MODAL WITH LIVE ATTACHMENTS
+      ========================================================= */}
+      {viewingTask && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B101E]/95 p-4 backdrop-blur-md animate-in fade-in zoom-in-95 duration-200">
+          <div className="w-full max-w-[1200px] h-[95vh] rounded-2xl border border-slate-800 bg-[#0B101E] shadow-2xl flex flex-col overflow-hidden relative">
+            
+            {/* Top Modal Header / Navigation */}
+            <div className="flex items-center justify-between border-b border-slate-800/60 bg-[#121826] px-6 py-4 shrink-0">
+              <button 
+                onClick={() => setViewingTask(null)} 
+                className="flex items-center gap-2 rounded-lg bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" /> Back to Tasks
+              </button>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                     openEditModal(viewingTask);
+                  }}
+                  className="flex items-center gap-2 rounded-lg border border-slate-700 bg-[#1A2235] px-4 py-1.5 text-sm font-semibold text-slate-300 hover:bg-slate-700 transition-colors"
+                >
+                  <Edit3 className="h-4 w-4" /> Edit
+                </button>
+
+                {viewingTask.status !== 'Completed (Pending Approval)' && viewingTask.status !== 'Approved' && (
+                  <button
+                    onClick={() => handleSubmitTask(viewingTask._id)}
+                    className="flex items-center gap-2 rounded-lg border border-[#00E676]/30 bg-[#00E676]/10 px-4 py-1.5 text-sm font-bold text-[#00E676] hover:bg-[#00E676] hover:text-[#0B101E] transition-colors"
+                  >
+                    <Send className="h-4 w-4" /> Submit for Approval
+                  </button>
+                )}
+                
+                {viewingTask.status === 'Completed (Pending Approval)' && (
+                  <span className="flex items-center gap-2 rounded-lg border border-[#FFC400]/30 bg-[#FFC400]/10 px-4 py-1.5 text-sm font-bold text-[#FFC400]">
+                    <Clock className="h-4 w-4" /> Pending Approval
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+              <div className="flex flex-col lg:flex-row gap-6">
+                
+                {/* LEFT COLUMN: Main Info */}
+                <div className="flex-1 flex flex-col gap-6">
+                  
+                  {/* Card 1: Details & Attachments */}
+                  <div className="rounded-xl border border-slate-800/80 bg-[#121826] p-6 shadow-sm">
+                    <h1 className="text-2xl font-black text-white tracking-tight mb-4">
+                      {viewingTask.title}
+                    </h1>
+                    
+                    <div className="flex items-center gap-3 mb-8">
+                      <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider border ${getBadgeStyle('status', viewingTask.status)}`}>
+                        {viewingTask.status || "Pending"}
+                      </span>
+                      <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider border ${getBadgeStyle('priority', viewingTask.priority)}`}>
+                        {viewingTask.priority} Priority
+                      </span>
+                    </div>
+
+                    <div className="mb-8">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Description</p>
+                      <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap font-medium">
+                        {viewingTask.description || "No description provided."}
+                      </p>
+                    </div>
+
+                    {/* Integrated Upload UI Component */}
+                    <div className="mb-8 space-y-4">
+                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                        Attachments
+                      </h4>
+
+                      <FileUpload
+                        taskId={viewingTask._id}
+                        onUpload={refreshTaskFiles}
+                      />
+
+                      <FileList
+                        taskId={viewingTask._id}
+                        refresh={refreshFiles}
+                        onDelete={refreshTaskFiles}
+                      />
+                    </div>
+
+                    {/* Footer Metadata */}
+                    <div className="flex flex-col sm:flex-row gap-6 pt-6 border-t border-slate-800/60">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-800/50 text-slate-400">
+                          <Calendar className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-slate-500">Due Date</p>
+                          <p className="text-sm font-bold text-white">
+                            {viewingTask.dueDate ? new Date(viewingTask.dueDate).toLocaleString() : "Not Set"}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-800/50 text-slate-400">
+                          <Users className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-slate-500">Created By</p>
+                          <p className="text-sm font-bold text-white">
+                            {viewingTask.createdBy?.name || "System"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-6">
+                      <p className="text-[10px] uppercase font-bold text-slate-500 mb-2">Assigned Team Members</p>
+                      <div className="flex flex-wrap gap-2">
+                        {viewingTask.assignedTo?.length > 0 ? (
+                          viewingTask.assignedTo.map((u) => (
+                            <div key={u._id} className="flex items-center gap-2 rounded-lg border border-[#5C45FD]/30 bg-[#5C45FD]/10 px-3 py-1.5 text-sm font-semibold text-white">
+                              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#5C45FD] text-[10px] font-bold">
+                                {u.name?.charAt(0)}
+                              </div>
+                              {u.name}
+                            </div>
+                          ))
+                        ) : (
+                          <span className="text-xs text-slate-500 font-medium">Unassigned</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 2: Discussion Box */}
+                  <div className="rounded-xl border border-slate-800/80 bg-[#121826] p-6 shadow-sm">
+                    <div className="flex items-center gap-2 mb-6">
+                      <MessageSquare className="h-5 w-5 text-indigo-400" />
+                      <h3 className="text-lg font-bold text-white">Discussion ({(viewingTask.comments || []).length})</h3>
+                    </div>
+
+                    <div className="border-t border-slate-800 pt-8 pb-12 flex flex-col items-center text-center">
+                      <p className="text-sm font-medium text-slate-400">No comments yet. Start the conversation!</p>
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-4 relative">
+                      <input 
+                        type="text"
+                        placeholder="Type your message here..."
+                        className="w-full rounded-xl border border-slate-700 bg-[#0B101E] px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-[#5C45FD] focus:outline-none focus:ring-1 focus:ring-[#5C45FD]"
+                        value={commentInput}
+                        onChange={(e) => setCommentInput(e.target.value)}
+                      />
+                      <button className="absolute right-1.5 top-1.5 bottom-1.5 flex items-center gap-1.5 rounded-lg bg-[#5C45FD] px-4 font-bold text-white hover:bg-[#4E39DF] transition-colors text-sm">
+                        Post <Send className="h-3.5 w-3.5 ml-1" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* RIGHT COLUMN: Audit Trail */}
+                <div className="w-full lg:w-[400px] shrink-0 rounded-xl border border-slate-800/80 bg-[#121826] p-6 shadow-sm flex flex-col">
+                  <div className="flex items-center gap-2 mb-6">
+                    <History className="h-5 w-5 text-indigo-400" />
+                    <h3 className="text-lg font-bold text-white">Audit Trail / History</h3>
+                  </div>
+
+                  <div className="relative pl-3 space-y-6 before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-800">
+                    
+                    {(viewingTask.history?.length > 0 ? viewingTask.history : [{
+                      user: viewingTask.createdBy?.name || 'System',
+                      date: new Date().toLocaleString(),
+                      action: 'Status Changed',
+                      from: 'Pending',
+                      to: viewingTask.status || 'Approved'
+                    }]).map((log, idx) => (
+                      <div key={idx} className="relative pl-6">
+                        <div className="absolute left-[-2px] top-1.5 h-2 w-2 rounded-full bg-[#5C45FD] ring-4 ring-[#121826]"></div>
+                        
+                        <div className="mb-1 flex flex-wrap items-center gap-2 text-[10px] font-bold text-slate-400">
+                          <span className="text-white">{log.user}</span>
+                          <span>•</span>
+                          <span>{log.date}</span>
+                        </div>
+                        
+                        <p className="text-xs font-bold text-white mb-2">{log.action}</p>
+                        
+                        <div className="rounded-lg border border-slate-700/50 bg-[#0B101E] p-3 text-xs">
+                          <div className="flex items-center gap-2 text-slate-400 mb-1">
+                            <span className="w-10">From:</span>
+                            <span className="text-rose-500 font-semibold line-through">{log.from}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-slate-400">
+                            <span className="w-10">To:</span>
+                            <span className="text-[#00E676] font-semibold">{log.to}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Add Member Modal */}
       {showMemberModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-900 p-6 sm:p-7 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#0B101E]/90 p-4 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-3xl border border-slate-800 bg-[#121826] p-6 sm:p-7 shadow-2xl space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-white tracking-tight">Add Team Member</h2>
               <button
@@ -500,7 +756,7 @@ const GroupDetails = () => {
               <select
                 value={selectedUser}
                 onChange={(e) => setSelectedUser(e.target.value)}
-                className="w-full rounded-xl border border-slate-700/80 bg-slate-950 p-3 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
               >
                 <option value="">Choose team member...</option>
                 {users
@@ -522,14 +778,14 @@ const GroupDetails = () => {
                   setShowMemberModal(false);
                   setSelectedUser("");
                 }}
-                className="rounded-xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-slate-800 transition-colors"
+                className="rounded-xl border border-slate-800 bg-[#0B101E] px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-slate-800 transition-colors"
               >
                 Cancel
               </button>
 
               <button
                 onClick={addMember}
-                className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 shadow-md shadow-indigo-600/30 transition-all"
+                className="rounded-xl bg-[#5C45FD] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#4E39DF] transition-all"
               >
                 Add Member
               </button>
@@ -540,8 +796,8 @@ const GroupDetails = () => {
 
       {/* Create Task Modal */}
       {showTaskModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-slate-900 p-6 sm:p-7 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#0B101E]/90 p-4 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-lg rounded-3xl border border-slate-800 bg-[#121826] p-6 sm:p-7 shadow-2xl space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-white tracking-tight">Create New Task</h2>
               <button
@@ -562,7 +818,7 @@ const GroupDetails = () => {
                   placeholder="e.g., Design System Updates"
                   value={taskForm.title}
                   onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
-                  className="w-full rounded-xl border border-slate-700/80 bg-slate-950 p-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                  className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none transition-all"
                 />
               </div>
 
@@ -577,7 +833,7 @@ const GroupDetails = () => {
                   onChange={(e) =>
                     setTaskForm({ ...taskForm, description: e.target.value })
                   }
-                  className="w-full rounded-xl border border-slate-700/80 bg-slate-950 p-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                  className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none transition-all"
                 />
               </div>
 
@@ -591,7 +847,7 @@ const GroupDetails = () => {
                     onChange={(e) =>
                       setTaskForm({ ...taskForm, assignedTo: e.target.value })
                     }
-                    className="w-full rounded-xl border border-slate-700/80 bg-slate-950 p-3 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                    className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none transition-all"
                   >
                     <option value="">Select Assignee</option>
                     {group.members?.map((member) => (
@@ -611,7 +867,7 @@ const GroupDetails = () => {
                     onChange={(e) =>
                       setTaskForm({ ...taskForm, priority: e.target.value })
                     }
-                    className="w-full rounded-xl border border-slate-700/80 bg-slate-950 p-3 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                    className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none transition-all"
                   >
                     <option>Low</option>
                     <option>Medium</option>
@@ -629,7 +885,7 @@ const GroupDetails = () => {
                   type="date"
                   value={taskForm.dueDate}
                   onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
-                  className="w-full rounded-xl border border-slate-700/80 bg-slate-950 p-3 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                  className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -637,14 +893,14 @@ const GroupDetails = () => {
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
               <button
                 onClick={() => setShowTaskModal(false)}
-                className="rounded-xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-slate-800 transition-colors"
+                className="rounded-xl border border-slate-800 bg-[#0B101E] px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-slate-800 transition-colors"
               >
                 Cancel
               </button>
 
               <button
                 onClick={createTask}
-                className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 shadow-md shadow-emerald-600/30 transition-all"
+                className="rounded-xl bg-[#00E676] px-5 py-2.5 text-sm font-bold text-[#0B101E] hover:bg-[#00C853] transition-all"
               >
                 Create Task
               </button>
@@ -655,8 +911,8 @@ const GroupDetails = () => {
 
       {/* Edit Task Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-slate-900 p-6 sm:p-7 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#0B101E]/90 p-4 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-lg rounded-3xl border border-slate-800 bg-[#121826] p-6 sm:p-7 shadow-2xl space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-white tracking-tight">Edit Task</h2>
               <button
@@ -674,7 +930,7 @@ const GroupDetails = () => {
                 </label>
                 <input
                   type="text"
-                  className="w-full rounded-xl border border-slate-700/80 bg-slate-950 p-3 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                  className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none transition-all"
                   value={editForm.title}
                   onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
                 />
@@ -686,7 +942,7 @@ const GroupDetails = () => {
                 </label>
                 <textarea
                   rows="3"
-                  className="w-full rounded-xl border border-slate-700/80 bg-slate-950 p-3 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                  className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none transition-all"
                   value={editForm.description}
                   onChange={(e) =>
                     setEditForm({ ...editForm, description: e.target.value })
@@ -704,7 +960,7 @@ const GroupDetails = () => {
                     onChange={(e) =>
                       setEditForm({ ...editForm, assignedTo: e.target.value })
                     }
-                    className="w-full rounded-xl border border-slate-700/80 bg-slate-950 p-3 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                    className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none transition-all"
                   >
                     {group.members?.map((member) => (
                       <option key={member._id} value={member._id}>
@@ -723,7 +979,7 @@ const GroupDetails = () => {
                     onChange={(e) =>
                       setEditForm({ ...editForm, priority: e.target.value })
                     }
-                    className="w-full rounded-xl border border-slate-700/80 bg-slate-950 p-3 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                    className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none transition-all"
                   >
                     <option>Low</option>
                     <option>Medium</option>
@@ -741,7 +997,7 @@ const GroupDetails = () => {
                   type="date"
                   value={editForm.dueDate}
                   onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })}
-                  className="w-full rounded-xl border border-slate-700/80 bg-slate-950 p-3 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                  className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -749,14 +1005,14 @@ const GroupDetails = () => {
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
               <button
                 onClick={() => setShowEditModal(false)}
-                className="rounded-xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-slate-800 transition-colors"
+                className="rounded-xl border border-slate-800 bg-[#0B101E] px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-slate-800 transition-colors"
               >
                 Cancel
               </button>
 
               <button
                 onClick={updateTask}
-                className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 shadow-md shadow-indigo-600/30 transition-all"
+                className="rounded-xl bg-[#5C45FD] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#4E39DF] transition-all"
               >
                 Save Changes
               </button>
@@ -766,8 +1022,6 @@ const GroupDetails = () => {
       )}
     </div>
   );
-}
-  
-
+};
 
 export default GroupDetails;

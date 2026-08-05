@@ -28,6 +28,24 @@ const groupSchema = new mongoose.Schema(
     isActive:{
         type:Boolean,
         default:true
+    },
+
+    // --- NEW APPROVAL FIELDS ---
+    approvalStatus: {
+        type: String,
+        enum: ['Pending', 'Approved', 'Rejected'],
+        default: 'Pending'
+    },
+    
+    approvedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null
+    },
+    
+    approvedAt: {
+        type: Date,
+        default: null
     }
 
 },

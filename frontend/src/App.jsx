@@ -17,7 +17,6 @@ import Announcements from './pages/Announcements';
 import AdminSettings from './pages/AdminSettings';
 import Approvals from './pages/Approvals';
 
-
 const AdminRoute = ({ children }) => {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
@@ -33,9 +32,9 @@ function App() {
         toastOptions={{
           duration: 3000,
           style: {
-            background: '#0f172a', // Slate-950
-            color: '#f1f5f9',      // Slate-100
-            border: '1px solid #1e293b', // Slate-800
+            background: '#0f172a',
+            color: '#f1f5f9',
+            border: '1px solid #1e293b',
             borderRadius: '12px',
             fontSize: '14px',
             boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)',
@@ -43,14 +42,14 @@ function App() {
           success: {
             duration: 2000,
             iconTheme: {
-              primary: '#10b981', // Emerald-500
+              primary: '#10b981',
               secondary: '#fff',
             },
           },
           error: {
             duration: 2000,
             iconTheme: {
-              primary: '#f43f5e', // Rose-500
+              primary: '#f43f5e',
               secondary: '#fff',
             },
           },
@@ -69,7 +68,8 @@ function App() {
           <Route path="profile" element={<ProfileView />} />
           <Route path="profile/edit" element={<ProfileSetup />} />
           <Route path="chat" element={<ChatApp />} />
-           <Route path="announcements" element={<Announcements />} />
+          <Route path="announcements" element={<Announcements />} />
+          
           <Route
             path="users"
             element={
