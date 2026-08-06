@@ -45,10 +45,10 @@ const GroupDetails = () => {
   const [showMemberModal, setShowMemberModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  
+
   const [editingTask, setEditingTask] = useState(null);
   const [viewingTask, setViewingTask] = useState(null);
-  
+
   // File Refresh state
   const [refreshFiles, setRefreshFiles] = useState(false);
 
@@ -206,7 +206,7 @@ const GroupDetails = () => {
 
       await fetchTasks();
       if (viewingTask && viewingTask._id === editingTask._id) {
-          setViewingTask(data);
+        setViewingTask(data);
       }
       setShowEditModal(false);
       setEditingTask(null);
@@ -230,14 +230,14 @@ const GroupDetails = () => {
       if (!res.ok) throw new Error(data.error || "Failed to submit task");
 
       if (typeof toast !== 'undefined' && toast.success) {
-         toast.success("Task submitted for Admin approval!");
+        toast.success("Task submitted for Admin approval!");
       } else {
-         alert("Task submitted for Admin approval!");
+        alert("Task submitted for Admin approval!");
       }
-      
+
       await fetchTasks();
       if (viewingTask && viewingTask._id === taskId) {
-         setViewingTask(data); 
+        setViewingTask(data);
       }
     } catch (err) {
       alert(err.message);
@@ -293,17 +293,16 @@ const GroupDetails = () => {
   return (
     <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 space-y-8 text-slate-100 min-h-screen bg-[#0B101E] selection:bg-indigo-500 selection:text-white">
       {/* Background Accent */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[500px] bg-gradient-to-b from-indigo-600/10 via-purple-600/5 to-transparent blur-3xl pointer-events-none -z-10" />
+
 
       {/* Group Header */}
       <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#121826]/80 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl">
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 h-80 w-80 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 -ml-20 -mb-20 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+
 
         <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3.5 py-1 text-xs font-semibold text-indigo-300 shadow-sm backdrop-blur-md">
-              <Briefcase className="h-3.5 w-3.5 text-indigo-400" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#dc9750]/30 bg-[#dc9750]/10 px-3.5 py-1 text-xs font-semibold text-[#f0be8d] shadow-sm backdrop-blur-md">
+              <Briefcase className="h-3.5 w-3.5 text-[#dc9750]" />
               <span>Workspace Project</span>
             </div>
             <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
@@ -314,7 +313,7 @@ const GroupDetails = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#0B101E]/60 p-4 backdrop-blur-xl shadow-inner hover:border-white/20 transition-all duration-300">
+          <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#0B101E]/60 p-4 backdrop-blur-xl shadow-inner hover:border-[#dc9750]/60 transition-all duration-300">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-indigo-400 ring-1 ring-indigo-500/30 shadow-md">
               <Users className="h-6 w-6" />
             </div>
@@ -366,7 +365,7 @@ const GroupDetails = () => {
           return (
             <div
               key={idx}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#121826]/80 p-5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-slate-700 hover:shadow-xl hover:shadow-black/40"
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#121826]/80 p-5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-[#dc9750]/60 hover:shadow-xl hover:shadow-black/40"
             >
               <div className="flex items-center justify-between text-slate-400">
                 <span className="text-xs font-semibold uppercase tracking-wider">{stat.label}</span>
@@ -391,7 +390,7 @@ const GroupDetails = () => {
           </div>
           <button
             onClick={() => setShowMemberModal(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#5C45FD] px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:bg-[#4E39DF] active:scale-95"
+            className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-950 bg-[#dc9750] hover:bg-[#e3a35f] hover:shadow-[#dc9750]/40 shadow-lg transition-all duration-200 hover:bg-[#4E39DF] active:scale-95"
           >
             <UserPlus className="h-4 w-4" /> Add Member
           </button>
@@ -402,7 +401,7 @@ const GroupDetails = () => {
             group.members.map((member) => (
               <div
                 key={member._id}
-                className="group flex items-center gap-3.5 rounded-2xl border border-slate-800/80 bg-[#0B101E]/60 p-3.5 transition-all duration-300 hover:border-slate-700 hover:bg-[#0B101E]/80 hover:shadow-lg"
+                className="group flex items-center gap-3.5 rounded-2xl border border-slate-800/80 bg-[#0B101E]/60 p-3.5 transition-all duration-300 hover:border-[#dc9750]/60 hover:bg-[#0B101E]/80 hover:shadow-lg"
               >
                 {member.profilePhoto ? (
                   <img
@@ -437,22 +436,20 @@ const GroupDetails = () => {
           <div className="flex items-center gap-1.5 rounded-2xl bg-[#0B101E]/80 p-1.5 border border-slate-800 w-fit shadow-inner">
             <button
               onClick={() => setView("list")}
-              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all duration-200 ${
-                view === "list"
-                  ? "bg-[#5C45FD] text-white shadow-md"
-                  : "text-slate-400 hover:text-white hover:bg-slate-900"
-              }`}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all duration-200 ${view === "list"
+                ? "text-slate-950 bg-[#dc9750] hover:bg-[#e3a35f] hover:shadow-[#dc9750]/40 shadow-md"
+                : "text-slate-400 hover:text-white hover:bg-slate-900"
+                }`}
             >
               <List className="h-3.5 w-3.5" /> List View
             </button>
 
             <button
               onClick={() => setView("kanban")}
-              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all duration-200 ${
-                view === "kanban"
-                  ? "bg-[#5C45FD] text-white shadow-md"
-                  : "text-slate-400 hover:text-white hover:bg-slate-900"
-              }`}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all duration-200 ${view === "kanban"
+                ? "text-slate-950 bg-[#dc9750] hover:bg-[#e3a35f] hover:shadow-[#dc9750]/40 shadow-md"
+                : "text-slate-400 hover:text-white hover:bg-slate-900"
+                }`}
             >
               <Kanban className="h-3.5 w-3.5" /> Kanban Board
             </button>
@@ -460,7 +457,7 @@ const GroupDetails = () => {
 
           <button
             onClick={() => setShowTaskModal(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#00E676] px-4 py-2.5 text-sm font-bold text-[#0B101E] shadow-lg transition-all duration-200 hover:bg-[#00C853] active:scale-95 w-fit"
+            className="inline-flex items-center justify-center gap-2 rounded-xl  px-4 py-2.5 text-sm font-bold text-slate-950 bg-[#dc9750] hover:bg-[#e3a35f] hover:shadow-[#dc9750]/40 shadow-lg transition-all duration-200 hover:bg-[#00C853] active:scale-95 w-fit"
           >
             <Plus className="h-4 w-4 font-bold" /> New Task
           </button>
@@ -477,7 +474,7 @@ const GroupDetails = () => {
                 <div
                   key={task._id}
                   onClick={() => setViewingTask(task)}
-                  className="group relative cursor-pointer rounded-2xl border border-slate-800/80 bg-[#0B101E]/60 p-5 transition-all duration-300 hover:border-indigo-500/50 hover:bg-[#121826]/80 hover:shadow-xl hover:shadow-indigo-500/10"
+                  className="group relative cursor-pointer rounded-2xl border border-slate-800/80 bg-[#0B101E]/60 p-5 transition-all duration-300 hover:border-[#dc9750]/60 hover:bg-[#121826]/80 hover:shadow-xl hover:shadow-[#dc9750]/10"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1.5 flex-1">
@@ -527,11 +524,11 @@ const GroupDetails = () => {
       {viewingTask && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B101E]/95 p-4 backdrop-blur-md animate-in fade-in zoom-in-95 duration-200">
           <div className="w-full max-w-[1200px] h-[95vh] rounded-2xl border border-slate-800 bg-[#0B101E] shadow-2xl flex flex-col overflow-hidden relative">
-            
+
             {/* Top Modal Header / Navigation */}
             <div className="flex items-center justify-between border-b border-slate-800/60 bg-[#121826] px-6 py-4 shrink-0">
-              <button 
-                onClick={() => setViewingTask(null)} 
+              <button
+                onClick={() => setViewingTask(null)}
                 className="flex items-center gap-2 rounded-lg bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" /> Back to Tasks
@@ -540,9 +537,9 @@ const GroupDetails = () => {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => {
-                     openEditModal(viewingTask);
+                    openEditModal(viewingTask);
                   }}
-                  className="flex items-center gap-2 rounded-lg border border-slate-700 bg-[#1A2235] px-4 py-1.5 text-sm font-semibold text-slate-300 hover:bg-slate-700 transition-colors"
+                  className="flex items-center gap-2 rounded-lg border border-[#dc9750]/20 bg-[#1e2640] px-4 py-1.5 text-sm font-semibold text-slate-300 hover:bg-[#dc9750]/10 hover:text-white transition-colors"
                 >
                   <Edit3 className="h-4 w-4" /> Edit
                 </button>
@@ -550,33 +547,35 @@ const GroupDetails = () => {
                 {viewingTask.status !== 'Completed (Pending Approval)' && viewingTask.status !== 'Approved' && (
                   <button
                     onClick={() => handleSubmitTask(viewingTask._id)}
-                    className="flex items-center gap-2 rounded-lg border border-[#00E676]/30 bg-[#00E676]/10 px-4 py-1.5 text-sm font-bold text-[#00E676] hover:bg-[#00E676] hover:text-[#0B101E] transition-colors"
+                    className="flex items-center gap-2 rounded-lg border border-[#dc9750]/30 bg-[#dc9750]/10 px-4 py-1.5 text-sm font-bold text-[#dc9750] hover:bg-[#dc9750] hover:text-white transition-colors"
                   >
                     <Send className="h-4 w-4" /> Submit for Approval
                   </button>
                 )}
-                
+
                 {viewingTask.status === 'Completed (Pending Approval)' && (
                   <span className="flex items-center gap-2 rounded-lg border border-[#FFC400]/30 bg-[#FFC400]/10 px-4 py-1.5 text-sm font-bold text-[#FFC400]">
                     <Clock className="h-4 w-4" /> Pending Approval
                   </span>
                 )}
               </div>
+
+
             </div>
 
             {/* Modal Scrollable Body */}
             <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
               <div className="flex flex-col lg:flex-row gap-6">
-                
+
                 {/* LEFT COLUMN: Main Info */}
                 <div className="flex-1 flex flex-col gap-6">
-                  
+
                   {/* Card 1: Details & Attachments */}
                   <div className="rounded-xl border border-slate-800/80 bg-[#121826] p-6 shadow-sm">
                     <h1 className="text-2xl font-black text-white tracking-tight mb-4">
                       {viewingTask.title}
                     </h1>
-                    
+
                     <div className="flex items-center gap-3 mb-8">
                       <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider border ${getBadgeStyle('status', viewingTask.status)}`}>
                         {viewingTask.status || "Pending"}
@@ -624,7 +623,7 @@ const GroupDetails = () => {
                           </p>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-800/50 text-slate-400">
                           <Users className="h-4 w-4" />
@@ -643,8 +642,8 @@ const GroupDetails = () => {
                       <div className="flex flex-wrap gap-2">
                         {viewingTask.assignedTo?.length > 0 ? (
                           viewingTask.assignedTo.map((u) => (
-                            <div key={u._id} className="flex items-center gap-2 rounded-lg border border-[#5C45FD]/30 bg-[#5C45FD]/10 px-3 py-1.5 text-sm font-semibold text-white">
-                              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#5C45FD] text-[10px] font-bold">
+                            <div key={u._id} className="flex items-center gap-2 rounded-lg border border-[#dc9750]/30 bg-[#dc9750]/10 px-3 py-1.5 text-sm font-semibold text-white">
+                              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#dc9750] text-[10px] font-bold">
                                 {u.name?.charAt(0)}
                               </div>
                               {u.name}
@@ -660,7 +659,7 @@ const GroupDetails = () => {
                   {/* Card 2: Discussion Box */}
                   <div className="rounded-xl border border-slate-800/80 bg-[#121826] p-6 shadow-sm">
                     <div className="flex items-center gap-2 mb-6">
-                      <MessageSquare className="h-5 w-5 text-indigo-400" />
+                      <MessageSquare className="h-5 w-5 text-[#dc9750]" />
                       <h3 className="text-lg font-bold text-white">Discussion ({(viewingTask.comments || []).length})</h3>
                     </div>
 
@@ -669,16 +668,18 @@ const GroupDetails = () => {
                     </div>
 
                     <div className="flex items-center gap-2 mt-4 relative">
-                      <input 
+                      <input
                         type="text"
                         placeholder="Type your message here..."
                         className="w-full rounded-xl border border-slate-700 bg-[#0B101E] px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-[#5C45FD] focus:outline-none focus:ring-1 focus:ring-[#5C45FD]"
                         value={commentInput}
                         onChange={(e) => setCommentInput(e.target.value)}
                       />
-                      <button className="absolute right-1.5 top-1.5 bottom-1.5 flex items-center gap-1.5 rounded-lg bg-[#5C45FD] px-4 font-bold text-white hover:bg-[#4E39DF] transition-colors text-sm">
+
+                      <button className="absolute right-1.5 top-1.5 bottom-1.5 flex items-center gap-1.5 rounded-lg bg-[#dc9750] px-4 font-bold text-white hover:bg-[#c4803d] transition-colors text-sm shadow-md">
                         Post <Send className="h-3.5 w-3.5 ml-1" />
                       </button>
+
                     </div>
                   </div>
                 </div>
@@ -686,12 +687,12 @@ const GroupDetails = () => {
                 {/* RIGHT COLUMN: Audit Trail */}
                 <div className="w-full lg:w-[400px] shrink-0 rounded-xl border border-slate-800/80 bg-[#121826] p-6 shadow-sm flex flex-col">
                   <div className="flex items-center gap-2 mb-6">
-                    <History className="h-5 w-5 text-indigo-400" />
+                    <History className="h-5 w-5 text-[#dc9750]" />
                     <h3 className="text-lg font-bold text-white">Audit Trail / History</h3>
                   </div>
 
                   <div className="relative pl-3 space-y-6 before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-800">
-                    
+
                     {(viewingTask.history?.length > 0 ? viewingTask.history : [{
                       user: viewingTask.createdBy?.name || 'System',
                       date: new Date().toLocaleString(),
@@ -700,16 +701,16 @@ const GroupDetails = () => {
                       to: viewingTask.status || 'Approved'
                     }]).map((log, idx) => (
                       <div key={idx} className="relative pl-6">
-                        <div className="absolute left-[-2px] top-1.5 h-2 w-2 rounded-full bg-[#5C45FD] ring-4 ring-[#121826]"></div>
-                        
+                        <div className="absolute left-[-2px] top-1.5 h-2 w-2 rounded-full bg-[#dc9750] ring-4 ring-[#1e2640]"></div>
+
                         <div className="mb-1 flex flex-wrap items-center gap-2 text-[10px] font-bold text-slate-400">
                           <span className="text-white">{log.user}</span>
                           <span>•</span>
                           <span>{log.date}</span>
                         </div>
-                        
+
                         <p className="text-xs font-bold text-white mb-2">{log.action}</p>
-                        
+
                         <div className="rounded-lg border border-slate-700/50 bg-[#0B101E] p-3 text-xs">
                           <div className="flex items-center gap-2 text-slate-400 mb-1">
                             <span className="w-10">From:</span>
@@ -756,7 +757,7 @@ const GroupDetails = () => {
               <select
                 value={selectedUser}
                 onChange={(e) => setSelectedUser(e.target.value)}
-                className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20  focus:outline-none focus:ring-2 focus:ring-[#dc9750]/20 transition-all"
               >
                 <option value="">Choose team member...</option>
                 {users
@@ -785,7 +786,7 @@ const GroupDetails = () => {
 
               <button
                 onClick={addMember}
-                className="rounded-xl bg-[#5C45FD] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#4E39DF] transition-all"
+                className="rounded-xl  px-5 py-2.5 text-sm font-semibold text-slate-950 bg-[#dc9750] hover:bg-[#e3a35f] hover:shadow-[#dc9750]/40 shadow-lg transition-all"
               >
                 Add Member
               </button>
@@ -818,7 +819,7 @@ const GroupDetails = () => {
                   placeholder="e.g., Design System Updates"
                   value={taskForm.title}
                   onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
-                  className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white placeholder-slate-500 focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20  focus:outline-none transition-all"
                 />
               </div>
 
@@ -833,7 +834,7 @@ const GroupDetails = () => {
                   onChange={(e) =>
                     setTaskForm({ ...taskForm, description: e.target.value })
                   }
-                  className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white placeholder-slate-500 focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20  focus:outline-none transition-all"
                 />
               </div>
 
@@ -847,7 +848,7 @@ const GroupDetails = () => {
                     onChange={(e) =>
                       setTaskForm({ ...taskForm, assignedTo: e.target.value })
                     }
-                    className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none transition-all"
+                    className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20  focus:outline-none transition-all"
                   >
                     <option value="">Select Assignee</option>
                     {group.members?.map((member) => (
@@ -867,7 +868,7 @@ const GroupDetails = () => {
                     onChange={(e) =>
                       setTaskForm({ ...taskForm, priority: e.target.value })
                     }
-                    className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none transition-all"
+                    className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20  focus:outline-none transition-all"
                   >
                     <option>Low</option>
                     <option>Medium</option>
@@ -885,7 +886,7 @@ const GroupDetails = () => {
                   type="date"
                   value={taskForm.dueDate}
                   onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
-                  className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20  focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -900,7 +901,7 @@ const GroupDetails = () => {
 
               <button
                 onClick={createTask}
-                className="rounded-xl bg-[#00E676] px-5 py-2.5 text-sm font-bold text-[#0B101E] hover:bg-[#00C853] transition-all"
+                className="rounded-xl px-5 py-2.5 text-sm font-bold bg-[#dc9750] text-slate-950 transition-all"
               >
                 Create Task
               </button>
@@ -930,7 +931,7 @@ const GroupDetails = () => {
                 </label>
                 <input
                   type="text"
-                  className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20  focus:outline-none transition-all"
                   value={editForm.title}
                   onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
                 />
@@ -942,7 +943,7 @@ const GroupDetails = () => {
                 </label>
                 <textarea
                   rows="3"
-                  className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20  focus:outline-none transition-all"
                   value={editForm.description}
                   onChange={(e) =>
                     setEditForm({ ...editForm, description: e.target.value })
@@ -960,7 +961,7 @@ const GroupDetails = () => {
                     onChange={(e) =>
                       setEditForm({ ...editForm, assignedTo: e.target.value })
                     }
-                    className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none transition-all"
+                    className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20  focus:outline-none transition-all"
                   >
                     {group.members?.map((member) => (
                       <option key={member._id} value={member._id}>
@@ -979,7 +980,7 @@ const GroupDetails = () => {
                     onChange={(e) =>
                       setEditForm({ ...editForm, priority: e.target.value })
                     }
-                    className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none transition-all"
+                    className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20  focus:outline-none transition-all"
                   >
                     <option>Low</option>
                     <option>Medium</option>
@@ -997,7 +998,7 @@ const GroupDetails = () => {
                   type="date"
                   value={editForm.dueDate}
                   onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })}
-                  className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-indigo-500 focus:outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-700 bg-[#0B101E] p-3 text-sm text-white focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20  focus:outline-none transition-all"
                 />
               </div>
             </div>
