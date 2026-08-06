@@ -35,11 +35,11 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
     <header
   className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-[#1e2640]/80 px-4 backdrop-blur-md sm:px-6 lg:px-8"
   style={{
-    backgroundImage: `url(${Navbg})`,
+    // backgroundImage: `url(${Navbg})`,
     backgroundSize: "cover",
     backgroundPosition: "center",
     backgroundRepeat: "no-repeat",
-    backgroundColor: "rgba(30, 38, 64, 0.85)", // #1e2640 fallback ground
+    backgroundColor: "rgba(13, 16, 28, 0.85)", // #1e2640 fallback ground
   }}
 >
   {/* Left Section: Sidebar Toggle & Branding */}
