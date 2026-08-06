@@ -48,15 +48,15 @@ const Tasks = () => {
   // Bulk create state
   const [isBulkCreateOpen, setIsBulkCreateOpen] = useState(false);
   const [bulkCreateEmployeeId, setBulkCreateEmployeeId] = useState('');
- const [bulkCreateTasks, setBulkCreateTasks] = useState([
-  {
-    title: "",
-    description: "",
-    priority: "Medium",
-    status: "To Do",
-    dueDate: ""
-  }
-]);
+  const [bulkCreateTasks, setBulkCreateTasks] = useState([
+    {
+      title: "",
+      description: "",
+      priority: "Medium",
+      status: "To Do",
+      dueDate: ""
+    }
+  ]);
   const [bulkCreateLoading, setBulkCreateLoading] = useState(false);
   const [bulkCreateError, setBulkCreateError] = useState('');
 
@@ -384,13 +384,13 @@ const Tasks = () => {
   const addBulkTaskRow = () => {
     setBulkCreateTasks(prev => [
       ...prev,
-     {
-    title: "",
-    description: "",
-    priority: "Medium",
-    status: "To Do",
-    dueDate: ""
-}
+      {
+        title: "",
+        description: "",
+        priority: "Medium",
+        status: "To Do",
+        dueDate: ""
+      }
     ]);
   };
 
@@ -404,15 +404,15 @@ const Tasks = () => {
 
   const resetBulkCreate = () => {
     setBulkCreateEmployeeId('');
-   setBulkCreateTasks([
-    {
+    setBulkCreateTasks([
+      {
         title: "",
         description: "",
         priority: "Medium",
         status: "To Do",
         dueDate: ""
-    }
-]);
+      }
+    ]);
     setBulkCreateError('');
   };
 
@@ -430,13 +430,13 @@ const Tasks = () => {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           assignedTo: bulkCreateEmployeeId,
-         tasks: validTasks.map((t) => ({
-    title: t.title.trim(),
-    description: t.description,
-    priority: t.priority,
-    status: t.status,
-    dueDate: new Date(t.dueDate).toISOString(),
-})),
+          tasks: validTasks.map((t) => ({
+            title: t.title.trim(),
+            description: t.description,
+            priority: t.priority,
+            status: t.status,
+            dueDate: new Date(t.dueDate).toISOString(),
+          })),
         }),
       });
       const data = await res.json();
@@ -507,7 +507,9 @@ const Tasks = () => {
       {/* Header Row */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">Workflow Tasks</h2>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
+            Workflow <span className="text-[#dc9750]">Tasks</span>
+          </h2>
           <p className="text-sm text-slate-300">
             Search, filter, and track tasks across team members.
           </p>
@@ -552,7 +554,7 @@ const Tasks = () => {
               placeholder="Search by task title or description..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-white placeholder:text-slate-400  text-sm bg-white/10 dark:bg-slate-800/50 border border-white/10 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+              className="w-full pl-10 pr-4 py-2 text-white placeholder:text-slate-400 text-sm bg-white/10 dark:bg-slate-800/50 border border-white/10 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] transition-colors"
             />
           </div>
 
@@ -564,7 +566,7 @@ const Tasks = () => {
                 placeholder="Filter by team member name or Employee ID..."
                 value={assigneeFilter}
                 onChange={(e) => setAssigneeFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-white placeholder:text-slate-400  text-sm bg-white/10 dark:bg-slate-800/50 border border-white/10 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                className="w-full pl-10 pr-4 py-2 text-white placeholder:text-slate-400  text-sm bg-white/10 dark:bg-slate-800/50 border border-white/10 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] transition-colors"
               />
             </div>
           )}
@@ -576,8 +578,8 @@ const Tasks = () => {
             <button
               onClick={() => setViewMode('grid')}
               className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'grid'
-                  ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
-                  : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
+                ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
+                : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
                 }`}
               title="Grid View"
             >
@@ -587,8 +589,8 @@ const Tasks = () => {
             <button
               onClick={() => setViewMode('list')}
               className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'list'
-                  ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
-                  : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
+                ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
+                : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
                 }`}
               title="List View"
             >
@@ -598,8 +600,8 @@ const Tasks = () => {
             <button
               onClick={() => setViewMode('kanban')}
               className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'kanban'
-                  ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
-                  : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
+                ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
+                : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
                 }`}
               title="Kanban Board"
             >
@@ -609,8 +611,8 @@ const Tasks = () => {
             <button
               onClick={() => setViewMode('calendar')}
               className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'calendar'
-                  ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
-                  : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
+                ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
+                : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
                 }`}
               title="Calendar View"
             >
@@ -620,8 +622,8 @@ const Tasks = () => {
             <button
               onClick={() => setViewMode('gantt')}
               className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'gantt'
-                  ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
-                  : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
+                ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
+                : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
                 }`}
               title="Gantt / Timeline View"
             >
@@ -657,7 +659,7 @@ const Tasks = () => {
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
               className="bg-[#141B2D] text-xs font-medium text-slate-200 outline-none cursor-pointer"
-             >
+            >
               <option value="" className="bg-[#141B2D] text-white">All Priorities</option>
               <option value="Low" className="bg-[#141B2D] text-white">Low</option>
               <option value="Medium" className="bg-[#141B2D] text-white">Medium</option>
@@ -774,9 +776,8 @@ const Tasks = () => {
               <div
                 key={task._id}
                 onClick={() => navigate(`/tasks/${task._id}`)}
-                className={`group relative bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 over:border-[#dc9750] dark:hover:border-[#b97737] rounded-2xl p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden ${
-                  isOverdue ? 'border-l-4 border-l-rose-500' : 'border-l-4 border-l-[#dc9750]'
-                }`}
+                className={`group relative bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 over:border-[#dc9750] dark:hover:border-[#b97737] rounded-2xl p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden ${isOverdue ? 'border-l-4 border-l-rose-500' : 'border-l-4 border-l-[#dc9750]'
+                  }`}
               >
                 <div>
                   <div className="flex items-center gap-1.5 mb-2 min-w-0">
@@ -808,7 +809,7 @@ const Tasks = () => {
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-xs p-0.5 rounded-lg" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={(e) => openEditModal(task, e)}
-                          className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-md hover:bg-white dark:hover:bg-slate-700 transition-colors shadow-xs"
+                          className="p-1.5 text-slate-400 hover:text-[#dc9750]/80 dark:hover:text-[#dc9750]/80 rounded-md hover:bg-white dark:hover:bg-slate-700 transition-colors shadow-xs"
                           title="Edit Task"
                         >
                           <Edit2 size={13} />
@@ -845,11 +846,10 @@ const Tasks = () => {
                 </div>
 
                 <div className="pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between mt-auto">
-                  <div className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md ${
-                    isOverdue
+                  <div className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md ${isOverdue
                       ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-semibold animate-pulse'
                       : 'bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 font-medium'
-                  }`}>
+                    }`}>
                     <Calendar size={13} />
                     <span>{new Date(task.dueDate).toLocaleDateString()}</span>
                   </div>
@@ -998,7 +998,7 @@ const Tasks = () => {
                     </label>
                     <input
                       type="text"
-                      className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
                       value={formTitle}
                       onChange={(e) => setFormTitle(e.target.value)}
                       placeholder="e.g., Update Landing Page Header"
@@ -1012,7 +1012,7 @@ const Tasks = () => {
                     </label>
                     <textarea
                       rows={4}
-                      className="w-full px-3 py-2 text-white placeholder:text-slate-400 text-sm bg-white/10 dark:bg-slate-800/50 border border-white/10 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 text-white placeholder:text-slate-400 text-sm bg-white/10 dark:bg-slate-800/50 border border-white/10 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
                       value={formDesc}
                       onChange={(e) => setFormDesc(e.target.value)}
                       placeholder="Provide scope, targets, and notes..."
@@ -1025,7 +1025,7 @@ const Tasks = () => {
                         Priority
                       </label>
                       <select
-                        className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                        className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
                         value={formPriority}
                         onChange={(e) => setFormPriority(e.target.value)}
                       >
@@ -1041,7 +1041,7 @@ const Tasks = () => {
                         Status
                       </label>
                       <select
-                        className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                        className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
                         value={formStatus}
                         onChange={(e) => setFormStatus(e.target.value)}
                       >
@@ -1060,7 +1060,7 @@ const Tasks = () => {
                       </label>
                       <input
                         type="datetime-local"
-                        className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                        className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
                         value={formStartDate}
                         onChange={(e) => setFormStartDate(e.target.value)}
                       />
@@ -1072,7 +1072,7 @@ const Tasks = () => {
                       </label>
                       <input
                         type="datetime-local"
-                        className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                        className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
                         value={formDueDate}
                         onChange={(e) => setFormDueDate(e.target.value)}
                         required
@@ -1087,7 +1087,7 @@ const Tasks = () => {
                     <input
                       type="number"
                       min="0"
-                      className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
                       value={formEstimatedHours}
                       onChange={(e) => setFormEstimatedHours(e.target.value)}
                     />
@@ -1107,11 +1107,11 @@ const Tasks = () => {
                             key={member._id}
                             onClick={() => toggleAssignee(member._id)}
                             className={`flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-all ${isSelected
-                                ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-500'
+                                ? 'bg-[#dc9750]/10 dark:bg-[#dc9750]/20 border-[#dc9750]'
                                 : 'border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
                               }`}
                           >
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isSelected ? 'bg-[#dc9750]/90 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>
                               {member.name.charAt(0).toUpperCase()}
                             </div>
                             <div className="overflow-hidden">
@@ -1131,7 +1131,7 @@ const Tasks = () => {
                     <div className="flex gap-2">
                       <input
                         type="text"
-                        className="flex-1 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                        className="flex-1 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
                         placeholder="https://..."
                         value={formAttachment}
                         onChange={(e) => setFormAttachment(e.target.value)}
@@ -1177,7 +1177,7 @@ const Tasks = () => {
                         value={formTagInput}
                         placeholder="e.g., frontend"
                         onChange={(e) => setFormTagInput(e.target.value)}
-                        className="flex-1 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                        className="flex-1 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
                       />
                       <button
                         type="button"
@@ -1222,7 +1222,7 @@ const Tasks = () => {
                       value={formChecklistInput}
                       onChange={(e) => setFormChecklistInput(e.target.value)}
                       placeholder="e.g., Write unit tests"
-                      className="flex-1 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                      className="flex-1 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
                     />
                     <button
                       type="button"
@@ -1274,7 +1274,7 @@ const Tasks = () => {
                       const values = [...e.target.selectedOptions].map(option => option.value);
                       setFormDependencies(values);
                     }}
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 p-2 text-sm bg-slate-50 dark:bg-slate-800/50 outline-none focus:border-indigo-500 max-h-32"
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 p-2 text-sm bg-slate-50 dark:bg-slate-800/50 outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20 max-h-32"
                   >
                     {allTasks
                       .filter(task => task._id !== currentTaskId)
@@ -1357,7 +1357,7 @@ const Tasks = () => {
             <select
               value={bulkAssignUserId}
               onChange={(e) => setBulkAssignUserId(e.target.value)}
-              className="w-full mt-4 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="w-full mt-4 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
             >
               <option value="">Select a team member...</option>
               {usersList.map((u) => (
@@ -1421,7 +1421,7 @@ const Tasks = () => {
                 <select
                   value={bulkCreateEmployeeId}
                   onChange={(e) => setBulkCreateEmployeeId(e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
                 >
                   <option value="">Select a team member...</option>
                   {usersList.map((u) => (
@@ -1441,56 +1441,56 @@ const Tasks = () => {
                     <div key={index} className="flex flex-col gap-2 p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-800/20">
                       <div className="flex flex-col sm:flex-row gap-2">
                         <input
-                        
-  type="text"
-  placeholder="Task title"
-  value={row.title}
-  onChange={(e) =>
-    updateBulkTaskRow(index, "title", e.target.value)
-  }
-  className="flex-1 px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
-/>
 
-<select
-  value={row.priority}
-  onChange={(e) =>
-    updateBulkTaskRow(index, "priority", e.target.value)
-  }
-  className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
->
-  <option value="Low">Low</option>
-  <option value="Medium">Medium</option>
-  <option value="High">High</option>
-  <option value="Urgent">Urgent</option>
-</select>
+                          type="text"
+                          placeholder="Task title"
+                          value={row.title}
+                          onChange={(e) =>
+                            updateBulkTaskRow(index, "title", e.target.value)
+                          }
+                          className="flex-1 px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                        />
 
-{/* STATUS DROPDOWN */}
+                        <select
+                          value={row.priority}
+                          onChange={(e) =>
+                            updateBulkTaskRow(index, "priority", e.target.value)
+                          }
+                          className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                        >
+                          <option value="Low">Low</option>
+                          <option value="Medium">Medium</option>
+                          <option value="High">High</option>
+                          <option value="Urgent">Urgent</option>
+                        </select>
 
-<select
-  value={row.status}
-  onChange={(e) =>
-    updateBulkTaskRow(index, "status", e.target.value)
-  }
-  className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
->
-  <option value="To Do">To Do</option>
-  <option value="In Progress">In Progress</option>
-  <option value="In Review">In Review</option>
-  <option value="Blocked">Blocked</option>
-  <option value="Completed (Pending Approval)">
-    Completed (Pending Approval)
-  </option>
-  <option value="Approved">Approved</option>
-</select>
+                        {/* STATUS DROPDOWN */}
 
-<input
-  type="datetime-local"
-  value={row.dueDate}
-  onChange={(e) =>
-    updateBulkTaskRow(index, "dueDate", e.target.value)
-  }
-  className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
-/>
+                        <select
+                          value={row.status}
+                          onChange={(e) =>
+                            updateBulkTaskRow(index, "status", e.target.value)
+                          }
+                          className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                        >
+                          <option value="To Do">To Do</option>
+                          <option value="In Progress">In Progress</option>
+                          <option value="In Review">In Review</option>
+                          <option value="Blocked">Blocked</option>
+                          <option value="Completed (Pending Approval)">
+                            Completed (Pending Approval)
+                          </option>
+                          <option value="Approved">Approved</option>
+                        </select>
+
+                        <input
+                          type="datetime-local"
+                          value={row.dueDate}
+                          onChange={(e) =>
+                            updateBulkTaskRow(index, "dueDate", e.target.value)
+                          }
+                          className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                        />
                         {bulkCreateTasks.length > 1 && (
                           <button
                             type="button"
