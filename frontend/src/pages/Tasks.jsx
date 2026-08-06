@@ -457,12 +457,12 @@ const Tasks = () => {
 
   const getStatusBadge = (status) => {
     const statusMap = {
-      'To Do': 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
-      'In Progress': 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800',
+      'To Do': 'bg-blue-500/20 text-blue-300 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+      'In Progress': 'bg-yellow-500/20 text-yellow-300 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800',
       'In Review': 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/50 dark:text-violet-400 dark:border-violet-800',
       'Blocked': 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/50 dark:text-orange-400 dark:border-orange-800',
-      'Completed (Pending Approval)': 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800',
-      'Approved': 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800',
+      'Completed (Pending Approval)': 'bg-green-500/20 text-green-300 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800',
+      'Approved': 'bg-red-500/20 text-red-300 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800',
       'Rejected': 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/50 dark:text-rose-400 dark:border-rose-800',
       'Overdue': 'bg-red-100 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-800'
     };
@@ -478,10 +478,10 @@ const Tasks = () => {
 
   const getPriorityBadge = (priority) => {
     const priorityMap = {
-      Low: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400',
-      Medium: 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400',
-      High: 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400',
-      Urgent: 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400'
+      Low: 'bg-green-500/20 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400',
+      Medium: 'bg-cyan-500/20 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400',
+      High: 'bg-orange-500/20 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400',
+      Urgent: 'bg-red-500/20 text-red-700 dark:bg-red-950/60 dark:text-red-400'
     };
 
     return (
@@ -495,10 +495,10 @@ const Tasks = () => {
   const validBulkCount = bulkCreateTasks.filter(t => t.title.trim() && t.dueDate).length;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#0B1120] via-[#111827] to-[#1E1B4B] text-white p-4 sm:p-6 lg:p-8">
       {/* Inline toast */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-[200] flex items-center gap-2 px-4 py-3 rounded-lg bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-lg text-sm">
+        <div className="fixed bottom-6 right-6 z-[200] flex items-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 backdrop-blur-xl text-white dark:text-slate-900 shadow-lg text-sm">
           <CheckCircle2 size={16} className="text-emerald-400 dark:text-emerald-600" />
           {toastMsg}
         </div>
@@ -507,8 +507,8 @@ const Tasks = () => {
       {/* Header Row */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Workflow Tasks</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <h2 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">Workflow Tasks</h2>
+          <p className="text-sm text-slate-300">
             Search, filter, and track tasks across team members.
           </p>
         </div>
@@ -516,21 +516,26 @@ const Tasks = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsVoiceModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-800 text-slate-700 dark:text-slate-200 text-sm font-medium rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 backdrop-blur-xl border border-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
               <Mic size={18} />
               <span>Voice Task</span>
             </button>
             <button
               onClick={() => { resetBulkCreate(); setIsBulkCreateOpen(true); }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-800 text-slate-700 dark:text-slate-200 text-sm font-medium rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 backdrop-blur-xl border border-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
               <UserPlus size={18} />
               <span>Bulk Create</span>
             </button>
             <button
               onClick={openCreateModal}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r
+                from-violet-600
+                to-indigo-600
+                hover:from-violet-500
+                hover:to-indigo-500
+                shadow-lg text-white text-sm font-medium rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
               <Plus size={18} />
               <span>Create Task</span>
@@ -540,7 +545,7 @@ const Tasks = () => {
       </div>
 
       {/* Filter and View Bar */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm mb-6 space-y-4">
+      <div className="bg-white/10 dark:bg-slate-900 border border-white/10 backdrop-blur-xl rounded-xl p-4 shadow-sm mb-6 space-y-4">
         {/* Row 1: Search + Assignee Filter */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 w-full mb-3 sm:mb-0">
@@ -550,7 +555,7 @@ const Tasks = () => {
               placeholder="Search by task title or description..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+              className="w-full pl-10 pr-4 py-2 text-white placeholder:text-slate-400  text-sm bg-white/10 dark:bg-slate-800/50 border border-white/10 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
             />
           </div>
 
@@ -562,7 +567,7 @@ const Tasks = () => {
                 placeholder="Filter by team member name or Employee ID..."
                 value={assigneeFilter}
                 onChange={(e) => setAssigneeFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                className="w-full pl-10 pr-4 py-2 text-white placeholder:text-slate-400  text-sm bg-white/10 dark:bg-slate-800/50 border border-white/10 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
               />
             </div>
           )}
@@ -574,8 +579,8 @@ const Tasks = () => {
             <button
               onClick={() => setViewMode('grid')}
               className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'grid'
-                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
                 }`}
               title="Grid View"
             >
@@ -585,8 +590,8 @@ const Tasks = () => {
             <button
               onClick={() => setViewMode('list')}
               className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'list'
-                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
                 }`}
               title="List View"
             >
@@ -596,8 +601,8 @@ const Tasks = () => {
             <button
               onClick={() => setViewMode('kanban')}
               className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'kanban'
-                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
                 }`}
               title="Kanban Board"
             >
@@ -607,8 +612,8 @@ const Tasks = () => {
             <button
               onClick={() => setViewMode('calendar')}
               className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'calendar'
-                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
                 }`}
               title="Calendar View"
             >
@@ -618,8 +623,8 @@ const Tasks = () => {
             <button
               onClick={() => setViewMode('gantt')}
               className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'gantt'
-                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
                 }`}
               title="Gantt / Timeline View"
             >
@@ -636,17 +641,17 @@ const Tasks = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-transparent text-xs font-medium text-slate-700 dark:text-slate-300 outline-none cursor-pointer"
+              className="bg-[#141B2D] text-xs font-medium text-slate-200 outline-none cursor-pointer"
             >
-              <option value="">All Statuses</option>
-              <option value="To Do">To Do</option>
-              <option value="In Progress">In Progress</option>
-              <option value="In Review">In Review</option>
-              <option value="Blocked">Blocked</option>
-              <option value="Completed (Pending Approval)">Pending Approval</option>
-              <option value="Approved">Approved</option>
-              <option value="Rejected">Rejected</option>
-              <option value="Overdue">Overdue</option>
+              <option value="" className="bg-[#141B2D] text-white">All Statuses</option>
+              <option value="To Do" className="bg-[#141B2D] text-white">To Do</option>
+              <option value="In Progress" className="bg-[#141B2D] text-white">In Progress</option>
+              <option value="In Review" className="bg-[#141B2D] text-white">In Review</option>
+              <option value="Blocked" className="bg-[#141B2D] text-white">Blocked</option>
+              <option value="Completed (Pending Approval)" className="bg-[#141B2D] text-white">Pending Approval</option>
+              <option value="Approved" className="bg-[#141B2D] text-white">Approved</option>
+              <option value="Rejected" className="bg-[#141B2D] text-white">Rejected</option>
+              <option value="Overdue" className="bg-[#141B2D] text-white">Overdue</option>
             </select>
           </div>
 
@@ -654,13 +659,13 @@ const Tasks = () => {
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
-              className="bg-transparent text-xs font-medium text-slate-700 dark:text-slate-300 outline-none cursor-pointer"
-            >
-              <option value="">All Priorities</option>
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-              <option value="Urgent">Urgent</option>
+              className="bg-[#141B2D] text-xs font-medium text-slate-200 outline-none cursor-pointer"
+             >
+              <option value="" className="bg-[#141B2D] text-white">All Priorities</option>
+              <option value="Low" className="bg-[#141B2D] text-white">Low</option>
+              <option value="Medium" className="bg-[#141B2D] text-white">Medium</option>
+              <option value="High" className="bg-[#141B2D] text-white">High</option>
+              <option value="Urgent" className="bg-[#141B2D] text-white">Urgent</option>
             </select>
           </div>
 
@@ -668,12 +673,12 @@ const Tasks = () => {
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="bg-transparent text-xs font-medium text-slate-700 dark:text-slate-300 outline-none cursor-pointer"
+              className="bg-[#141B2D] text-xs font-medium text-slate-200 outline-none cursor-pointer"
             >
-              <option value="">All Dates</option>
-              <option value="today">Due Today</option>
-              <option value="upcoming">Upcoming</option>
-              <option value="overdue">Overdue Only</option>
+              <option value="" className="bg-[#141B2D] text-white">All Dates</option>
+              <option value="today" className="bg-[#141B2D] text-white">Due Today</option>
+              <option value="upcoming" className="bg-[#141B2D] text-white">Upcoming</option>
+              <option value="overdue" className="bg-[#141B2D] text-white">Overdue Only</option>
             </select>
           </div>
 
@@ -681,12 +686,12 @@ const Tasks = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-transparent text-xs font-medium text-slate-700 dark:text-slate-300 outline-none cursor-pointer"
+              className="bg-[#141B2D] text-xs font-medium text-slate-200 outline-none cursor-pointer"
             >
-              <option value="dueDate:asc">Due Date: Soonest</option>
-              <option value="dueDate:desc">Due Date: Farthest</option>
-              <option value="priority:desc">Priority: High to Low</option>
-              <option value="createdAt:desc">Created Date: Newest</option>
+              <option value="dueDate:asc" className="bg-[#141B2D] text-white">Due Date: Soonest</option>
+              <option value="dueDate:desc" className="bg-[#141B2D] text-white">Due Date: Farthest</option>
+              <option value="priority:desc" className="bg-[#141B2D] text-white">Priority: High to Low</option>
+              <option value="createdAt:desc" className="bg-[#141B2D] text-white">Created Date: Newest</option>
             </select>
           </div>
 
@@ -716,7 +721,12 @@ const Tasks = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsBulkAssignOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r
+              from-violet-600
+              to-indigo-600
+              hover:from-violet-500
+              hover:to-indigo-500
+              shadow-lg text-white text-xs font-semibold rounded-lg transition-colors"
             >
               <UserPlus size={14} /> Assign to Member
             </button>
@@ -786,7 +796,7 @@ const Tasks = () => {
                         )}
                       </button>
                     )}
-                    <span className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 truncate uppercase tracking-wide">
+                    <span className="text-[11px] font-semibold text-yellow-600 dark:text-yellow-400 truncate uppercase tracking-wide">
                       {task.assignedTo?.length > 0
                         ? task.assignedTo.map((u) => u.name).join(', ')
                         : 'Unassigned'}
@@ -852,7 +862,7 @@ const Tasks = () => {
                       {task.assignedTo.slice(0, 3).map((u) => (
                         <div
                           key={u._id}
-                          className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-[11px] font-bold border-2 border-white dark:border-slate-900 shadow-xs"
+                          className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 text-white text-[11px] font-bold border-2 border-slate-900 shadow-md"
                           title={`${u.name} (${u.email})`}
                         >
                           {u.name.charAt(0).toUpperCase()}
@@ -924,7 +934,7 @@ const Tasks = () => {
                         {task.assignedTo.map((u) => (
                           <div
                             key={u._id}
-                            className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold border-2 border-white dark:border-slate-900"
+                            className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-500 text-white text-[10px] font-bold border-2 border-white dark:border-slate-900"
                             title={u.name}
                           >
                             {u.name.charAt(0).toUpperCase()}
@@ -1005,7 +1015,7 @@ const Tasks = () => {
                     </label>
                     <textarea
                       rows={4}
-                      className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 text-white placeholder:text-slate-400 text-sm bg-white/10 dark:bg-slate-800/50 border border-white/10 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                       value={formDesc}
                       onChange={(e) => setFormDesc(e.target.value)}
                       placeholder="Provide scope, targets, and notes..."
@@ -1293,7 +1303,12 @@ const Tasks = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors shadow-sm"
+                  className="px-4 py-2 text-xs font-semibold bg-gradient-to-r
+                  from-violet-600
+                  to-indigo-600
+                  hover:from-violet-500
+                  hover:to-indigo-500
+                  shadow-lg text-white rounded-lg transition-colors shadow-sm"
                 >
                   {modalMode === 'create' ? 'Create Task' : 'Save Changes'}
                 </button>
@@ -1372,7 +1387,12 @@ const Tasks = () => {
               <button
                 onClick={handleBulkAssign}
                 disabled={!bulkAssignUserId || bulkAssignLoading}
-                className="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors shadow-sm"
+                className="px-4 py-2 text-xs font-semibold bg-gradient-to-r
+                from-violet-600
+                to-indigo-600
+                hover:from-violet-500
+                hover:to-indigo-500
+                shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors shadow-sm"
               >
                 {bulkAssignLoading ? 'Assigning...' : 'Confirm Assignment'}
               </button>
@@ -1497,7 +1517,7 @@ const Tasks = () => {
                         onChange={(e) => updateBulkTaskRow(index, 'description', e.target.value)}
                         placeholder="Task description..."
                         rows={2}
-                        className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 resize-none"
+                        className="w-full px-3 py-2 text-white placeholder:text-slate-400 text-sm bg-white/10 dark:bg-slate-800/50 border border-white/10 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 resize-none"
                       />
                     </div>
                   ))}
@@ -1524,7 +1544,12 @@ const Tasks = () => {
                 type="button"
                 onClick={handleBulkCreateSubmit}
                 disabled={bulkCreateLoading}
-                className="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg transition-colors shadow-sm"
+                className="px-4 py-2 text-xs font-semibold bg-gradient-to-r
+                  from-violet-600
+                  to-indigo-600
+                  hover:from-violet-500
+                  hover:to-indigo-500
+                  shadow-lg disabled:opacity-50 text-white rounded-lg transition-colors shadow-sm"
               >
                 {bulkCreateLoading
                   ? 'Creating...'
