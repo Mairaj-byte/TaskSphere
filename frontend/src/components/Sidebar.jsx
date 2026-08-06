@@ -136,6 +136,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         backdrop-blur-xl
         text-slate-200
         p-4
+        pb-10
         overflow-y-auto overscroll-contain
         shadow-2xl
         [&::-webkit-scrollbar]:hidden
