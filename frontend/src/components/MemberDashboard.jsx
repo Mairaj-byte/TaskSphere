@@ -119,348 +119,337 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
   });
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 p-2 sm:p-4 text-slate-100">
+    <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 text-slate-100 bg-[#0d101c] min-h-screen">
 
-      {/* 1. HERO & USER COCKPIT HEADER */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r
-        from-[#16213E]
-        via-[#1D2951]
-        to-[#16213E]
-        border-[#31436A] p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#DC9750]/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-[#DC9750]/5 rounded-full blur-3xl pointer-events-none" />
+  {/* 1. HERO & USER HEADER */}
+  <div className="rounded-2xl border border-[#1e2640] bg-[#1e2640]/60 p-6 shadow-sm">
+    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      
+      {/* Profile & Welcome Text */}
+      <div className="flex items-center gap-4">
+        <div className="relative flex items-center justify-center shrink-0 w-14 h-14 rounded-xl bg-[#dc9750] text-[#0d101c] font-bold text-xl overflow-hidden">
+          {profilePhotoUrl ? (
+            <img
+              src={profilePhotoUrl}
+              alt={user?.name || "User"}
+              className="h-full w-full object-cover"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+          ) : (
+            <span>{user?.name ? user.name[0].toUpperCase() : 'M'}</span>
+          )}
+          <span className="absolute bottom-1 right-1 w-3 h-3 bg-emerald-500 border-2 border-[#0d101c] rounded-full" />
+        </div>
 
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="flex items-center gap-5">
-            <div className="relative flex items-center justify-center shrink-0 w-16 h-16 rounded-2xl bg-[#DC9750] text-white font-bold text-2xl shadow-lg shadow-indigo-500/25 ring-4 ring-[#31436A] overflow-hidden">
-              {profilePhotoUrl ? (
-              <img
-                src={profilePhotoUrl}
-                alt={user?.name || "User"}
-                className="h-14 w-14 rounded-full border-2 border-indigo-500 object-cover shadow-md"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  if (e.target.nextSibling) {
-                    e.target.nextSibling.style.display = 'flex';
-                  }
-                }}
-              />
-            ) : null}
-
-              {/* Active Status Badge */}
-              <span className="absolute bottom-0 right-0 z-10 w-4 h-4 bg-emerald-500 border-2 border-slate-900 rounded-full" />
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold tracking-wider text-[#DC9750] uppercase bg-[#DC9750]/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
-                  {getGreeting()}
-                </span>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1">
-                {user?.name || 'Workspace Member'}
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-                Here's your personal focus hub for today. You've completed <span className="text-[#DC9750] font-semibold">{completionPercentage}%</span> of assigned goals.
-              </p>
-            </div>
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-semibold tracking-wider text-[#dc9750] uppercase bg-[#dc9750]/10 px-2.5 py-0.5 rounded-md border border-[#dc9750]/20">
+              {getGreeting()}
+            </span>
           </div>
-
-          <div className="flex items-center gap-3 self-start lg:self-center">
-            <button
-              onClick={handleDownloadReport}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1D2951] hover:bg-[#243457] text-slate-200 border border-[#31436A] font-medium text-xs sm:text-sm transition-all shadow-md hover:shadow-indigo-500/10 active:scale-95"
-            >
-              <Download size={16} className="text-slate-400" />
-              <span>Report</span>
-            </button>
-
-            <button
-              onClick={() => navigate('/tasks')}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r bg-[#DC9750] hover:bg-[#C78645] text-white font-medium text-xs sm:text-sm shadow-lg shadow-indigo-600/30 transition-all active:scale-95"
-            >
-              <span>Workspace Tasks</span>
-              <ArrowUpRight size={16} />
-            </button>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+            {user?.name || 'Workspace Member'}
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Personal focus hub. You've completed <span className="text-[#dc9750] font-semibold">{completionPercentage}%</span> of assigned goals today.
+          </p>
         </div>
       </div>
 
-      {/* 2. FEATURED ANNOUNCEMENT SPOTLIGHT BANNER */}
-      {!announcementLoading && latestAnnouncement && (
-        <div className="group relative overflow-hidden rounded-2xl border border-[#31436A] bg-gradient-to-r from-[#1D2951] via-[#16213E] to-[#1D2951] p-5 backdrop-blur-xl shadow-xl transition-all duration-300 hover:border-indigo-500/50">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+      {/* Action Buttons */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleDownloadReport}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#0d101c] hover:bg-[#141a2e] text-slate-200 border border-[#1e2640] font-medium text-xs sm:text-sm transition-colors"
+        >
+          <Download size={16} className="text-slate-400" />
+          <span>Report</span>
+        </button>
 
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-2xl bg-[#DC9750]/10 border border-[#DC9750]/30 text-[#DC9750] shrink-0 shadow-inner">
-                <Megaphone size={22} className="animate-pulse" />
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {latestAnnouncement.pinned && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20 uppercase tracking-wide">
-                      <Pin size={10} /> Pinned Broadcast
-                    </span>
-                  )}
-                  <span className={`px-2 py-0.5 rounded-md border text-[10px] font-bold uppercase tracking-wide ${categoryStyle[latestAnnouncement.category] || categoryStyle['General News']}`}>
-                    {latestAnnouncement.category}
-                  </span>
-                  <span className="text-xs text-slate-400 flex items-center gap-1">
-                    <Calendar size={12} /> {new Date(latestAnnouncement.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-
-                <h3 className="text-base font-bold text-white group-hover:text-indigo-200 transition-colors">
-                  {latestAnnouncement.title}
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-300 line-clamp-2 max-w-3xl leading-relaxed">
-                  {latestAnnouncement.body}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 shrink-0 self-end lg:self-center pt-2 lg:pt-0 border-t lg:border-t-0 border-white/5 w-full lg:w-auto justify-end">
-              {hasAcknowledged(latestAnnouncement) ? (
-                <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold">
-                  <CheckCircle2 size={15} /> Acknowledged
-                </span>
-              ) : (
-                <button
-                  onClick={() => acknowledge(latestAnnouncement._id)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#DC9750] hover:bg-[#C78645] text-white text-xs font-semibold shadow-md shadow-indigo-600/20 transition active:scale-95"
-                >
-                  <CheckCircle2 size={15} /> Acknowledge Notice
-                </button>
-              )}
-
-              <button
-                onClick={() => navigate('/announcements')}
-                className="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-medium border border-white/10 transition"
-              >
-                All News <ChevronRight size={14} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 3. BENTO METRICS BAR */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Metric 1 */}
-        <div className="relative group overflow-hidden rounded-2xl border border-[#31436A] bg-[#1D2951] p-5 backdrop-blur-md hover:border-[#DC9750] hover:shadow-lg hover:shadow-[#DC9750]/15 transition-all duration-300">
-          <div className="flex items-center justify-between text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            <span>Active Tasks</span>
-            <div className="p-2 rounded-xl bg-[#DC9750]/10 border border-[#DC9750]/30 text-[#DC9750]">
-              <CheckSquare size={18} />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-white">{myTasks.length}</span>
-            <span className="text-xs text-slate-400">assigned to you</span>
-          </div>
-          <div className="mt-3 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-            <div className="bg-gradient-to-r
-                            from-[#C78645]
-                            via-[#DC9750]
-                            to-[#F2C27D] h-1.5 rounded-full" style={{ width: `${Math.min(myTasks.length * 10, 100)}%` }} />
-          </div>
-        </div>
-
-        {/* Metric 2 */}
-        <div className="relative group overflow-hidden rounded-2xl border border-white/10 bg-[#1D2951] p-5 backdrop-blur-md hover:border-[#DC9750] hover:shadow-lg hover:shadow-[#DC9750]/15 transition-all duration-300">
-          <div className="flex items-center justify-between text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            <span>Due Today</span>
-            <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
-              <Clock size={18} />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-amber-400">{myDueToday.length}</span>
-            <span className="text-xs text-slate-400">requires action</span>
-          </div>
-          <div className="mt-3 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-            <div className="bg-amber-400 h-1.5 rounded-full" style={{ width: myDueToday.length > 0 ? '100%' : '0%' }} />
-          </div>
-        </div>
-
-        {/* Metric 3 */}
-        <div className="relative group overflow-hidden rounded-2xl border border-white/10 bg-[#1D2951] p-5 backdrop-blur-md hover:border-emerald-500/40 transition-all duration-300">
-          <div className="flex items-center justify-between text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            <span>In Review</span>
-            <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-              <CheckCircle size={18} />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-emerald-400">{myPendingApproval.length}</span>
-            <span className="text-xs text-slate-400">awaiting signoff</span>
-          </div>
-          <div className="mt-3 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-            <div className="bg-emerald-400 h-1.5 rounded-full" style={{ width: myPendingApproval.length > 0 ? '100%' : '0%' }} />
-          </div>
-        </div>
-
-        {/* Metric 4 */}
-        <div className="relative group overflow-hidden rounded-2xl border border-white/10 bg-[#1D2951] p-5 backdrop-blur-md hover:border-rose-500/40 transition-all duration-300">
-          <div className="flex items-center justify-between text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            <span>Needs Revisions</span>
-            <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400">
-              <AlertTriangle size={18} />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-rose-400">{myRejected.length}</span>
-            <span className="text-xs text-slate-400">manager feedback</span>
-          </div>
-          <div className="mt-3 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-            <div className="bg-rose-500 h-1.5 rounded-full" style={{ width: myRejected.length > 0 ? '100%' : '0%' }} />
-          </div>
-        </div>
+        <button
+          onClick={() => navigate('/tasks')}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#dc9750] hover:bg-[#c4823f] text-[#0d101c] font-semibold text-xs sm:text-sm transition-colors"
+        >
+          <span>Workspace Tasks</span>
+          <ArrowUpRight size={16} />
+        </button>
       </div>
 
-      {/* 4. DUAL COLUMN WORKFLOW SECTION */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    </div>
+  </div>
 
-        {/* LEFT FOCUS: Interactive Task Feed (7 Cols) */}
-        <div className="lg:col-span-7 rounded-3xl border border-[#31436A] bg-[#1D2951] p-6 backdrop-blur-xl space-y-5 flex flex-col justify-between">
-          <div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
-              <div className="flex items-center gap-2">
-                <Sparkles size={18} className="text-indigo-400" />
-                <h2 className="text-lg font-bold text-white">Focus Action List</h2>
-              </div>
+  {/* 2. ANNOUNCEMENT BANNER */}
+  {!announcementLoading && latestAnnouncement && (
+    <div className="rounded-xl border border-[#1e2640] bg-[#1e2640]/40 p-4 transition-colors hover:border-[#dc9750]/50">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        
+        <div className="flex items-start gap-3.5">
+          <div className="p-2.5 rounded-lg bg-[#dc9750]/10 border border-[#dc9750]/20 text-[#dc9750] shrink-0">
+            <Megaphone size={20} />
+          </div>
 
-              {/* Filter Pills */}
-              <div className="flex items-center gap-1 rounded-xl bg-slate-950 p-1 border border-[#31436A]">
-                {['All', 'Today', 'This Week', 'Overdue'].map(tab => (
-                  <button
-                    key={tab}
-                    onClick={() => setFilter(tab)}
-                    className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${filter === tab
-                        ? 'bg-[#DC9750] text-white shadow-md shadow-indigo-600/30'
-                        : 'text-slate-400 hover:text-white hover:bg-white/5'
-                      }`}
-                  >
-                    {tab}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Task Items Stream */}
-            <div className="mt-4 space-y-2.5">
-              {filteredTasks.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center text-slate-400 border border-dashed border-white/10 rounded-2xl">
-                  <CheckCircle size={36} className="text-emerald-400/60 mb-2" />
-                  <p className="text-sm font-medium text-slate-300">All caught up!</p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {filter === 'All'
-                      ? 'No outstanding tasks waiting for your action.'
-                      : `No tasks matched filter "${filter}".`}
-                  </p>
-                </div>
-              ) : (
-                filteredTasks.map(task => {
-                  const isOverdue = new Date(task.dueDate) < new Date() && task.status !== 'Approved';
-                  return (
-                    <div
-                      key={task._id}
-                      onClick={() => navigate(`/tasks/${task._id}`)}
-                      className="group flex items-center justify-between rounded-2xl border border-white/5 bg-[#243457] p-4 hover:bg-[#2A3B63] hover:border-[#DC9750] cursor-pointer transition-all duration-200 shadow-sm"
-                    >
-                      <div className="flex items-center gap-3.5">
-                        <div className={`w-2.5 h-2.5 rounded-full ${isOverdue ? 'bg-rose-500 shadow-sm shadow-rose-500' : 'bg-indigo-400'}`} />
-                        <div>
-                          <p className="text-sm font-semibold text-slate-200 group-hover:text-indigo-300 transition-colors">
-                            {task.title}
-                          </p>
-                          <span className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
-                            <Clock size={11} className={isOverdue ? 'text-rose-400' : 'text-slate-500'} />
-                            <span className={isOverdue ? 'text-rose-400 font-medium' : ''}>
-                              Due: {new Date(task.dueDate).toLocaleDateString()}
-                            </span>
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-slate-400 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5 opacity-0 group-hover:opacity-100 transition-opacity">
-                          Open
-                        </span>
-                        <div className="p-1.5 rounded-lg bg-white/5 text-slate-400 group-hover:text-white group-hover:bg-[#DC9750] transition-all">
-                          <ArrowRight size={14} />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              {latestAnnouncement.pinned && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 uppercase">
+                  <Pin size={10} /> Pinned
+                </span>
               )}
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-white/5 flex items-center justify-between text-xs text-slate-400">
-            <span>Showing {filteredTasks.length} action items</span>
-            <button onClick={() => navigate('/tasks')} className="text-indigo-400 hover:underline">
-              View All Tasks &rarr;
-            </button>
-          </div>
-        </div>
-
-        {/* RIGHT FOCUS: Feedback & Revisions Stream (5 Cols) */}
-        <div className="lg:col-span-5 rounded-3xl border border-[#31436A] bg-[#1D2951] p-6 backdrop-blur-xl space-y-4 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between border-b border-white/5 pb-4">
-              <div className="flex items-center gap-2">
-                <ShieldAlert size={18} className="text-rose-400" />
-                <h2 className="text-lg font-bold text-white">Manager Feedback Stream</h2>
-              </div>
-              <span className="text-xs text-slate-400 font-medium bg-rose-500/10 text-rose-400 px-2.5 py-0.5 rounded-full border border-rose-500/20">
-                {myRejected.length} pending
+              <span className={`px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${categoryStyle[latestAnnouncement.category] || categoryStyle['General News']}`}>
+                {latestAnnouncement.category}
+              </span>
+              <span className="text-xs text-slate-400 flex items-center gap-1">
+                <Calendar size={12} /> {new Date(latestAnnouncement.createdAt).toLocaleDateString()}
               </span>
             </div>
 
-            <div className="mt-4 space-y-3">
-              {myRejected.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center text-slate-400 border border-dashed border-white/10 rounded-2xl">
-                  <CheckCircle size={36} className="text-emerald-400/60 mb-2" />
-                  <p className="text-sm font-semibold text-slate-200">Clear Records</p>
-                  <p className="text-xs text-slate-500 mt-1">No tasks returned for edit. Great quality work!</p>
-                </div>
-              ) : (
-                myRejected.map(task => (
-                  <div
-                    key={task._id}
-                    onClick={() => navigate(`/tasks/${task._id}`)}
-                    className="group rounded-2xl border border-[#DC9750]/30 bg-[#243457] p-4 space-y-2.5 cursor-pointer hover:bg-[#2A3B63] hover:border-[#DC9750] transition-all duration-200"
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-bold text-slate-100 group-hover:text-rose-300 transition-colors">
-                        {task.title}
-                      </p>
-                      <span className="text-[10px] font-bold text-rose-400 bg-rose-500/20 px-2 py-0.5 rounded uppercase tracking-wider">
-                        Revision Needed
-                      </span>
-                    </div>
-
-                    <div className="flex items-start gap-2.5 text-xs text-rose-200 bg-slate-950/60 p-3 rounded-xl border border-rose-500/20">
-                      <MessageSquare size={15} className="shrink-0 text-rose-400 mt-0.5" />
-                      <p className="italic leading-relaxed">"{task.feedback || 'Please review and resubmit changes.'}"</p>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+            <h3 className="text-sm font-bold text-white">
+              {latestAnnouncement.title}
+            </h3>
+            <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">
+              {latestAnnouncement.body}
+            </p>
           </div>
+        </div>
 
-          <div className="pt-4 border-t border-white/5 text-xs text-[#C9C2B8] text-center">
-            Click on any item to view details & submit revisions
-          </div>
+        <div className="flex items-center gap-2 shrink-0 self-end lg:self-center">
+          {hasAcknowledged(latestAnnouncement) ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold">
+              <CheckCircle2 size={14} /> Acknowledged
+            </span>
+          ) : (
+            <button
+              onClick={() => acknowledge(latestAnnouncement._id)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#dc9750] hover:bg-[#c4823f] text-[#0d101c] text-xs font-bold transition-colors"
+            >
+              <CheckCircle2 size={14} /> Acknowledge
+            </button>
+          )}
+
+          <button
+            onClick={() => navigate('/announcements')}
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#0d101c] hover:bg-[#141a2e] text-slate-300 text-xs font-medium border border-[#1e2640] transition-colors"
+          >
+            All News <ChevronRight size={14} />
+          </button>
         </div>
 
       </div>
     </div>
+  )}
+
+  {/* 3. METRICS BAR */}
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    {/* Active Tasks */}
+    <div className="rounded-xl border border-[#1e2640] bg-[#1e2640]/40 p-4 hover:border-[#dc9750]/50 transition-colors">
+      <div className="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase">
+        <span>Active Tasks</span>
+        <div className="p-2 rounded-lg bg-[#dc9750]/10 border border-[#dc9750]/20 text-[#dc9750]">
+          <CheckSquare size={16} />
+        </div>
+      </div>
+      <div className="mt-3 flex items-baseline gap-2">
+        <span className="text-2xl font-bold text-white">{myTasks.length}</span>
+        <span className="text-xs text-slate-400">assigned to you</span>
+      </div>
+      <div className="mt-3 w-full bg-[#0d101c] rounded-full h-1.5 overflow-hidden">
+        <div className="bg-[#dc9750] h-1.5 rounded-full" style={{ width: `${Math.min(myTasks.length * 10, 100)}%` }} />
+      </div>
+    </div>
+
+    {/* Due Today */}
+    <div className="rounded-xl border border-[#1e2640] bg-[#1e2640]/40 p-4 hover:border-amber-500/40 transition-colors">
+      <div className="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase">
+        <span>Due Today</span>
+        <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
+          <Clock size={16} />
+        </div>
+      </div>
+      <div className="mt-3 flex items-baseline gap-2">
+        <span className="text-2xl font-bold text-amber-400">{myDueToday.length}</span>
+        <span className="text-xs text-slate-400">requires action</span>
+      </div>
+      <div className="mt-3 w-full bg-[#0d101c] rounded-full h-1.5 overflow-hidden">
+        <div className="bg-amber-400 h-1.5 rounded-full" style={{ width: myDueToday.length > 0 ? '100%' : '0%' }} />
+      </div>
+    </div>
+
+    {/* In Review */}
+    <div className="rounded-xl border border-[#1e2640] bg-[#1e2640]/40 p-4 hover:border-emerald-500/40 transition-colors">
+      <div className="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase">
+        <span>In Review</span>
+        <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+          <CheckCircle size={16} />
+        </div>
+      </div>
+      <div className="mt-3 flex items-baseline gap-2">
+        <span className="text-2xl font-bold text-emerald-400">{myPendingApproval.length}</span>
+        <span className="text-xs text-slate-400">awaiting signoff</span>
+      </div>
+      <div className="mt-3 w-full bg-[#0d101c] rounded-full h-1.5 overflow-hidden">
+        <div className="bg-emerald-400 h-1.5 rounded-full" style={{ width: myPendingApproval.length > 0 ? '100%' : '0%' }} />
+      </div>
+    </div>
+
+    {/* Revisions */}
+    <div className="rounded-xl border border-[#1e2640] bg-[#1e2640]/40 p-4 hover:border-rose-500/40 transition-colors">
+      <div className="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase">
+        <span>Needs Revisions</span>
+        <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400">
+          <AlertTriangle size={16} />
+        </div>
+      </div>
+      <div className="mt-3 flex items-baseline gap-2">
+        <span className="text-2xl font-bold text-rose-400">{myRejected.length}</span>
+        <span className="text-xs text-slate-400">manager feedback</span>
+      </div>
+      <div className="mt-3 w-full bg-[#0d101c] rounded-full h-1.5 overflow-hidden">
+        <div className="bg-rose-500 h-1.5 rounded-full" style={{ width: myRejected.length > 0 ? '100%' : '0%' }} />
+      </div>
+    </div>
+  </div>
+
+  {/* 4. WORKFLOW GRID */}
+  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    {/* LEFT COLUMN: Focus Action List */}
+    <div className="lg:col-span-7 rounded-2xl border border-[#1e2640] bg-[#1e2640]/40 p-5 space-y-4 flex flex-col justify-between">
+      <div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1e2640] pb-3">
+          <div className="flex items-center gap-2">
+            <Sparkles size={16} className="text-[#dc9750]" />
+            <h2 className="text-base font-bold text-white">Focus Action List</h2>
+          </div>
+
+          {/* Filters */}
+          <div className="flex items-center gap-1 rounded-lg bg-[#0d101c] p-1 border border-[#1e2640]">
+            {['All', 'Today', 'This Week', 'Overdue'].map(tab => (
+              <button
+                key={tab}
+                onClick={() => setFilter(tab)}
+                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+                  filter === tab
+                    ? 'bg-[#dc9750] text-[#0d101c] font-bold'
+                    : 'text-slate-400 hover:text-white hover:bg-[#1e2640]'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Task List */}
+        <div className="mt-4 space-y-2">
+          {filteredTasks.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center text-slate-400 border border-dashed border-[#1e2640] rounded-xl">
+              <CheckCircle size={32} className="text-emerald-400 mb-2" />
+              <p className="text-sm font-medium text-slate-300">All caught up!</p>
+              <p className="text-xs text-slate-500 mt-1">
+                {filter === 'All'
+                  ? 'No outstanding tasks waiting for your action.'
+                  : `No tasks matched filter "${filter}".`}
+              </p>
+            </div>
+          ) : (
+            filteredTasks.map(task => {
+              const isOverdue = new Date(task.dueDate) < new Date() && task.status !== 'Approved';
+              return (
+                <div
+                  key={task._id}
+                  onClick={() => navigate(`/tasks/${task._id}`)}
+                  className="group flex items-center justify-between rounded-xl border border-[#1e2640] bg-[#141a2e] p-3.5 hover:border-[#dc9750] cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full ${isOverdue ? 'bg-rose-500' : 'bg-[#dc9750]'}`} />
+                    <div>
+                      <p className="text-sm font-semibold text-slate-200 group-hover:text-[#dc9750] transition-colors">
+                        {task.title}
+                      </p>
+                      <span className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+                        <Clock size={11} className={isOverdue ? 'text-rose-400' : 'text-slate-500'} />
+                        <span className={isOverdue ? 'text-rose-400 font-medium' : ''}>
+                          Due: {new Date(task.dueDate).toLocaleDateString()}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="p-1 rounded-md text-slate-400 group-hover:text-[#0d101c] group-hover:bg-[#dc9750] transition-colors">
+                      <ArrowRight size={14} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      <div className="pt-3 border-t border-[#1e2640] flex items-center justify-between text-xs text-slate-400">
+        <span>Showing {filteredTasks.length} items</span>
+        <button onClick={() => navigate('/tasks')} className="text-[#dc9750] hover:underline font-medium">
+          View All Tasks &rarr;
+        </button>
+      </div>
+    </div>
+
+    {/* RIGHT COLUMN: Feedback Stream */}
+    <div className="lg:col-span-5 rounded-2xl border border-[#1e2640] bg-[#1e2640]/40 p-5 space-y-4 flex flex-col justify-between">
+      <div>
+        <div className="flex items-center justify-between border-b border-[#1e2640] pb-3">
+          <div className="flex items-center gap-2">
+            <ShieldAlert size={16} className="text-rose-400" />
+            <h2 className="text-base font-bold text-white">Manager Feedback</h2>
+          </div>
+          <span className="text-xs font-semibold bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded border border-rose-500/20">
+            {myRejected.length} pending
+          </span>
+        </div>
+
+        <div className="mt-4 space-y-2.5">
+          {myRejected.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center text-slate-400 border border-dashed border-[#1e2640] rounded-xl">
+              <CheckCircle size={32} className="text-emerald-400 mb-2" />
+              <p className="text-sm font-semibold text-slate-200">Clear Records</p>
+              <p className="text-xs text-slate-500 mt-1">No tasks returned for edit.</p>
+            </div>
+          ) : (
+            myRejected.map(task => (
+              <div
+                key={task._id}
+                onClick={() => navigate(`/tasks/${task._id}`)}
+                className="group rounded-xl border border-[#1e2640] bg-[#141a2e] p-3.5 space-y-2 cursor-pointer hover:border-[#dc9750] transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-bold text-slate-200 group-hover:text-rose-400 transition-colors">
+                    {task.title}
+                  </p>
+                  <span className="text-[10px] font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20 uppercase">
+                    Revision
+                  </span>
+                </div>
+
+                <div className="flex items-start gap-2 text-xs text-slate-300 bg-[#0d101c] p-2.5 rounded-lg border border-[#1e2640]">
+                  <MessageSquare size={14} className="shrink-0 text-rose-400 mt-0.5" />
+                  <p className="italic leading-relaxed">"{task.feedback || 'Please review and resubmit changes.'}"</p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      <div className="pt-3 border-t border-[#1e2640] text-xs text-slate-400 text-center">
+        Click any task to review and submit revisions
+      </div>
+    </div>
+
+  </div>
+</div>
   );
 };
 
