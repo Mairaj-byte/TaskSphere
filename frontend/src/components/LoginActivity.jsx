@@ -80,236 +80,237 @@ const LoginActivity = () => {
   };
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#0d1426]/70 p-3 sm:p-6 backdrop-blur-md space-y-5">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h2 className="font-heading text-base sm:text-lg font-semibold text-white">
-            Login Activity Logs
-          </h2>
-          <p className="text-xs sm:text-sm text-gray-400">
-            Monitor authentication history and active session records.
-          </p>
-        </div>
+    <div className="rounded-2xl border border-[#1e2640] bg-[#1e2640]/40 p-4 sm:p-6 space-y-5">
+  
+  {/* Header */}
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
+        Login Activity Logs
+      </h2>
+      <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+        Monitor authentication history and active session records.
+      </p>
+    </div>
 
-        <button
-          onClick={handleClear}
-          className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs sm:text-sm font-medium transition-all w-full sm:w-auto"
-        >
-          <Trash2 size={16} />
-          Clear Activity
-        </button>
-      </div>
+    <button
+      onClick={handleClear}
+      className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs sm:text-sm font-semibold transition-colors w-full sm:w-auto shrink-0"
+    >
+      <Trash2 size={16} />
+      <span>Clear Activity</span>
+    </button>
+  </div>
 
-      {/* Search & Filter Bar */}
-      <form onSubmit={handleSearch} className="flex flex-col sm:grid sm:grid-cols-12 gap-2.5">
-        <div className="sm:col-span-6 relative">
-          <input
-            type="text"
-            placeholder="Search by user or email..."
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+  {/* Search & Filter Bar */}
+  <form onSubmit={handleSearch} className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+    <div className="sm:col-span-6 relative">
+      <input
+        type="text"
+        placeholder="Search by user or email..."
+        className="w-full rounded-lg border border-[#1e2640] bg-[#0d101c] px-3.5 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#dc9750] transition-colors"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+    </div>
 
-        <div className="sm:col-span-3">
-          <select
-            className="w-full rounded-xl border border-white/10 bg-[#0d1426] px-3 py-2.5 text-xs sm:text-sm text-gray-300 focus:outline-none focus:border-indigo-500 transition"
-            value={action}
-            onChange={(e) => setAction(e.target.value)}
-          >
-            <option value="">All Actions</option>
-            <option value="login">Login</option>
-            <option value="logout">Logout</option>
-          </select>
-        </div>
+    <div className="sm:col-span-3">
+      <select
+        className="w-full rounded-lg border border-[#1e2640] bg-[#0d101c] px-3 py-2 text-xs sm:text-sm text-slate-300 focus:outline-none focus:border-[#dc9750] transition-colors"
+        value={action}
+        onChange={(e) => setAction(e.target.value)}
+      >
+        <option value="">All Actions</option>
+        <option value="login">Login</option>
+        <option value="logout">Logout</option>
+      </select>
+    </div>
 
-        <div className="sm:col-span-3">
-          <button
-            type="submit"
-            className="w-full rounded-xl bg-[#dc9750] hover:bg-[#b97737] px-4 py-2.5 text-xs sm:text-sm font-semibold text-white flex items-center justify-center gap-2 transition"
-          >
-            <Search size={16} />
-            Filter
-          </button>
-        </div>
-      </form>
+    <div className="sm:col-span-3">
+      <button
+        type="submit"
+        className="w-full rounded-lg bg-[#dc9750] hover:bg-[#c4823f] px-4 py-2 text-xs sm:text-sm font-bold text-[#0d101c] flex items-center justify-center gap-2 transition-colors"
+      >
+        <Search size={16} />
+        <span>Filter</span>
+      </button>
+    </div>
+  </form>
 
-      {/* Desktop / Laptop View Table */}
-      <div className="hidden md:block overflow-x-auto rounded-xl border border-white/10">
-        <table className="w-full text-left text-xs">
-          <thead className="bg-white/5 text-gray-400 border-b border-white/10 uppercase tracking-wider">
-            <tr>
-              <th className="p-3.5">User</th>
-              <th className="p-3.5">Action</th>
-              <th className="p-3.5">Provider</th>
-              <th className="p-3.5">IP Address</th>
-              <th className="p-3.5">Login Time</th>
-              <th className="p-3.5">Logout Time</th>
-            </tr>
-          </thead>
+  {/* Desktop Table View */}
+  <div className="hidden md:block overflow-x-auto rounded-xl border border-[#1e2640] bg-[#0d101c]">
+    <table className="w-full text-left text-xs">
+      <thead className="bg-[#141a2e] text-slate-400 border-b border-[#1e2640] uppercase tracking-wider font-semibold">
+        <tr>
+          <th className="p-3.5">User</th>
+          <th className="p-3.5">Action</th>
+          <th className="p-3.5">Provider</th>
+          <th className="p-3.5">IP Address</th>
+          <th className="p-3.5">Login Time</th>
+          <th className="p-3.5">Logout Time</th>
+        </tr>
+      </thead>
 
-          <tbody className="divide-y divide-white/5 text-gray-300">
-            {loading ? (
-              <tr>
-                <td colSpan="6" className="text-center py-8">
-                  <Loader2 className="animate-spin mx-auto text-indigo-400" size={24} />
-                </td>
-              </tr>
-            ) : currentActivities.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="text-center py-8 text-gray-500">
-                  No activity history found.
-                </td>
-              </tr>
-            ) : (
-              currentActivities.map((item) => (
-                <tr key={item._id} className="hover:bg-white/[0.02] transition">
-                  <td className="p-3.5">
-                    <p className="font-medium text-white">{item.name}</p>
-                    <p className="text-[10px] text-gray-400">{item.email}</p>
-                  </td>
-
-                  <td className="p-3.5">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium border ${
-                        item.action === "login"
-                          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                          : "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                      }`}
-                    >
-                      {item.action === "login" ? <LogIn size={13} /> : <LogOut size={13} />}
-                      <span className="capitalize">{item.action}</span>
-                    </span>
-                  </td>
-
-                  <td className="p-3.5 capitalize text-gray-400">{item.loginProvider || "Password"}</td>
-
-                  <td className="p-3.5 font-mono text-gray-400">{item.ipAddress || "—"}</td>
-
-                  <td className="p-3.5">
-                    {item.loginTime ? new Date(item.loginTime).toLocaleString() : "—"}
-                  </td>
-
-                  <td className="p-3.5">
-                    {item.logoutTime ? new Date(item.logoutTime).toLocaleString() : "—"}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Fully Enhanced Mobile Card Layout */}
-      <div className="block md:hidden space-y-3">
+      <tbody className="divide-y divide-[#1e2640] text-slate-300">
         {loading ? (
-          <div className="py-8 text-center">
-            <Loader2 className="animate-spin mx-auto text-indigo-400" size={24} />
-          </div>
+          <tr>
+            <td colSpan="6" className="text-center py-8">
+              <Loader2 className="animate-spin mx-auto text-[#dc9750]" size={24} />
+            </td>
+          </tr>
         ) : currentActivities.length === 0 ? (
-          <p className="text-center py-6 text-xs text-gray-500">No activity history found.</p>
+          <tr>
+            <td colSpan="6" className="text-center py-8 text-slate-500">
+              No activity history found.
+            </td>
+          </tr>
         ) : (
           currentActivities.map((item) => (
-            <div
-              key={item._id}
-              className="rounded-xl border border-white/10 bg-white/5 p-3.5 space-y-3 text-xs"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="font-medium text-white truncate">{item.name}</p>
-                  <p className="text-[11px] text-gray-400 truncate">{item.email}</p>
-                </div>
+            <tr key={item._id} className="hover:bg-[#141a2e]/50 transition-colors">
+              <td className="p-3.5">
+                <p className="font-semibold text-white">{item.name}</p>
+                <p className="text-[10px] text-slate-400">{item.email}</p>
+              </td>
+
+              <td className="p-3.5">
                 <span
-                  className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium border ${
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold border ${
                     item.action === "login"
                       ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                       : "bg-rose-500/10 text-rose-400 border-rose-500/20"
                   }`}
                 >
-                  {item.action === "login" ? <LogIn size={12} /> : <LogOut size={12} />}
+                  {item.action === "login" ? <LogIn size={13} /> : <LogOut size={13} />}
                   <span className="capitalize">{item.action}</span>
                 </span>
-              </div>
+              </td>
 
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5 text-[11px]">
-                <div>
-                  <span className="block text-[10px] text-gray-500">IP Address</span>
-                  <span className="font-mono text-gray-300">{item.ipAddress || "—"}</span>
-                </div>
-                <div>
-                  <span className="block text-[10px] text-gray-500">Provider</span>
-                  <span className="text-gray-300 capitalize">{item.loginProvider || "Password"}</span>
-                </div>
-              </div>
+              <td className="p-3.5 capitalize text-slate-400">{item.loginProvider || "Password"}</td>
 
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5 text-[11px]">
-                <div>
-                  <span className="block text-[10px] text-gray-500">Login Time</span>
-                  <span className="text-gray-300">
-                    {item.loginTime ? new Date(item.loginTime).toLocaleString() : "—"}
-                  </span>
-                </div>
-                <div>
-                  <span className="block text-[10px] text-gray-500">Logout Time</span>
-                  <span className="text-gray-300">
-                    {item.logoutTime ? new Date(item.logoutTime).toLocaleString() : "—"}
-                  </span>
-                </div>
-              </div>
-            </div>
+              <td className="p-3.5 font-mono text-slate-400">{item.ipAddress || "—"}</td>
+
+              <td className="p-3.5">
+                {item.loginTime ? new Date(item.loginTime).toLocaleString() : "—"}
+              </td>
+
+              <td className="p-3.5">
+                {item.logoutTime ? new Date(item.logoutTime).toLocaleString() : "—"}
+              </td>
+            </tr>
           ))
         )}
-      </div>
+      </tbody>
+    </table>
+  </div>
 
-      {/* Pagination Controls */}
-      {!loading && activities.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-white/10 text-xs text-gray-400">
-          <div className="text-center sm:text-left">
-            Showing <span className="text-white font-medium">{startIndex + 1}</span> to{" "}
-            <span className="text-white font-medium">
-              {Math.min(startIndex + itemsPerPage, activities.length)}
-            </span>{" "}
-            of <span className="text-white font-medium">{activities.length}</span> entries
+  {/* Mobile Card Layout */}
+  <div className="block md:hidden space-y-3">
+    {loading ? (
+      <div className="py-8 text-center">
+        <Loader2 className="animate-spin mx-auto text-[#dc9750]" size={24} />
+      </div>
+    ) : currentActivities.length === 0 ? (
+      <p className="text-center py-6 text-xs text-slate-500">No activity history found.</p>
+    ) : (
+      currentActivities.map((item) => (
+        <div
+          key={item._id}
+          className="rounded-xl border border-[#1e2640] bg-[#141a2e] p-3.5 space-y-3 text-xs"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="font-semibold text-white truncate">{item.name}</p>
+              <p className="text-[11px] text-slate-400 truncate">{item.email}</p>
+            </div>
+            <span
+              className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border uppercase ${
+                item.action === "login"
+                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                  : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+              }`}
+            >
+              {item.action === "login" ? <LogIn size={12} /> : <LogOut size={12} />}
+              <span>{item.action}</span>
+            </span>
           </div>
 
-          <div className="flex items-center gap-1 overflow-x-auto max-w-full pb-1 sm:pb-0">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="p-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition text-white shrink-0"
-              title="Previous Page"
-            >
-              <ChevronLeft size={16} />
-            </button>
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#1e2640] text-[11px]">
+            <div>
+              <span className="block text-[10px] text-slate-500 font-medium">IP Address</span>
+              <span className="font-mono text-slate-300">{item.ipAddress || "—"}</span>
+            </div>
+            <div>
+              <span className="block text-[10px] text-slate-500 font-medium">Provider</span>
+              <span className="text-slate-300 capitalize">{item.loginProvider || "Password"}</span>
+            </div>
+          </div>
 
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => handlePageChange(page)}
-                className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition shrink-0 ${
-                  currentPage === page
-                    ? "bg-indigo-600 border-indigo-500 text-white"
-                    : "border-white/10 bg-white/5 hover:bg-white/10 text-gray-300"
-                }`}
-              >
-                {page}
-              </button>
-            ))}
-
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="p-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition text-white shrink-0"
-              title="Next Page"
-            >
-              <ChevronRight size={16} />
-            </button>
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#1e2640] text-[11px]">
+            <div>
+              <span className="block text-[10px] text-slate-500 font-medium">Login Time</span>
+              <span className="text-slate-300">
+                {item.loginTime ? new Date(item.loginTime).toLocaleString() : "—"}
+              </span>
+            </div>
+            <div>
+              <span className="block text-[10px] text-slate-500 font-medium">Logout Time</span>
+              <span className="text-slate-300">
+                {item.logoutTime ? new Date(item.logoutTime).toLocaleString() : "—"}
+              </span>
+            </div>
           </div>
         </div>
-      )}
+      ))
+    )}
+  </div>
+
+  {/* Pagination Controls */}
+  {!loading && activities.length > 0 && (
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-[#1e2640] text-xs text-slate-400">
+      <div className="text-center sm:text-left">
+        Showing <span className="text-white font-semibold">{startIndex + 1}</span> to{" "}
+        <span className="text-white font-semibold">
+          {Math.min(startIndex + itemsPerPage, activities.length)}
+        </span>{" "}
+        of <span className="text-white font-semibold">{activities.length}</span> entries
+      </div>
+
+      <div className="flex items-center gap-1 overflow-x-auto max-w-full pb-1 sm:pb-0">
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="p-1.5 rounded-lg border border-[#1e2640] bg-[#0d101c] hover:bg-[#141a2e] disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-slate-200 shrink-0"
+          title="Previous Page"
+        >
+          <ChevronLeft size={16} />
+        </button>
+
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button
+            key={page}
+            onClick={() => handlePageChange(page)}
+            className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors shrink-0 ${
+              currentPage === page
+                ? "bg-[#dc9750] border-[#dc9750] text-[#0d101c]"
+                : "border-[#1e2640] bg-[#0d101c] hover:bg-[#141a2e] text-slate-300"
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="p-1.5 rounded-lg border border-[#1e2640] bg-[#0d101c] hover:bg-[#141a2e] disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-slate-200 shrink-0"
+          title="Next Page"
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
     </div>
+  )}
+</div>
   );
 };
 
