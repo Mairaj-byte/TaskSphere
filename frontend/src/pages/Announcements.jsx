@@ -255,7 +255,7 @@ const Announcements = () => {
       {isAdmin && (
         <button
           onClick={() => { resetForm(); setIsModalOpen(true); }}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-white text-sm font-medium rounded-xl shadow-sm hover:shadow transition-all active:scale-[0.98]"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#dc9750] hover:bg-[#b97737] text-white text-sm font-medium rounded-xl shadow-sm hover:shadow transition-all active:scale-[0.98]"
         >
           <Plus size={18} className="text-white" />
           <span>Post Announcement</span>

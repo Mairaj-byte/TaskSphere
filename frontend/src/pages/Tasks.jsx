@@ -530,8 +530,8 @@ const Tasks = () => {
             </button>
             <button
               onClick={openCreateModal}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-yellow-500
-                hover:bg-yellow-600
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#dc9750]
+                hover:bg-[#b97737]
                 shadow-lg text-white text-sm font-medium rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
               <Plus size={18} />
@@ -774,8 +774,8 @@ const Tasks = () => {
               <div
                 key={task._id}
                 onClick={() => navigate(`/tasks/${task._id}`)}
-                className={`group relative bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 hover:border-yellow-400 dark:hover:border-yellow-500 rounded-2xl p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden ${
-                  isOverdue ? 'border-l-4 border-l-rose-500' : 'border-l-4 border-l-yellow-500'
+                className={`group relative bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 over:border-[#dc9750] dark:hover:border-[#b97737] rounded-2xl p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden ${
+                  isOverdue ? 'border-l-4 border-l-rose-500' : 'border-l-4 border-l-[#dc9750]'
                 }`}
               >
                 <div>
@@ -793,7 +793,7 @@ const Tasks = () => {
                         )}
                       </button>
                     )}
-                    <span className="text-[11px] font-semibold text-yellow-600 dark:text-yellow-400 truncate uppercase tracking-wide">
+                    <span className="text-[11px] font-semibold text-[#dc9750] dark:text-[#b97737] truncate uppercase tracking-wide">
                       {task.assignedTo?.length > 0
                         ? task.assignedTo.map((u) => u.name).join(', ')
                         : 'Unassigned'}
@@ -931,7 +931,7 @@ const Tasks = () => {
                         {task.assignedTo.map((u) => (
                           <div
                             key={u._id}
-                            className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-500 text-white text-[10px] font-bold border-2 border-white dark:border-slate-900"
+                            className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#dc9750] text-white text-[10px] font-bold border-2 border-white dark:border-slate-900"
                             title={u.name}
                           >
                             {u.name.charAt(0).toUpperCase()}
