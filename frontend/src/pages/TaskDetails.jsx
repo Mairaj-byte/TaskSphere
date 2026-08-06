@@ -421,7 +421,7 @@ const TaskDetails = () => {
               />
               <button
                 type="submit"
-                className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-[#dc9750] hover:bg-[#b97737] rounded-xl shadow-sm transition-colors"
               >
                 <span>Post</span>
                 <Send size={14} />

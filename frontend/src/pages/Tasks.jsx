@@ -1300,11 +1300,7 @@ const Tasks = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold bg-gradient-to-r
-                  from-violet-600
-                  to-indigo-600
-                  hover:from-violet-500
-                  hover:to-indigo-500
+                  className="px-4 py-2 text-xs font-semibold bg-[#dc9750] hover:bg-[#b97737]
                   shadow-lg text-white rounded-lg transition-colors shadow-sm"
                 >
                   {modalMode === 'create' ? 'Create Task' : 'Save Changes'}
@@ -1384,11 +1380,7 @@ const Tasks = () => {
               <button
                 onClick={handleBulkAssign}
                 disabled={!bulkAssignUserId || bulkAssignLoading}
-                className="px-4 py-2 text-xs font-semibold bg-gradient-to-r
-                from-violet-600
-                to-indigo-600
-                hover:from-violet-500
-                hover:to-indigo-500
+                className="px-4 py-2 text-xs font-semibold bg-[#dc9750] hover:bg-[#b97737]
                 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors shadow-sm"
               >
                 {bulkAssignLoading ? 'Assigning...' : 'Confirm Assignment'}
@@ -1541,11 +1533,7 @@ const Tasks = () => {
                 type="button"
                 onClick={handleBulkCreateSubmit}
                 disabled={bulkCreateLoading}
-                className="px-4 py-2 text-xs font-semibold bg-gradient-to-r
-                  from-violet-600
-                  to-indigo-600
-                  hover:from-violet-500
-                  hover:to-indigo-500
+                className="px-4 py-2 text-xs font-semibold bg-[#dc9750] hover:bg-[#b97737]
                   shadow-lg disabled:opacity-50 text-white rounded-lg transition-colors shadow-sm"
               >
                 {bulkCreateLoading
