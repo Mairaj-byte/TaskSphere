@@ -366,7 +366,7 @@ const TaskDetails = () => {
                 <div className="flex flex-wrap gap-2">
                   {task.assignedTo.map(u => (
                     <div key={u._id} className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200">
-                      <span className="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] font-bold uppercase">
+                      <span className="w-5 h-5 rounded-full bg-[#dc9750] text-white flex items-center justify-center text-[10px] font-bold uppercase">
                         {u.name.charAt(0)}
                       </span>
                       <span>{u.name}</span>
@@ -380,7 +380,7 @@ const TaskDetails = () => {
           {/* Discussion / Comments Section */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
-              <MessageSquare size={20} className="text-indigo-600 dark:text-indigo-400" />
+              <MessageSquare size={20} className="text-indigo-600 dark:text-[#dc9750]" />
               <span>Discussion ({comments.length})</span>
             </h3>
 
@@ -391,7 +391,7 @@ const TaskDetails = () => {
               ) : (
                 comments.map(c => (
                   <div key={c._id} className="flex gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-500 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#dc9750] to-[#b97737] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
                       {c.userId?.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-xl p-3.5 space-y-1">
@@ -433,7 +433,7 @@ const TaskDetails = () => {
         {/* Right Column: Audit Trail / History */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-sm">
           <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4 mb-6">
-            <History size={20} className="text-indigo-600 dark:text-indigo-400" />
+            <History size={20} className="text-indigo-600 dark:text-[#dc9750]" />
             <span>Audit Trail / History</span>
           </h3>
 
@@ -444,7 +444,7 @@ const TaskDetails = () => {
               history.map((log) => (
                 <div key={log._id} className="relative group">
                   {/* Timeline Dot */}
-                  <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-indigo-600 ring-4 ring-white dark:ring-slate-900" />
+                  <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-[#dc9750] ring-4 ring-white dark:ring-slate-900" />
 
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 text-xs text-slate-400">
