@@ -1439,16 +1439,15 @@ const Tasks = () => {
                 <div className="space-y-3">
                   {bulkCreateTasks.map((row, index) => (
                     <div key={index} className="flex flex-col gap-2 p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-800/20">
-                      <div className="flex flex-col sm:flex-row gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1.2fr_auto] gap-2 items-center">
                         <input
-
                           type="text"
                           placeholder="Task title"
                           value={row.title}
                           onChange={(e) =>
                             updateBulkTaskRow(index, "title", e.target.value)
                           }
-                          className="flex-1 px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                          className="w-full min-w-0 px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
                         />
 
                         <select
@@ -1456,7 +1455,7 @@ const Tasks = () => {
                           onChange={(e) =>
                             updateBulkTaskRow(index, "priority", e.target.value)
                           }
-                          className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                          className="w-full min-w-0 px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
                         >
                           <option value="Low">Low</option>
                           <option value="Medium">Medium</option>
@@ -1465,13 +1464,12 @@ const Tasks = () => {
                         </select>
 
                         {/* STATUS DROPDOWN */}
-
                         <select
                           value={row.status}
                           onChange={(e) =>
                             updateBulkTaskRow(index, "status", e.target.value)
                           }
-                          className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                          className="w-full min-w-0 px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
                         >
                           <option value="To Do">To Do</option>
                           <option value="In Progress">In Progress</option>
@@ -1489,13 +1487,14 @@ const Tasks = () => {
                           onChange={(e) =>
                             updateBulkTaskRow(index, "dueDate", e.target.value)
                           }
-                          className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                          className="w-full min-w-0 px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
                         />
+
                         {bulkCreateTasks.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeBulkTaskRow(index)}
-                            className="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                            className="justify-self-end sm:justify-self-center p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40"
                           >
                             <Trash2 size={16} />
                           </button>
