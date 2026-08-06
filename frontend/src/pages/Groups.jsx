@@ -194,7 +194,7 @@ const Groups = () => {
           {user?.role === "admin" && (
             <button
               onClick={() => setShowModal(true)}
-              className="inline-flex items-center justify-center rounded-xl bg-[#dc9750] px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-[#dc9750]/20 transition-all hover:bg-[#e3a35f] hover:shadow-[#dc9750]/40 active:scale-95 cursor-pointer"
+              className="inline-flex items-center justify-center rounded-xl bg-[#dc9750] text-slate-950 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-[#dc9750]/20 transition-all hover:bg-[#e3a35f] hover:shadow-[#dc9750]/40 active:scale-95 cursor-pointer"
             >
               <PlusIcon />
               Create Project

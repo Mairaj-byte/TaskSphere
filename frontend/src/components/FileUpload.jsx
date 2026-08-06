@@ -76,23 +76,25 @@ const FileUpload = ({ taskId, onUpload }) => {
         </div>
 
         <button
-          type="button"
-          onClick={handleChoose}
-          disabled={uploading}
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 shadow-lg shadow-blue-600/20"
-        >
-          {uploading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin text-white" />
-              <span>Uploading...</span>
-            </>
-          ) : (
-            <>
-              <Upload className="h-4 w-4" />
-              <span>Upload File</span>
-            </>
-          )}
-        </button>
+  type="button"
+  onClick={handleChoose}
+  disabled={uploading}
+  className="inline-flex items-center gap-2 rounded-lg bg-[#dc9750] px-4 py-2 text-sm font-medium text-white transition-all hover:bg-[#c4803d] focus:outline-none focus:ring-2 focus:ring-[#dc9750]/40 disabled:cursor-not-allowed disabled:opacity-50 shadow-lg shadow-[#dc9750]/20"
+>
+  {uploading ? (
+    <>
+      <Loader2 className="h-4 w-4 animate-spin text-white" />
+      <span>Uploading...</span>
+    </>
+  ) : (
+    <>
+      <Upload className="h-4 w-4" />
+      <span>Upload File</span>
+    </>
+  )}
+</button>
+
+        
       </div>
 
       <input ref={inputRef} type="file" hidden onChange={handleFileChange} />
