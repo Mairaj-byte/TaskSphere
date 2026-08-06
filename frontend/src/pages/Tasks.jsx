@@ -458,7 +458,7 @@ const Tasks = () => {
   const getStatusBadge = (status) => {
     const statusMap = {
       'To Do': 'bg-blue-500/20 text-blue-300 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
-      'In Progress': 'bg-yellow-500/20 text-yellow-300 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800',
+      'In Progress': 'bg-[#dc9750] text-yellow-300 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800',
       'In Review': 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/50 dark:text-violet-400 dark:border-violet-800',
       'Blocked': 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/50 dark:text-orange-400 dark:border-orange-800',
       'Completed (Pending Approval)': 'bg-green-500/20 text-green-300 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800',
@@ -859,7 +859,7 @@ const Tasks = () => {
                       {task.assignedTo.slice(0, 3).map((u) => (
                         <div
                           key={u._id}
-                          className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 text-white text-[11px] font-bold border-2 border-slate-900 shadow-md"
+                          className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-r bg-[#dc9750] text-white text-[11px] font-bold border-2 border-slate-900 shadow-md"
                           title={`${u.name} (${u.email})`}
                         >
                           {u.name.charAt(0).toUpperCase()}
@@ -1300,11 +1300,7 @@ const Tasks = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold bg-gradient-to-r
-                  from-violet-600
-                  to-indigo-600
-                  hover:from-violet-500
-                  hover:to-indigo-500
+                  className="px-4 py-2 text-xs font-semibold bg-[#dc9750] hover:bg-[#b97737]
                   shadow-lg text-white rounded-lg transition-colors shadow-sm"
                 >
                   {modalMode === 'create' ? 'Create Task' : 'Save Changes'}
@@ -1384,11 +1380,7 @@ const Tasks = () => {
               <button
                 onClick={handleBulkAssign}
                 disabled={!bulkAssignUserId || bulkAssignLoading}
-                className="px-4 py-2 text-xs font-semibold bg-gradient-to-r
-                from-violet-600
-                to-indigo-600
-                hover:from-violet-500
-                hover:to-indigo-500
+                className="px-4 py-2 text-xs font-semibold bg-[#dc9750] hover:bg-[#b97737]
                 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors shadow-sm"
               >
                 {bulkAssignLoading ? 'Assigning...' : 'Confirm Assignment'}
@@ -1541,11 +1533,7 @@ const Tasks = () => {
                 type="button"
                 onClick={handleBulkCreateSubmit}
                 disabled={bulkCreateLoading}
-                className="px-4 py-2 text-xs font-semibold bg-gradient-to-r
-                  from-violet-600
-                  to-indigo-600
-                  hover:from-violet-500
-                  hover:to-indigo-500
+                className="px-4 py-2 text-xs font-semibold bg-[#dc9750] hover:bg-[#b97737]
                   shadow-lg disabled:opacity-50 text-white rounded-lg transition-colors shadow-sm"
               >
                 {bulkCreateLoading
