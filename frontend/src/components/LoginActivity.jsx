@@ -128,7 +128,7 @@ const LoginActivity = () => {
         <div className="sm:col-span-3">
           <button
             type="submit"
-            className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white flex items-center justify-center gap-2 transition"
+            className="w-full rounded-xl bg-yellow-500 hover:bg-yellow-600 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white flex items-center justify-center gap-2 transition"
           >
             <Search size={16} />
             Filter

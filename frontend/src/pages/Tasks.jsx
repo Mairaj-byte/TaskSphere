@@ -530,11 +530,8 @@ const Tasks = () => {
             </button>
             <button
               onClick={openCreateModal}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r
-                from-violet-600
-                to-indigo-600
-                hover:from-violet-500
-                hover:to-indigo-500
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-yellow-500
+                hover:bg-yellow-600
                 shadow-lg text-white text-sm font-medium rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
               <Plus size={18} />
@@ -777,8 +774,8 @@ const Tasks = () => {
               <div
                 key={task._id}
                 onClick={() => navigate(`/tasks/${task._id}`)}
-                className={`group relative bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 hover:border-indigo-300 dark:hover:border-indigo-700/60 rounded-2xl p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden ${
-                  isOverdue ? 'border-l-4 border-l-rose-500' : 'border-l-4 border-l-indigo-500'
+                className={`group relative bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 hover:border-yellow-400 dark:hover:border-yellow-500 rounded-2xl p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden ${
+                  isOverdue ? 'border-l-4 border-l-rose-500' : 'border-l-4 border-l-yellow-500'
                 }`}
               >
                 <div>
