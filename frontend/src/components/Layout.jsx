@@ -34,7 +34,7 @@ const Layout = () => {
   if (loading) {
     return (
       <div 
-        className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-[#070a13] text-gray-300"
+        className="flex h-[100dvh] w-full flex-col items-center justify-center gap-4 bg-[#070a13] text-gray-300"
         role="status"
         aria-live="polite"
       >
@@ -58,10 +58,10 @@ const Layout = () => {
   const isFullBleedView = location.pathname.startsWith('/chat');
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[#070a13] text-gray-100 antialiased selection:bg-[#dc9750]/30 selection:text-[#dc9750]">
+    <div className="flex h-[100dvh] w-full overflow-hidden bg-[#070a13] text-gray-100 antialiased selection:bg-[#dc9750]/30 selection:text-[#dc9750]">
       {/* Sidebar - Floating/Sticky on Desktop, Collapsible Drawer on Mobile */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 h-screen w-64 shrink-0 transform border-r border-white/5 bg-[#0d1426] shadow-2xl transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:z-auto lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 h-[100dvh] w-64 shrink-0 transform border-r border-white/5 bg-[#0d1426] shadow-2xl transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:z-auto lg:translate-x-0 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         aria-label="Main Navigation"
@@ -79,7 +79,7 @@ const Layout = () => {
       />
 
       {/* Main Viewport Container */}
-      <div className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="flex h-[100dvh] min-w-0 flex-1 flex-col overflow-hidden">
         <Navbar toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
         
         <main

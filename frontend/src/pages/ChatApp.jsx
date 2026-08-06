@@ -339,7 +339,7 @@ const ChatApp = () => {
                         segment,
                         <span
                             key={`${mention._id}-${index}`}
-                            className="font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+                            className="font-semibold text-[#dc9750] hover:text-emerald-300 transition-colors"
                         >
                             {mentionText}
                         </span>,
@@ -367,8 +367,8 @@ const ChatApp = () => {
         const el = document.getElementById(`msg-${msgId}`);
         if (el) {
             el.scrollIntoView({ behavior: "smooth", block: "center" });
-            el.classList.add("ring-2", "ring-indigo-500", "transition-all");
-            setTimeout(() => el.classList.remove("ring-2", "ring-indigo-500"), 2000);
+            el.classList.add("ring-2", "ring-[#dc9750]", "transition-all");
+            setTimeout(() => el.classList.remove("ring-2", "ring-[#dc9750]"), 2000);
         }
     };
 
@@ -377,7 +377,7 @@ const ChatApp = () => {
     );
 
     return (
-        <div className="relative flex h-full w-full overflow-hidden bg-[#071425]">
+        <div className="relative flex h-full w-full overflow-hidden bg-[#12151b]">
             {/* Toast Notification */}
             {toastMessage && (
                 <div
@@ -396,7 +396,7 @@ const ChatApp = () => {
             {/* Remove Member Modal */}
             {userToDelete && (
                 <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4 transition-all">
-                    <div className="bg-[#182542] border-t sm:border border-slate-800 rounded-t-2xl sm:rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95">
+                    <div className="bg-[#1c212b] border-t sm:border border-slate-800 rounded-t-2xl sm:rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95">
                         <div className="flex items-center gap-3 text-rose-400">
                             <div className="p-2.5 bg-rose-500/10 rounded-xl shrink-0">
                                 <UserMinus size={22} />
@@ -436,7 +436,7 @@ const ChatApp = () => {
             {/* Delete Message Modal */}
             {msgToDelete && (
                 <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4 transition-all">
-                    <div className="bg-[#182542] border-t sm:border border-slate-800 rounded-t-2xl sm:rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95">
+                    <div className="bg-[#1c212b] border-t sm:border border-slate-800 rounded-t-2xl sm:rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95">
                         <div className="flex items-center gap-3 text-rose-400">
                             <div className="p-2.5 bg-rose-500/10 rounded-xl shrink-0">
                                 <Trash2 size={22} />
@@ -478,7 +478,7 @@ const ChatApp = () => {
                             </button>
                         </div>
                         <div className="p-4 border-b border-slate-800 bg-slate-950/40 shrink-0">
-                            <div className="flex items-center bg-slate-950 rounded-xl border border-slate-800 focus-within:border-indigo-500/80 px-3 transition-colors">
+                            <div className="flex items-center bg-slate-950 rounded-xl border border-slate-800 focus-within:border-[#dc9750]/80 px-3 transition-colors">
                                 <Search size={18} className="text-slate-500 shrink-0" />
                                 <input
                                     autoFocus
@@ -501,7 +501,7 @@ const ChatApp = () => {
                                         className="w-full p-3 hover:bg-slate-800/60 active:bg-slate-800/80 rounded-xl flex items-center justify-between transition-all group text-left cursor-pointer"
                                     >
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <div className="w-9 h-9 rounded-full bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-xs font-bold shrink-0">
+                                            <div className="w-9 h-9 rounded-full bg-[#dc9750]/20 text-[#dc9750] border border-[#dc9750]/30 flex items-center justify-center text-xs font-bold shrink-0">
                                                 {u.name?.charAt(0).toUpperCase()}
                                             </div>
                                             <div className="min-w-0">
@@ -513,7 +513,7 @@ const ChatApp = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="p-2 text-slate-400 group-hover:text-indigo-400 group-hover:bg-indigo-500/10 rounded-lg transition-colors shrink-0">
+                                        <div className="p-2 text-slate-400 group-hover:text-[#dc9750] group-hover:bg-[#dc9750]/10 rounded-lg transition-colors shrink-0">
                                             <UserPlus size={18} />
                                         </div>
                                     </button>
@@ -551,8 +551,8 @@ const ChatApp = () => {
                     w-[260px]
                     md:w-[280px]
                     lg:w-72
-                    bg-[#101A34]
-                    border-r border-[#243353]
+                    bg-[#171b23]
+                    border-r border-[rgba(220,151,80,0.14)]
                     flex flex-col
                     shrink-0
                     lg:translate-x-0
@@ -568,7 +568,7 @@ const ChatApp = () => {
             >
                 <div className="h-16 px-4 sm:px-5 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-900/50">
                     <div className="flex items-center gap-2.5">
-                        <Users size={18} className="text-indigo-400" />
+                        <Users size={18} className="text-[#dc9750]" />
                         <span className="font-semibold text-xs tracking-wider uppercase text-slate-300">
                             Channel Members
                         </span>
@@ -623,7 +623,7 @@ const ChatApp = () => {
                                         </div>
 
                                         <div
-                                            className={`text-[10px] sm:text-[11px] ${isOnline ? "text-emerald-400/90" : "text-slate-500"
+                                            className={`text-[10px] sm:text-[11px] ${isOnline ? "text-[#dc9750]/90" : "text-slate-500"
                                                 }`}
                                         >
                                             {isOnline ? "Online" : "Offline"}
@@ -667,7 +667,7 @@ const ChatApp = () => {
                             h-16
 
                             border-b
-                            border-[#243353]
+                            border-[rgba(220,151,80,0.14)]
 
                             px-3
                             sm:px-4
@@ -677,7 +677,7 @@ const ChatApp = () => {
                             justify-between
                             items-center
 
-                            bg-[#121D39]
+                            bg-[#14181f]
                             backdrop-blur-xl
                             "
                         >
@@ -713,17 +713,17 @@ const ChatApp = () => {
                                     md:px-4
                                     md:py-2.5
 
-                                    bg-[#F4B544]
-                                    hover:bg-[#F7C35B]
-                                    active:bg-[#E0A63B]
+                                    bg-[#dc9750]
+                                    hover:bg-[#e8ac74]
+                                    active:bg-[#b87a3d]
 
-                                    text-[#1A1A1A]
+                                    text-[#241608]
                                     font-semibold
 
                                     rounded-xl
 
                                     shadow-lg
-                                    shadow-[#F4B544]/25
+                                    shadow-[#dc9750]/25
 
                                     transition-all
                                     duration-300
@@ -749,10 +749,10 @@ const ChatApp = () => {
                                 sticky
                                 top-16
                                 z-10
-                                bg-[#101A34]
+                                bg-[#171b23]
                                 backdrop-blur-xl
                                 border-b
-                                border-indigo-500/20
+                                border-[#dc9750]/20
                                 px-4
                                 py-2
                                 flex
@@ -770,12 +770,12 @@ const ChatApp = () => {
                                     }
                                     className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer group"
                                 >
-                                    <div className="p-1.5 bg-indigo-500/10 text-indigo-400 rounded-lg shrink-0">
+                                    <div className="p-1.5 bg-[#dc9750]/10 text-[#dc9750] rounded-lg shrink-0">
                                         <Pin size={15} className="rotate-45" />
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">
+                                            <span className="text-[10px] font-bold text-[#dc9750] uppercase tracking-wider">
                                                 Pinned ({pinnedMessages.length})
                                             </span>
                                         </div>
@@ -921,13 +921,13 @@ const ChatApp = () => {
 
                                                 {/* Floating Toolbar */}
                                                 <div
-                                                    className={`absolute -top-3.5 z-20 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity bg-[#101A34] border border-[#243353] rounded-lg p-1 flex items-center gap-1 shadow-lg ${mine ? "right-2" : "left-9"
+                                                    className={`absolute -top-3.5 z-20 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity bg-[#171b23] border border-[rgba(220,151,80,0.14)] rounded-lg p-1 flex items-center gap-1 shadow-lg ${mine ? "right-2" : "left-9"
                                                         }`}
                                                 >
                                                     {user?.role !== "member" && (
                                                         <button
                                                             onClick={() => pinMessage(msg._id)}
-                                                            className="p-1 hover:bg-slate-800 text-slate-400 hover:text-indigo-400 rounded cursor-pointer"
+                                                            className="p-1 hover:bg-slate-800 text-slate-400 hover:text-[#dc9750] rounded cursor-pointer"
                                                         >
                                                             <Pin size={13} className="rotate-45" />
                                                         </button>
@@ -968,8 +968,8 @@ const ChatApp = () => {
                                                     transition-all
 
                                                     ${mine
-                                                            ? "bg-[#4F6BFF] text-white rounded-br-xs shadow-md shadow-indigo-900/10"
-                                                            : "bg-[#182542] border border-[#2A3C63] text-slate-200 rounded-bl-xs"
+                                                            ? "bg-[#b87a3d] text-white rounded-br-xs shadow-md shadow-[#c4823f]/10"
+                                                            : "bg-[#1c212b] border border-[rgba(220,151,80,0.14)] text-slate-200 rounded-bl-xs"
                                                         }
                                                 `}
                                                 >
@@ -987,7 +987,7 @@ const ChatApp = () => {
 
                                                     {/* Sender */}
                                                     {!mine && showAvatar && (
-                                                        <div className="text-xs font-semibold text-indigo-400 mb-1">
+                                                        <div className="text-xs font-semibold text-[#dc9750] mb-1">
                                                             {msg.sender?.name}
                                                         </div>
                                                     )}
@@ -1000,7 +1000,7 @@ const ChatApp = () => {
                                                                 onChange={(e) =>
                                                                     setEditingText(e.target.value)
                                                                 }
-                                                                className="w-full bg-slate-950/80 border border-indigo-400/50 rounded-lg p-2 text-xs text-white outline-none resize-none"
+                                                                className="w-full bg-slate-950/80 border border-[#dc9750]/50 rounded-lg p-2 text-xs text-white outline-none resize-none"
                                                                 rows={2}
                                                             />
 
@@ -1014,7 +1014,7 @@ const ChatApp = () => {
 
                                                                 <button
                                                                     onClick={saveEdit}
-                                                                    className="px-2.5 py-1 text-[10px] bg-indigo-500 text-white rounded-md"
+                                                                    className="px-2.5 py-1 text-[10px] bg-[#dc9750] text-white rounded-md"
                                                                 >
                                                                     Save
                                                                 </button>
@@ -1029,7 +1029,7 @@ const ChatApp = () => {
                                                     {/* Time */}
                                                     <div
                                                         className={`flex items-center justify-end gap-1 text-[11px] mt-2 ${mine
-                                                            ? "text-indigo-200/80"
+                                                            ? "text-[#f6dcb8]/80"
                                                             : "text-slate-500"
                                                             }`}
                                                     >
@@ -1038,7 +1038,7 @@ const ChatApp = () => {
                                                         {mine && (
                                                             <CheckCheck
                                                                 size={13}
-                                                                className="text-indigo-300"
+                                                                className="text-[#dc9750]"
                                                             />
                                                         )}
                                                     </div>
@@ -1053,14 +1053,14 @@ const ChatApp = () => {
 
                         {/* Typing indicator */}
                         {otherTypingUsers.length > 0 && (
-                            <div className="px-4 pb-1 text-[10px] sm:text-[11px] text-indigo-400 italic">
+                            <div className="px-4 pb-1 text-[10px] sm:text-[11px] text-[#dc9750] italic">
                                 {otherTypingUsers.join(", ")} typing...
                             </div>
                         )}
 
                         {/* Mention Suggestion Box */}
                         {showMentionBox && mentionSuggestions.length > 0 && (
-                            <div className="mx-2 sm:mx-4 mb-2 bg-[#101A34] border border-[#243353] rounded-xl max-h-52 overflow-y-auto">
+                            <div className="mx-2 sm:mx-4 mb-2 bg-[#171b23] border border-[rgba(220,151,80,0.14)] rounded-xl max-h-52 overflow-y-auto">
                                 {mentionSuggestions.map((mentionUser) => (
                                     <button
                                         key={mentionUser._id}
@@ -1101,10 +1101,10 @@ const ChatApp = () => {
                             px-2
                             py-2
                             sm:p-4
-                            bg-[#121D39]
+                            bg-[#14181f]
                             backdrop-blur-xl
                             border-t
-                            border-[#243353]
+                            border-[rgba(220,151,80,0.14)]
                             pb-[max(8px,env(safe-area-inset-bottom))]
                             "
                         >
@@ -1114,8 +1114,8 @@ const ChatApp = () => {
                                 gap-2
                                 bg-[#0F1A32]
                                 border
-                                border-[#243353]
-                                focus-within:border-[#4F6BFF]
+                                border-[rgba(220,151,80,0.14)]
+                                focus-within:border-[#b87a3d]
                                 rounded-2xl
 
                                 px-2
@@ -1158,19 +1158,19 @@ const ChatApp = () => {
                                         p-3
                                         sm:p-2.5
 
-                                        bg-[#F4B544]
-                                        hover:bg-[#F7C35B]
-                                        active:bg-[#E0A63B]
+                                        bg-[#dc9750]
+                                        hover:bg-[#e8ac74]
+                                        active:bg-[#b87a3d]
 
                                         disabled:bg-slate-800
                                         disabled:text-slate-600
 
-                                        text-[#1A1A1A]
+                                        text-[#241608]
 
                                         rounded-xl
 
                                         shadow-lg
-                                        shadow-[#F4B544]/25
+                                        shadow-[#dc9750]/25
 
                                         transition-all
                                         duration-300
