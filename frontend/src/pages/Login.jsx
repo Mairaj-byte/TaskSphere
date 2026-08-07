@@ -22,6 +22,7 @@ import {
   Lock,
   Send
 } from 'lucide-react';
+import AnimatedHub from '../components/AnimatedHub';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api';
 
@@ -170,7 +171,7 @@ const Auth = () => {
 
   return (
     <div className="h-screen w-full bg-[#1e2640]-900-900 flex font-sans overflow-hidden relative text-slate-100">
-      
+
       {/* MAIN CONTAINER: Changed to lg:grid-cols-2 for 50/50 split */}
       <div className="w-full grid grid-cols-1 lg:grid-cols-2 min-h-screen items-stretch z-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 
@@ -573,58 +574,51 @@ const Auth = () => {
 
 
         {/* RIGHT SECTION: Equal 1 column span on desktop */}
-        <div className="group hidden lg:flex lg:col-span-1 bg-[#FFFFFF] p-10 lg:p-10 flex-col justify-between overflow-hidden border-l border-slate-200 sticky top-0 h-screen w-full relative">
-
-          {/* Full Width & Height Background Image with Hover Scale Transition */}
-          <img
-            src={LoginBg}
-            alt="Task Management Illustration"
-            className="absolute inset-0 w-full h-full object-cover object-center pt-20 pl-30 pr-30 pb-45 pointer-events-none transform transition-transform duration-700 ease-out group-hover:scale-105"
-          />
-          <div className="absolute inset-0 from-slate-50 via-slate-50/60 to-slate-50/30 pointer-events-none" />
-
+        <div className="group hidden lg:flex lg:col-span-1 bg-[#1e2640]-900 p-15 flex-col justify-between overflow-hidden border-l border-slate-800 sticky top-0 h-screen w-full relative">
           {/* Top Header Tag */}
           <div className="relative z-10 flex items-center justify-between w-full">
             <div className="flex items-center gap-2">
-              <div className="px-3.5 py-1.5 bg-[#1e2640]/5 border border-[#1e2640]/15 rounded-full flex items-center gap-2 shadow-xs backdrop-blur-md">
+              <div className="px-3.5 py-1.5 bg-white/5 border border-white/10 rounded-full flex items-center gap-2 shadow-xs backdrop-blur-md">
                 <Sparkles className="w-3.5 h-3.5 text-[#dc9750] animate-pulse" />
-                <span className="text-xs font-semibold text-[#1e2640] tracking-wide">
+                <span className="text-xs font-semibold text-slate-200 tracking-wide">
                   Powered by <span className="text-[#dc9750] font-bold">NovaNectar</span>
                 </span>
               </div>
             </div>
 
-            <button className="flex items-center gap-2 text-xs text-[#1e2640]/80 hover:text-[#1e2640] bg-white/90 hover:bg-white border border-slate-200/80 px-4 py-2 rounded-full transition-all shadow-xs cursor-pointer font-medium backdrop-blur-md hover:border-[#dc9750]/50">
+            <button className="flex items-center gap-2 text-xs text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-full transition-all shadow-xs cursor-pointer font-medium backdrop-blur-md hover:border-[#dc9750]/50">
               <Headphones className="w-3.5 h-3.5 text-[#dc9750]" />
               <span>Support</span>
             </button>
           </div>
 
+          <AnimatedHub />
+
           {/* Bottom Descriptive Highlights */}
           <div className="relative z-10 space-y-5 max-w-xl mx-auto w-full mt-12">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#dc9750]/15 border border-[#dc9750]/30 rounded-md text-xs font-semibold text-[#1e2640] backdrop-blur-xs">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#dc9750]/15 border border-[#dc9750]/30 rounded-md text-xs font-semibold text-[#dc9750] backdrop-blur-xs">
               <Layers className="w-3.5 h-3.5 text-[#dc9750]" />
               <span>TaskSphere Platform</span>
             </div>
 
-            <h2 className="text-3xl font-bold text-[#1e2640] tracking-tight leading-tight">
+            <h2 className="text-3xl font-bold text-white tracking-tight leading-tight">
               Smart collaboration for ambitious teams
             </h2>
 
             <div className="grid grid-cols-3 gap-3 pt-2">
-              <div className="p-3 bg-white/90 border border-slate-200 rounded-xl flex items-center gap-2.5 shadow-xs transition-all hover:border-[#dc9750]/60 backdrop-blur-sm">
+              <div className="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center gap-2.5 shadow-xs transition-all hover:border-[#dc9750]/60 hover:bg-white/10 backdrop-blur-sm">
                 <CheckCircle2 className="w-4 h-4 text-[#dc9750] flex-shrink-0" />
-                <span className="text-xs font-medium text-[#1e2640]">Auto Workflows</span>
+                <span className="text-xs font-medium text-slate-200">Auto Workflows</span>
               </div>
 
-              <div className="p-3 bg-white/90 border border-slate-200 rounded-xl flex items-center gap-2.5 shadow-xs transition-all hover:border-[#dc9750]/60 backdrop-blur-sm">
+              <div className="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center gap-2.5 shadow-xs transition-all hover:border-[#dc9750]/60 hover:bg-white/10 backdrop-blur-sm">
                 <Activity className="w-4 h-4 text-[#dc9750] flex-shrink-0" />
-                <span className="text-xs font-medium text-[#1e2640]">Live Analytics</span>
+                <span className="text-xs font-medium text-slate-200">Live Analytics</span>
               </div>
 
-              <div className="p-3 bg-white/90 border border-slate-200 rounded-xl flex items-center gap-2.5 shadow-xs transition-all hover:border-[#dc9750]/60 backdrop-blur-sm">
+              <div className="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center gap-2.5 shadow-xs transition-all hover:border-[#dc9750]/60 hover:bg-white/10 backdrop-blur-sm">
                 <Users className="w-4 h-4 text-[#dc9750] flex-shrink-0" />
-                <span className="text-xs font-medium text-[#1e2640]">Team Sync</span>
+                <span className="text-xs font-medium text-slate-200">Team Sync</span>
               </div>
             </div>
           </div>
