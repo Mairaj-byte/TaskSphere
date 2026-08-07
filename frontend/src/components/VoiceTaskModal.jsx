@@ -2,23 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Mic, Square, X, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { API_BASE } from '../context/AuthContext';
 
-/**
- * Voice-to-task capture modal.
- *
- * Uses the browser's built-in Web Speech API for speech-to-text (free, no
- * external service/API key needed — only works in Chromium-based browsers:
- * Chrome, Edge, Brave). The raw transcript is sent to the backend
- * (`POST /api/tasks/parse-voice`), which runs a lightweight heuristic parser
- * to extract title / priority / due date / assignee(s).
- *
- * Props:
- *  - open: boolean
- *  - onClose(): close the modal without doing anything
- *  - token: auth JWT
- *  - onParsed(parsedTask): called with the parsed result once the person
- *      confirms — the parent (Tasks.jsx) uses this to pre-fill the normal
- *      create-task form for final review before creation.
- */
 const VoiceTaskModal = ({ open, onClose, token, onParsed }) => {
   const [supported, setSupported] = useState(true);
   const [listening, setListening] = useState(false);
@@ -39,26 +22,26 @@ const VoiceTaskModal = ({ open, onClose, token, onParsed }) => {
 
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
-recognition.interimResults = true;
+    recognition.interimResults = true;
     recognition.lang = 'en-US';
 
-   recognition.onresult = (event) => {
-  let interim = "";
+    recognition.onresult = (event) => {
+      let interim = "";
 
-  for (let i = event.resultIndex; i < event.results.length; i++) {
-    const result = event.results[i];
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
 
-    if (result.isFinal) {
-      finalTranscriptRef.current += result[0].transcript + " ";
-    } else {
-      interim += result[0].transcript;
-    }
-  }
+        if (result.isFinal) {
+          finalTranscriptRef.current += result[0].transcript + " ";
+        } else {
+          interim += result[0].transcript;
+        }
+      }
 
-  setTranscript(
-    (finalTranscriptRef.current + interim).trim()
-  );
-};
+      setTranscript(
+        (finalTranscriptRef.current + interim).trim()
+      );
+    };
 
     recognition.onerror = (event) => {
       setError(event.error === 'not-allowed' ? 'Microphone access was denied.' : 'Speech recognition error. Please try again.');
@@ -66,8 +49,8 @@ recognition.interimResults = true;
     };
 
     recognition.onend = () => {
-  setListening(false);
-};
+      setListening(false);
+    };
 
     recognitionRef.current = recognition;
 
@@ -81,7 +64,7 @@ recognition.interimResults = true;
   // Reset state each time the modal opens fresh.
   useEffect(() => {
     if (open) {
-     finalTranscriptRef.current = "";
+      finalTranscriptRef.current = "";
       setTranscript('');
       setError('');
       setListening(false);
@@ -135,20 +118,25 @@ recognition.interimResults = true;
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl max-w-lg w-full p-6 shadow-xl">
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-lg w-full p-6 shadow-xl">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
           <div className="flex items-center gap-2">
-            <Sparkles size={18} className="text-indigo-500" />
-            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Voice Task</h3>
+            <Sparkles size={18} className="text-[#dc9750]" />
+            <h3 className="text-lg font-bold text-slate-100">Voice Task</h3>
           </div>
-          <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg">
+          <button 
+            type="button"
+            onClick={onClose} 
+            className="p-1 text-slate-400 hover:text-slate-200 rounded-lg transition-colors"
+            aria-label="Close modal"
+          >
             <X size={18} />
           </button>
         </div>
 
         {!supported ? (
-          <div className="mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-xs flex items-start gap-2">
+          <div className="mt-4 p-3 rounded-lg bg-amber-950/40 border border-amber-800 text-amber-400 text-xs flex items-start gap-2">
             <AlertCircle size={16} className="shrink-0 mt-0.5" />
             <span>
               Your browser doesn't support the Web Speech API. Try Chrome or Edge, or type the task
@@ -157,8 +145,8 @@ recognition.interimResults = true;
           </div>
         ) : null}
 
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-4">
-          Speak naturally, e.g. <em>"Assign to Priya, update the landing page header, urgent, by tomorrow."</em>
+        <p className="text-xs text-slate-400 mt-4">
+          Speak naturally, e.g. <em className="text-slate-300">"Assign to Priya, update the landing page header, urgent, by tomorrow."</em>
         </p>
 
         <div className="mt-3 flex items-center justify-center">
@@ -169,7 +157,7 @@ recognition.interimResults = true;
             className={`flex items-center justify-center w-16 h-16 rounded-full transition-all shadow-md disabled:opacity-40 disabled:cursor-not-allowed ${
               listening
                 ? 'bg-rose-600 hover:bg-rose-700 animate-pulse'
-                : 'bg-indigo-600 hover:bg-indigo-700'
+                : 'bg-[#dc9750] hover:bg-[#b97737]'
             }`}
             title={listening ? 'Stop recording' : 'Start recording'}
           >
@@ -181,30 +169,29 @@ recognition.interimResults = true;
         </p>
 
         <textarea
-  rows={4}
-  value={transcript}
-  onChange={(e) => {
-    setTranscript(e.target.value);
-
-    // Keep internal transcript in sync with manual edits
-    finalTranscriptRef.current = e.target.value;
-  }}
-  placeholder="Transcript will appear here — you can also type or edit it directly..."
-  className="w-full mt-4 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-/>
+          rows={4}
+          value={transcript}
+          onChange={(e) => {
+            setTranscript(e.target.value);
+            // Keep internal transcript in sync with manual edits
+            finalTranscriptRef.current = e.target.value;
+          }}
+          placeholder="Transcript will appear here — you can also type or edit it directly..."
+          className="w-full mt-4 px-3 py-2 text-sm bg-slate-800/50 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20 resize-none"
+        />
 
         {error && (
-          <div className="mt-3 p-3 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
+          <div className="mt-3 p-3 rounded-lg bg-rose-950/40 border border-rose-800 text-rose-400 text-xs flex items-center gap-2">
             <AlertCircle size={16} />
             <span>{error}</span>
           </div>
         )}
 
-        <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+        <div className="pt-4 mt-4 border-t border-slate-800 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+            className="px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
           >
             Cancel
           </button>

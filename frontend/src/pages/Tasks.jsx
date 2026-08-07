@@ -496,10 +496,11 @@ const Tasks = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0B1120] via-[#111827] to-[#1E1B4B] text-white p-4 sm:p-6 lg:p-8">
+
       {/* Inline toast */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-[200] flex items-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 backdrop-blur-xl text-white dark:text-slate-900 shadow-lg text-sm">
-          <CheckCircle2 size={16} className="text-emerald-400 dark:text-emerald-600" />
+        <div className="fixed bottom-6 right-6 z-[200] flex items-center gap-2 px-4 py-3 rounded-lg bg-[#1e2640] backdrop-blur-xl text-slate-100 shadow-xl border border-[#dc9750]/30 text-sm font-medium transition-all animate-in fade-in slide-in-from-bottom-4">
+          <CheckCircle2 size={16} className="text-[#dc9750]" />
           {toastMsg}
         </div>
       )}
@@ -507,10 +508,10 @@ const Tasks = () => {
       {/* Header Row */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-100">
             Workflow <span className="text-[#dc9750]">Tasks</span>
           </h2>
-          <p className="text-sm text-slate-300">
+          <p className="text-sm text-slate-400">
             Search, filter, and track tasks across team members.
           </p>
         </div>
@@ -518,23 +519,21 @@ const Tasks = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsVoiceModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 backdrop-blur-xl border border-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#1e2640] border border-slate-700/60 hover:bg-slate-800 text-slate-200 text-sm font-medium rounded-xl shadow-xs transition-all focus:outline-none focus:ring-2 focus:ring-[#dc9750]/50"
             >
-              <Mic size={18} />
+              <Mic size={18} className="text-[#dc9750]" />
               <span>Voice Task</span>
             </button>
             <button
               onClick={() => { resetBulkCreate(); setIsBulkCreateOpen(true); }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 backdrop-blur-xl border border-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#1e2640] border border-slate-700/60 hover:bg-slate-800 text-slate-200 text-sm font-medium rounded-xl shadow-xs transition-all focus:outline-none focus:ring-2 focus:ring-[#dc9750]/50"
             >
-              <UserPlus size={18} />
+              <UserPlus size={18} className="text-[#dc9750]" />
               <span>Bulk Create</span>
             </button>
             <button
               onClick={openCreateModal}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#dc9750]
-                hover:bg-[#b97737]
-                shadow-lg text-white text-sm font-medium rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#dc9750] hover:bg-[#dc9750]/80 text-[#1e2640] text-sm font-bold rounded-xl shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-[#dc9750]/50 active:scale-95"
             >
               <Plus size={18} />
               <span>Create Task</span>
@@ -544,7 +543,7 @@ const Tasks = () => {
       </div>
 
       {/* Filter and View Bar */}
-      <div className="bg-white/10 dark:bg-slate-900 border border-white/10 backdrop-blur-xl rounded-xl p-4 shadow-sm mb-6 space-y-4">
+      <div className="bg-[#1e2640] border border-slate-700/60 rounded-xl p-4 shadow-sm mb-6 space-y-4">
         {/* Row 1: Search + Assignee Filter */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 w-full mb-3 sm:mb-0">
@@ -554,7 +553,7 @@ const Tasks = () => {
               placeholder="Search by task title or description..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-white placeholder:text-slate-400 text-sm bg-white/10 dark:bg-slate-800/50 border border-white/10 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] transition-colors"
+              className="w-full pl-10 pr-4 py-2 text-slate-100 placeholder:text-slate-500 text-sm bg-slate-900/60 border border-slate-700/60 rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors"
             />
           </div>
 
@@ -566,7 +565,7 @@ const Tasks = () => {
                 placeholder="Filter by team member name or Employee ID..."
                 value={assigneeFilter}
                 onChange={(e) => setAssigneeFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-white placeholder:text-slate-400  text-sm bg-white/10 dark:bg-slate-800/50 border border-white/10 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750] transition-colors"
+                className="w-full pl-10 pr-4 py-2 text-slate-100 placeholder:text-slate-500 text-sm bg-slate-900/60 border border-slate-700/60 rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors"
               />
             </div>
           )}
@@ -574,12 +573,12 @@ const Tasks = () => {
 
         {/* Row 2: View Switcher */}
         <div className="flex justify-end">
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700 overflow-x-auto">
+          <div className="flex items-center bg-slate-900/60 p-1 rounded-lg border border-slate-700/60 overflow-x-auto">
             <button
               onClick={() => setViewMode('grid')}
               className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'grid'
-                ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
+                ? 'bg-[#dc9750] text-[#1e2640] font-bold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
                 }`}
               title="Grid View"
             >
@@ -589,8 +588,8 @@ const Tasks = () => {
             <button
               onClick={() => setViewMode('list')}
               className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'list'
-                ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
+                ? 'bg-[#dc9750] text-[#1e2640] font-bold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
                 }`}
               title="List View"
             >
@@ -600,8 +599,8 @@ const Tasks = () => {
             <button
               onClick={() => setViewMode('kanban')}
               className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'kanban'
-                ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
+                ? 'bg-[#dc9750] text-[#1e2640] font-bold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
                 }`}
               title="Kanban Board"
             >
@@ -611,8 +610,8 @@ const Tasks = () => {
             <button
               onClick={() => setViewMode('calendar')}
               className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'calendar'
-                ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
+                ? 'bg-[#dc9750] text-[#1e2640] font-bold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
                 }`}
               title="Calendar View"
             >
@@ -622,8 +621,8 @@ const Tasks = () => {
             <button
               onClick={() => setViewMode('gantt')}
               className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'gantt'
-                ? 'bg-white/10 backdrop-blur-xl border border-white/10 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-500 hover:border-violet-500 hover:shadow-[0_0_25px_rgba(124,58,237,.35)]'
+                ? 'bg-[#dc9750] text-[#1e2640] font-bold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
                 }`}
               title="Gantt / Timeline View"
             >
@@ -634,63 +633,63 @@ const Tasks = () => {
         </div>
 
         {/* Filters Controls */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/60">
-          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5">
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-700/60">
+          <div className="flex items-center gap-2 bg-slate-900/60 border border-slate-700/60 rounded-lg px-3 py-1.5">
             <Filter size={14} className="text-slate-400" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-[#141B2D] text-xs font-medium text-slate-200 outline-none cursor-pointer"
+              className="bg-transparent text-xs font-medium text-slate-200 outline-none cursor-pointer"
             >
-              <option value="" className="bg-[#141B2D] text-white">All Statuses</option>
-              <option value="To Do" className="bg-[#141B2D] text-white">To Do</option>
-              <option value="In Progress" className="bg-[#141B2D] text-white">In Progress</option>
-              <option value="In Review" className="bg-[#141B2D] text-white">In Review</option>
-              <option value="Blocked" className="bg-[#141B2D] text-white">Blocked</option>
-              <option value="Completed (Pending Approval)" className="bg-[#141B2D] text-white">Pending Approval</option>
-              <option value="Approved" className="bg-[#141B2D] text-white">Approved</option>
-              <option value="Rejected" className="bg-[#141B2D] text-white">Rejected</option>
-              <option value="Overdue" className="bg-[#141B2D] text-white">Overdue</option>
+              <option value="" className="bg-[#1e2640] text-slate-100">All Statuses</option>
+              <option value="To Do" className="bg-[#1e2640] text-slate-100">To Do</option>
+              <option value="In Progress" className="bg-[#1e2640] text-slate-100">In Progress</option>
+              <option value="In Review" className="bg-[#1e2640] text-slate-100">In Review</option>
+              <option value="Blocked" className="bg-[#1e2640] text-slate-100">Blocked</option>
+              <option value="Completed (Pending Approval)" className="bg-[#1e2640] text-slate-100">Pending Approval</option>
+              <option value="Approved" className="bg-[#1e2640] text-slate-100">Approved</option>
+              <option value="Rejected" className="bg-[#1e2640] text-slate-100">Rejected</option>
+              <option value="Overdue" className="bg-[#1e2640] text-slate-100">Overdue</option>
             </select>
           </div>
 
-          <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5">
+          <div className="bg-slate-900/60 border border-slate-700/60 rounded-lg px-3 py-1.5">
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
-              className="bg-[#141B2D] text-xs font-medium text-slate-200 outline-none cursor-pointer"
+              className="bg-transparent text-xs font-medium text-slate-200 outline-none cursor-pointer"
             >
-              <option value="" className="bg-[#141B2D] text-white">All Priorities</option>
-              <option value="Low" className="bg-[#141B2D] text-white">Low</option>
-              <option value="Medium" className="bg-[#141B2D] text-white">Medium</option>
-              <option value="High" className="bg-[#141B2D] text-white">High</option>
-              <option value="Urgent" className="bg-[#141B2D] text-white">Urgent</option>
+              <option value="" className="bg-[#1e2640] text-slate-100">All Priorities</option>
+              <option value="Low" className="bg-[#1e2640] text-slate-100">Low</option>
+              <option value="Medium" className="bg-[#1e2640] text-slate-100">Medium</option>
+              <option value="High" className="bg-[#1e2640] text-slate-100">High</option>
+              <option value="Urgent" className="bg-[#1e2640] text-slate-100">Urgent</option>
             </select>
           </div>
 
-          <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5">
+          <div className="bg-slate-900/60 border border-slate-700/60 rounded-lg px-3 py-1.5">
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="bg-[#141B2D] text-xs font-medium text-slate-200 outline-none cursor-pointer"
+              className="bg-transparent text-xs font-medium text-slate-200 outline-none cursor-pointer"
             >
-              <option value="" className="bg-[#141B2D] text-white">All Dates</option>
-              <option value="today" className="bg-[#141B2D] text-white">Due Today</option>
-              <option value="upcoming" className="bg-[#141B2D] text-white">Upcoming</option>
-              <option value="overdue" className="bg-[#141B2D] text-white">Overdue Only</option>
+              <option value="" className="bg-[#1e2640] text-slate-100">All Dates</option>
+              <option value="today" className="bg-[#1e2640] text-slate-100">Due Today</option>
+              <option value="upcoming" className="bg-[#1e2640] text-slate-100">Upcoming</option>
+              <option value="overdue" className="bg-[#1e2640] text-slate-100">Overdue Only</option>
             </select>
           </div>
 
-          <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5">
+          <div className="bg-slate-900/60 border border-slate-700/60 rounded-lg px-3 py-1.5">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-[#141B2D] text-xs font-medium text-slate-200 outline-none cursor-pointer"
+              className="bg-transparent text-xs font-medium text-slate-200 outline-none cursor-pointer"
             >
-              <option value="dueDate:asc" className="bg-[#141B2D] text-white">Due Date: Soonest</option>
-              <option value="dueDate:desc" className="bg-[#141B2D] text-white">Due Date: Farthest</option>
-              <option value="priority:desc" className="bg-[#141B2D] text-white">Priority: High to Low</option>
-              <option value="createdAt:desc" className="bg-[#141B2D] text-white">Created Date: Newest</option>
+              <option value="dueDate:asc" className="bg-[#1e2640] text-slate-100">Due Date: Soonest</option>
+              <option value="dueDate:desc" className="bg-[#1e2640] text-slate-100">Due Date: Farthest</option>
+              <option value="priority:desc" className="bg-[#1e2640] text-slate-100">Priority: High to Low</option>
+              <option value="createdAt:desc" className="bg-[#1e2640] text-slate-100">Created Date: Newest</option>
             </select>
           </div>
 
@@ -703,7 +702,7 @@ const Tasks = () => {
               setAssigneeFilter('');
               setSortBy('dueDate:asc');
             }}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors ml-auto"
+            className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors ml-auto"
             title="Reset Filters"
           >
             <RefreshCw size={14} />
@@ -711,27 +710,23 @@ const Tasks = () => {
         </div>
       </div>
 
+
       {/* Bulk Assign Action Bar */}
       {canManage && selectedTaskIds.length > 0 && (
-        <div className="flex items-center justify-between gap-3 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl px-4 py-2.5 mb-4">
-          <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
-            {selectedTaskIds.length} task{selectedTaskIds.length > 1 ? 's' : ''} selected
+        <div className="flex items-center justify-between gap-3 bg-[#1e2640] border border-[#dc9750]/30 rounded-xl px-4 py-2.5 mb-4 shadow-lg">
+          <span className="text-sm font-medium text-slate-200">
+            <span className="text-[#dc9750] font-bold">{selectedTaskIds.length}</span> task{selectedTaskIds.length > 1 ? 's' : ''} selected
           </span>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsBulkAssignOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r
-              from-violet-600
-              to-indigo-600
-              hover:from-violet-500
-              hover:to-indigo-500
-              shadow-lg text-white text-xs font-semibold rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#dc9750] hover:bg-[#dc9750]/80 text-[#1e2640] text-xs font-bold rounded-lg shadow-sm transition-all active:scale-95"
             >
               <UserPlus size={14} /> Assign to Member
             </button>
             <button
               onClick={clearSelection}
-              className="px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg transition-colors"
+              className="px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
             >
               Clear
             </button>
@@ -742,13 +737,13 @@ const Tasks = () => {
       {/* Task Content */}
       {loading ? (
         <div className="flex justify-center items-center py-24">
-          <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-[#dc9750] border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : tasks.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-center">
-          <AlertCircle size={48} className="text-slate-300 dark:text-slate-700 mb-3" />
-          <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">No Tasks Found</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        <div className="flex flex-col items-center justify-center p-12 bg-[#1e2640] border border-slate-700/60 rounded-xl text-center shadow-sm">
+          <AlertCircle size={48} className="text-slate-500 mb-3" />
+          <h3 className="text-lg font-semibold text-slate-100">No Tasks Found</h3>
+          <p className="text-sm text-slate-400 mt-1">
             Try adjusting your search criteria or clear filters.
           </p>
         </div>
@@ -776,7 +771,7 @@ const Tasks = () => {
               <div
                 key={task._id}
                 onClick={() => navigate(`/tasks/${task._id}`)}
-                className={`group relative bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 over:border-[#dc9750] dark:hover:border-[#b97737] rounded-2xl p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden ${isOverdue ? 'border-l-4 border-l-rose-500' : 'border-l-4 border-l-[#dc9750]'
+                className={`group relative bg-[#1e2640] border border-slate-700/60 hover:border-[#dc9750] rounded-2xl p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden ${isOverdue ? 'border-l-4 border-l-rose-500' : 'border-l-4 border-l-[#dc9750]'
                   }`}
               >
                 <div>
@@ -784,17 +779,17 @@ const Tasks = () => {
                     {canManage && (
                       <button
                         onClick={(e) => toggleTaskSelected(task._id, e)}
-                        className="shrink-0 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                        className="shrink-0 text-slate-400 hover:text-[#dc9750] transition-colors"
                         title={selectedTaskIds.includes(task._id) ? 'Deselect task' : 'Select task'}
                       >
                         {selectedTaskIds.includes(task._id) ? (
-                          <CheckSquare size={16} className="text-indigo-600 dark:text-indigo-400" />
+                          <CheckSquare size={16} className="text-[#dc9750]" />
                         ) : (
                           <Square size={16} />
                         )}
                       </button>
                     )}
-                    <span className="text-[11px] font-semibold text-[#dc9750] dark:text-[#b97737] truncate uppercase tracking-wide">
+                    <span className="text-[11px] font-semibold text-[#dc9750] truncate uppercase tracking-wide">
                       {task.assignedTo?.length > 0
                         ? task.assignedTo.map((u) => u.name).join(', ')
                         : 'Unassigned'}
@@ -802,21 +797,24 @@ const Tasks = () => {
                   </div>
 
                   <div className="flex items-start justify-between gap-3 mb-3">
-                    <h3 className="font-semibold text-base text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">
+                    <h3 className="font-semibold text-base text-slate-100 group-hover:text-[#dc9750] transition-colors line-clamp-1">
                       {task.title}
                     </h3>
                     {canManage && (
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-xs p-0.5 rounded-lg" onClick={(e) => e.stopPropagation()}>
+                      <div
+                        className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900/80 backdrop-blur-xs p-0.5 rounded-lg"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <button
                           onClick={(e) => openEditModal(task, e)}
-                          className="p-1.5 text-slate-400 hover:text-[#dc9750]/80 dark:hover:text-[#dc9750]/80 rounded-md hover:bg-white dark:hover:bg-slate-700 transition-colors shadow-xs"
+                          className="p-1.5 text-slate-400 hover:text-[#dc9750] rounded-md hover:bg-slate-800 transition-colors shadow-xs"
                           title="Edit Task"
                         >
                           <Edit2 size={13} />
                         </button>
                         <button
                           onClick={(e) => confirmDelete(task._id, e)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-white dark:hover:bg-slate-700 transition-colors shadow-xs"
+                          className="p-1.5 text-slate-400 hover:text-rose-500 rounded-md hover:bg-slate-800 transition-colors shadow-xs"
                           title="Delete Task"
                         >
                           <Trash2 size={13} />
@@ -833,23 +831,28 @@ const Tasks = () => {
                   {task.tags?.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mb-3">
                       {task.tags.map((tag, i) => (
-                        <span key={i} className="px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-medium">
+                        <span
+                          key={i}
+                          className="px-2.5 py-0.5 rounded-md bg-slate-900/60 text-slate-300 border border-slate-700/40 text-[11px] font-medium"
+                        >
                           #{tag}
                         </span>
                       ))}
                     </div>
                   )}
 
-                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-5 leading-relaxed">
+                  <p className="text-xs text-slate-400 line-clamp-2 mb-5 leading-relaxed">
                     {task.description || 'No description provided.'}
                   </p>
                 </div>
 
-                <div className="pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between mt-auto">
-                  <div className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md ${isOverdue
-                      ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-semibold animate-pulse'
-                      : 'bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 font-medium'
-                    }`}>
+                <div className="pt-3.5 border-t border-slate-700/60 flex items-center justify-between mt-auto">
+                  <div
+                    className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md ${isOverdue
+                      ? 'bg-rose-950/50 text-rose-400 border border-rose-800/50 font-semibold animate-pulse'
+                      : 'bg-slate-900/60 text-slate-300 border border-slate-700/50 font-medium'
+                      }`}
+                  >
                     <Calendar size={13} />
                     <span>{new Date(task.dueDate).toLocaleDateString()}</span>
                   </div>
@@ -859,7 +862,7 @@ const Tasks = () => {
                       {task.assignedTo.slice(0, 3).map((u) => (
                         <div
                           key={u._id}
-                          className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-r bg-[#dc9750] text-white text-[11px] font-bold border-2 border-slate-900 shadow-md"
+                          className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#dc9750] text-[#1e2640] text-[11px] font-bold border-2 border-[#1e2640] shadow-md"
                           title={`${u.name} (${u.email})`}
                         >
                           {u.name.charAt(0).toUpperCase()}
@@ -867,7 +870,7 @@ const Tasks = () => {
                       ))}
                     </div>
                     {task.assignedTo.length > 3 && (
-                      <span className="ml-1.5 text-[10px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-full">
+                      <span className="ml-1.5 text-[10px] font-semibold text-slate-400 bg-slate-900/80 px-1.5 py-0.5 rounded-full border border-slate-700/60">
                         +{task.assignedTo.length - 3}
                       </span>
                     )}
@@ -879,11 +882,11 @@ const Tasks = () => {
         </div>
       ) : (
         /* LIST VIEW */
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <div className="bg-[#1e2640] border border-slate-700/60 rounded-xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <tr className="border-b border-slate-700/60 bg-slate-900/60 text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   {canManage && <th className="py-3.5 px-4 w-8"></th>}
                   <th className="py-3.5 px-4">Task</th>
                   <th className="py-3.5 px-4">Assigned To</th>
@@ -894,36 +897,36 @@ const Tasks = () => {
                   {canManage && <th className="py-3.5 px-4 text-right">Actions</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-xs sm:text-sm">
+              <tbody className="divide-y divide-slate-700/60 text-xs sm:text-sm">
                 {tasks.map((task) => (
                   <tr
                     key={task._id}
                     onClick={() => navigate(`/tasks/${task._id}`)}
-                    className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
+                    className="hover:bg-slate-900/40 transition-colors cursor-pointer group"
                   >
                     {canManage && (
                       <td className="py-3.5 px-4" onClick={(e) => toggleTaskSelected(task._id, e)}>
                         {selectedTaskIds.includes(task._id) ? (
-                          <CheckSquare size={16} className="text-indigo-600 dark:text-indigo-400" />
+                          <CheckSquare size={16} className="text-[#dc9750]" />
                         ) : (
-                          <Square size={16} className="text-slate-400" />
+                          <Square size={16} className="text-slate-500" />
                         )}
                       </td>
                     )}
                     <td className="py-3.5 px-4 max-w-xs">
-                      <p className="font-semibold text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
+                      <p className="font-semibold text-slate-100 group-hover:text-[#dc9750] transition-colors truncate">
                         {task.title}
                       </p>
                       <p className="text-xs text-slate-400 truncate mt-0.5">{task.description}</p>
                     </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                    <td className="py-3.5 px-4 whitespace-nowrap text-xs font-semibold text-[#dc9750]">
                       {task.assignedTo?.length > 0
                         ? task.assignedTo.map((u) => u.name).join(', ')
                         : 'Unassigned'}
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap">{getStatusBadge(task.status)}</td>
                     <td className="py-3.5 px-4 whitespace-nowrap">{getPriorityBadge(task.priority)}</td>
-                    <td className="py-3.5 px-4 whitespace-nowrap text-xs text-slate-500 dark:text-slate-400">
+                    <td className="py-3.5 px-4 whitespace-nowrap text-xs text-slate-400">
                       {new Date(task.dueDate).toLocaleDateString()}
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap">
@@ -931,7 +934,7 @@ const Tasks = () => {
                         {task.assignedTo.map((u) => (
                           <div
                             key={u._id}
-                            className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#dc9750] text-white text-[10px] font-bold border-2 border-white dark:border-slate-900"
+                            className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#dc9750] text-[#1e2640] text-[10px] font-bold border-2 border-[#1e2640]"
                             title={u.name}
                           >
                             {u.name.charAt(0).toUpperCase()}
@@ -944,13 +947,13 @@ const Tasks = () => {
                         <div className="inline-flex items-center gap-1">
                           <button
                             onClick={(e) => openEditModal(task, e)}
-                            className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                            className="p-1.5 text-slate-400 hover:text-[#dc9750] rounded-md hover:bg-slate-800 transition-colors"
                           >
                             <Edit2 size={14} />
                           </button>
                           <button
                             onClick={(e) => confirmDelete(task._id, e)}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                            className="p-1.5 text-slate-400 hover:text-rose-500 rounded-md hover:bg-slate-800 transition-colors"
                           >
                             <Trash2 size={14} />
                           </button>
@@ -965,343 +968,362 @@ const Tasks = () => {
         </div>
       )}
 
-      {/* CREATE / EDIT MODAL */}
+      {/* CREATE / EDIT MODAL (Dark Theme Only) */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl max-w-4xl lg:max-w-5xl w-full p-6 shadow-xl my-8 max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-4xl lg:max-w-5xl w-full p-6 shadow-xl my-8 max-h-[90vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800 shrink-0">
+              <h3 className="text-lg font-bold text-slate-100">
                 {modalMode === 'create' ? 'Create New Task' : 'Edit Task Details'}
               </h3>
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg"
+                className="p-1 text-slate-400 hover:text-slate-200 rounded-lg transition-colors"
+                aria-label="Close modal"
               >
                 <X size={18} />
               </button>
             </div>
 
+            {/* Error Alert */}
             {formError && (
-              <div className="mt-4 p-3 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2 shrink-0">
+              <div className="mt-4 p-3 rounded-lg bg-rose-950/40 border border-rose-800 text-rose-400 text-xs flex items-center gap-2 shrink-0">
                 <AlertCircle size={16} />
                 <span>{formError}</span>
               </div>
             )}
 
-            <form onSubmit={handleFormSubmit} className="mt-4 flex-1 overflow-y-auto pr-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Form Content */}
+            <form onSubmit={handleFormSubmit} className="mt-4 flex-1 flex flex-col min-h-0">
+              <div className="flex-1 overflow-y-auto pr-1 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Task Title *
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
-                      value={formTitle}
-                      onChange={(e) => setFormTitle(e.target.value)}
-                      placeholder="e.g., Update Landing Page Header"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      rows={4}
-                      className="w-full px-3 py-2 text-white placeholder:text-slate-400 text-sm bg-white/10 dark:bg-slate-800/50 border border-white/10 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
-                      value={formDesc}
-                      onChange={(e) => setFormDesc(e.target.value)}
-                      placeholder="Provide scope, targets, and notes..."
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* Left Column */}
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                        Priority
-                      </label>
-                      <select
-                        className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
-                        value={formPriority}
-                        onChange={(e) => setFormPriority(e.target.value)}
-                      >
-                        <option value="Low">Low</option>
-                        <option value="Medium">Medium</option>
-                        <option value="High">High</option>
-                        <option value="Urgent">Urgent</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                        Status
-                      </label>
-                      <select
-                        className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
-                        value={formStatus}
-                        onChange={(e) => setFormStatus(e.target.value)}
-                      >
-                        <option value="To Do">To Do</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="In Review">In Review</option>
-                        <option value="Blocked">Blocked</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                        Start Date
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        Task Title *
                       </label>
                       <input
-                        type="datetime-local"
-                        className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
-                        value={formStartDate}
-                        onChange={(e) => setFormStartDate(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                        Due Date & Time *
-                      </label>
-                      <input
-                        type="datetime-local"
-                        className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
-                        value={formDueDate}
-                        onChange={(e) => setFormDueDate(e.target.value)}
+                        type="text"
+                        className="w-full px-3 py-2 text-sm bg-slate-800/50 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20 transition-all"
+                        value={formTitle}
+                        onChange={(e) => setFormTitle(e.target.value)}
+                        placeholder="e.g., Update Landing Page Header"
                         required
                       />
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Estimated Hours
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
-                      value={formEstimatedHours}
-                      onChange={(e) => setFormEstimatedHours(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-4 flex flex-col justify-between">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Assign Team Members *
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-800/20">
-                      {usersList.map((member) => {
-                        const isSelected = formAssignedTo.includes(member._id);
-                        return (
-                          <div
-                            key={member._id}
-                            onClick={() => toggleAssignee(member._id)}
-                            className={`flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-all ${isSelected
-                                ? 'bg-[#dc9750]/10 dark:bg-[#dc9750]/20 border-[#dc9750]'
-                                : 'border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
-                              }`}
-                          >
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isSelected ? 'bg-[#dc9750]/90 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>
-                              {member.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div className="overflow-hidden">
-                              <p className="text-xs font-semibold truncate">{member.name}</p>
-                              <p className="text-[10px] text-slate-400 truncate">{member.email}</p>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Attachments (URLs)
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        className="flex-1 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
-                        placeholder="https://..."
-                        value={formAttachment}
-                        onChange={(e) => setFormAttachment(e.target.value)}
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        Description
+                      </label>
+                      <textarea
+                        rows={4}
+                        className="w-full px-3 py-2 text-sm bg-slate-800/50 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20 transition-all resize-none"
+                        value={formDesc}
+                        onChange={(e) => setFormDesc(e.target.value)}
+                        placeholder="Provide scope, targets, and notes..."
                       />
-                      <button
-                        type="button"
-                        onClick={handleAddAttachment}
-                        className="px-3 py-2 text-xs font-medium bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg transition-colors"
-                      >
-                        Add
-                      </button>
                     </div>
 
-                    {formAttachmentsList.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2 max-h-24 overflow-y-auto">
-                        {formAttachmentsList.map((url, index) => (
-                          <span
-                            key={index}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300"
-                          >
-                            <Paperclip size={12} />
-                            <span className="max-w-[150px] truncate">{url}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveAttachment(index)}
-                              className="hover:text-rose-500 font-bold ml-1"
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Tags
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={formTagInput}
-                        placeholder="e.g., frontend"
-                        onChange={(e) => setFormTagInput(e.target.value)}
-                        className="flex-1 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAddTag}
-                        className="px-3 py-2 text-xs font-medium bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg transition-colors"
-                      >
-                        Add
-                      </button>
-                    </div>
-
-                    {formTags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {formTags.map((tag, index) => (
-                          <span
-                            key={index}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 text-xs"
-                          >
-                            {tag}
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveTag(index)}
-                              className="hover:text-rose-500 font-bold"
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 space-y-6">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Subtasks / Checklist
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={formChecklistInput}
-                      onChange={(e) => setFormChecklistInput(e.target.value)}
-                      placeholder="e.g., Write unit tests"
-                      className="flex-1 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
-                    />
-                    <button
-                      type="button"
-                      onClick={addChecklistItem}
-                      className="px-3 py-2 text-xs font-medium bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg transition-colors"
-                    >
-                      Add
-                    </button>
-                  </div>
-
-                  {formChecklist.length > 0 && (
-                    <div className="space-y-1.5 mt-2 max-h-32 overflow-y-auto">
-                      {formChecklist.map((item, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-700 p-2 text-xs"
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-300 mb-1">
+                          Priority
+                        </label>
+                        <select
+                          className="w-full px-3 py-2 text-sm bg-slate-800/50 border border-slate-700 text-slate-100 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
+                          value={formPriority}
+                          onChange={(e) => setFormPriority(e.target.value)}
                         >
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={item.completed}
-                              onChange={() => toggleChecklistItem(index)}
-                            />
-                            <span className={item.completed ? 'line-through text-slate-400' : ''}>
-                              {item.title}
-                            </span>
-                          </label>
-                          <button
-                            type="button"
-                            onClick={() => removeChecklistItem(index)}
-                            className="text-rose-500 hover:text-rose-600 font-bold"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
+                          <option value="Low">Low</option>
+                          <option value="Medium">Medium</option>
+                          <option value="High">High</option>
+                          <option value="Urgent">Urgent</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-300 mb-1">
+                          Status
+                        </label>
+                        <select
+                          className="w-full px-3 py-2 text-sm bg-slate-800/50 border border-slate-700 text-slate-100 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
+                          value={formStatus}
+                          onChange={(e) => setFormStatus(e.target.value)}
+                        >
+                          <option value="To Do">To Do</option>
+                          <option value="In Progress">In Progress</option>
+                          <option value="In Review">In Review</option>
+                          <option value="Blocked">Blocked</option>
+                        </select>
+                      </div>
                     </div>
-                  )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-300 mb-1">
+                          Start Date
+                        </label>
+                        <input
+                          type="datetime-local"
+                          className="w-full px-3 py-2 text-sm bg-slate-800/50 border border-slate-700 text-slate-100 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20 color-scheme-dark"
+                          value={formStartDate}
+                          onChange={(e) => setFormStartDate(e.target.value)}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-300 mb-1">
+                          Due Date & Time *
+                        </label>
+                        <input
+                          type="datetime-local"
+                          className="w-full px-3 py-2 text-sm bg-slate-800/50 border border-slate-700 text-slate-100 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20 color-scheme-dark"
+                          value={formDueDate}
+                          onChange={(e) => setFormDueDate(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        Estimated Hours
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.5"
+                        className="w-full px-3 py-2 text-sm bg-slate-800/50 border border-slate-700 text-slate-100 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
+                        value={formEstimatedHours}
+                        onChange={(e) => setFormEstimatedHours(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Right Column */}
+                  <div className="space-y-4 flex flex-col justify-between">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        Assign Team Members *
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1.5 border border-slate-700 rounded-lg bg-slate-800/20">
+                        {usersList.map((member) => {
+                          const isSelected = formAssignedTo.includes(member._id);
+                          return (
+                            <div
+                              key={member._id}
+                              onClick={() => toggleAssignee(member._id)}
+                              className={`flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-all ${isSelected
+                                ? 'bg-[#dc9750]/20 border-[#dc9750]'
+                                : 'border-slate-700 hover:bg-slate-800'
+                                }`}
+                            >
+                              <div
+                                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isSelected
+                                  ? 'bg-[#dc9750] text-white'
+                                  : 'bg-slate-700 text-slate-300'
+                                  }`}
+                              >
+                                {member.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div className="overflow-hidden">
+                                <p className="text-xs font-semibold text-slate-200 truncate">
+                                  {member.name}
+                                </p>
+                                <p className="text-[10px] text-slate-400 truncate">{member.email}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        Attachments (URLs)
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="url"
+                          className="flex-1 px-3 py-2 text-sm bg-slate-800/50 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
+                          placeholder="https://..."
+                          value={formAttachment}
+                          onChange={(e) => setFormAttachment(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddAttachment}
+                          className="px-3 py-2 text-xs font-medium bg-slate-700 text-slate-200 hover:bg-slate-600 rounded-lg transition-colors"
+                        >
+                          Add
+                        </button>
+                      </div>
+
+                      {formAttachmentsList.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2 max-h-24 overflow-y-auto">
+                          {formAttachmentsList.map((url, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800 border border-slate-700 text-xs text-slate-300"
+                            >
+                              <Paperclip size={12} />
+                              <span className="max-w-[150px] truncate">{url}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveAttachment(index)}
+                                className="hover:text-rose-400 font-bold ml-1 transition-colors"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        Tags
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={formTagInput}
+                          placeholder="e.g., frontend"
+                          onChange={(e) => setFormTagInput(e.target.value)}
+                          className="flex-1 px-3 py-2 text-sm bg-slate-800/50 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddTag}
+                          className="px-3 py-2 text-xs font-medium bg-slate-700 text-slate-200 hover:bg-slate-600 rounded-lg transition-colors"
+                        >
+                          Add
+                        </button>
+                      </div>
+
+                      {formTags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {formTags.map((tag, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-950/50 border border-indigo-800 text-indigo-300 text-xs"
+                            >
+                              {tag}
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveTag(index)}
+                                className="hover:text-rose-400 font-bold transition-colors"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Task Dependencies (must be completed first)
-                  </label>
-                  <select
-                    multiple
-                    value={formDependencies}
-                    onChange={(e) => {
-                      const values = [...e.target.selectedOptions].map(option => option.value);
-                      setFormDependencies(values);
-                    }}
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 p-2 text-sm bg-slate-50 dark:bg-slate-800/50 outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20 max-h-32"
-                  >
-                    {allTasks
-                      .filter(task => task._id !== currentTaskId)
-                      .map(task => (
-                        <option key={task._id} value={task._id}>
-                          {task.title}
-                        </option>
-                      ))}
-                  </select>
-                  <p className="text-[10px] text-slate-400 mt-1">
-                    Hold Ctrl (Cmd on Mac) to select multiple tasks.
-                  </p>
+                {/* Subtasks & Dependencies */}
+                <div className="space-y-6 pt-2 border-t border-slate-800">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Subtasks / Checklist
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={formChecklistInput}
+                        onChange={(e) => setFormChecklistInput(e.target.value)}
+                        placeholder="e.g., Write unit tests"
+                        className="flex-1 px-3 py-2 text-sm bg-slate-800/50 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
+                      />
+                      <button
+                        type="button"
+                        onClick={addChecklistItem}
+                        className="px-3 py-2 text-xs font-medium bg-slate-700 text-slate-200 hover:bg-slate-600 rounded-lg transition-colors"
+                      >
+                        Add
+                      </button>
+                    </div>
+
+                    {formChecklist.length > 0 && (
+                      <div className="space-y-1.5 mt-2 max-h-32 overflow-y-auto">
+                        {formChecklist.map((item, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between rounded-lg border border-slate-700 p-2 text-xs bg-slate-800/30"
+                          >
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={item.completed}
+                                onChange={() => toggleChecklistItem(index)}
+                                className="rounded border-slate-600 bg-slate-800 text-[#dc9750] focus:ring-[#dc9750]"
+                              />
+                              <span className={item.completed ? 'line-through text-slate-500' : 'text-slate-300'}>
+                                {item.title}
+                              </span>
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => removeChecklistItem(index)}
+                              className="text-rose-400 hover:text-rose-300 font-bold transition-colors"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Task Dependencies (must be completed first)
+                    </label>
+                    <select
+                      multiple
+                      value={formDependencies}
+                      onChange={(e) => {
+                        const values = [...e.target.selectedOptions].map((option) => option.value);
+                        setFormDependencies(values);
+                      }}
+                      className="w-full rounded-lg border border-slate-700 p-2 text-sm bg-slate-800/50 text-slate-100 outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20 max-h-32"
+                    >
+                      {allTasks
+                        .filter((task) => task._id !== currentTaskId)
+                        .map((task) => (
+                          <option key={task._id} value={task._id}>
+                            {task.title}
+                          </option>
+                        ))}
+                    </select>
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      Hold Ctrl (Cmd on Mac) to select multiple tasks.
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-4 mt-6 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+              {/* Modal Footer Actions */}
+              <div className="pt-4 mt-6 border-t border-slate-800 flex justify-end gap-3 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                  className="px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold bg-[#dc9750] hover:bg-[#b97737]
-                  shadow-lg text-white rounded-lg transition-colors shadow-sm"
+                  className="px-4 py-2 text-xs font-semibold bg-[#dc9750] hover:bg-[#b97737] text-white rounded-lg transition-colors shadow-sm"
                 >
                   {modalMode === 'create' ? 'Create Task' : 'Save Changes'}
                 </button>
@@ -1311,25 +1333,37 @@ const Tasks = () => {
         </div>
       )}
 
-      {/* DELETE CONFIRMATION DIALOG */}
+
+
+
+
+
+
+
+
+
+
+      {/* DELETE CONFIRMATION DIALOG (Dark Theme Only) */}
       {isDeleteConfirmOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl max-w-sm w-full p-6 text-center shadow-xl">
-            <div className="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-950/50 text-rose-600 flex items-center justify-center mx-auto mb-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-sm w-full p-6 text-center shadow-xl">
+            <div className="w-12 h-12 rounded-full bg-rose-950/50 text-rose-500 border border-rose-800/50 flex items-center justify-center mx-auto mb-4">
               <Trash2 size={24} />
             </div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Delete Task</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+            <h3 className="text-base font-bold text-slate-100">Delete Task</h3>
+            <p className="text-xs text-slate-400 mt-2 leading-relaxed">
               Are you sure you want to permanently delete this task? This action cannot be undone.
             </p>
             <div className="flex justify-center gap-3 mt-6">
               <button
+                type="button"
                 onClick={() => setIsDeleteConfirmOpen(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition-colors"
+                className="px-4 py-2 text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700/80 rounded-lg transition-colors border border-slate-700/50"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleDeleteTask}
                 className="px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors shadow-sm"
               >
@@ -1340,28 +1374,30 @@ const Tasks = () => {
         </div>
       )}
 
-      {/* Bulk Assign Modal */}
+      {/* BULK ASSIGN MODAL (Dark Theme Only) */}
       {isBulkAssignOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl max-w-sm w-full p-6 shadow-xl">
-            <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 flex items-center justify-center mx-auto mb-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-sm w-full p-6 shadow-xl">
+            <div className="w-12 h-12 rounded-full bg-indigo-950/50 text-indigo-400 border border-indigo-800/50 flex items-center justify-center mx-auto mb-4">
               <UserPlus size={24} />
             </div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 text-center">
+            <h3 className="text-base font-bold text-slate-100 text-center">
               Assign {selectedTaskIds.length} Task{selectedTaskIds.length > 1 ? 's' : ''}
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 text-center leading-relaxed">
+            <p className="text-xs text-slate-400 mt-2 text-center leading-relaxed">
               Choose a team member to assign to all selected tasks at once.
             </p>
 
             <select
               value={bulkAssignUserId}
               onChange={(e) => setBulkAssignUserId(e.target.value)}
-              className="w-full mt-4 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
+              className="w-full mt-4 px-3 py-2 text-sm bg-slate-800/50 border border-slate-700 text-slate-100 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
             >
-              <option value="">Select a team member...</option>
+              <option value="" className="bg-slate-900 text-slate-400">
+                Select a team member...
+              </option>
               {usersList.map((u) => (
-                <option key={u._id} value={u._id}>
+                <option key={u._id} value={u._id} className="bg-slate-900 text-slate-100">
                   {u.name}{u.employeeId ? ` (${u.employeeId})` : ''}
                 </option>
               ))}
@@ -1369,19 +1405,20 @@ const Tasks = () => {
 
             <div className="flex justify-center gap-3 mt-6">
               <button
+                type="button"
                 onClick={() => {
                   setIsBulkAssignOpen(false);
                   setBulkAssignUserId('');
                 }}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition-colors"
+                className="px-4 py-2 text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700/80 rounded-lg transition-colors border border-slate-700/50"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleBulkAssign}
                 disabled={!bulkAssignUserId || bulkAssignLoading}
-                className="px-4 py-2 text-xs font-semibold bg-[#dc9750] hover:bg-[#b97737]
-                shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors shadow-sm"
+                className="px-4 py-2 text-xs font-semibold bg-[#dc9750] hover:bg-[#b97737] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors shadow-sm"
               >
                 {bulkAssignLoading ? 'Assigning...' : 'Confirm Assignment'}
               </button>
@@ -1390,24 +1427,26 @@ const Tasks = () => {
         </div>
       )}
 
-      {/* Bulk Create Modal */}
+      {/* BULK CREATE MODAL (Dark Theme Only) */}
       {isBulkCreateOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl max-w-2xl w-full p-6 shadow-xl my-8 max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-2xl w-full p-6 shadow-xl my-8 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800 shrink-0">
+              <h3 className="text-lg font-bold text-slate-100">
                 Create Multiple Tasks for One Employee
               </h3>
               <button
+                type="button"
                 onClick={() => { setIsBulkCreateOpen(false); resetBulkCreate(); }}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg"
+                className="p-1 text-slate-400 hover:text-slate-200 rounded-lg transition-colors"
+                aria-label="Close modal"
               >
                 <X size={18} />
               </button>
             </div>
 
             {bulkCreateError && (
-              <div className="mt-4 p-3 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2 shrink-0">
+              <div className="mt-4 p-3 rounded-lg bg-rose-950/40 border border-rose-800 text-rose-400 text-xs flex items-center gap-2 shrink-0">
                 <AlertCircle size={16} />
                 <span>{bulkCreateError}</span>
               </div>
@@ -1415,17 +1454,19 @@ const Tasks = () => {
 
             <div className="mt-4 flex-1 overflow-y-auto pr-1 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
                   Select Employee *
                 </label>
                 <select
                   value={bulkCreateEmployeeId}
                   onChange={(e) => setBulkCreateEmployeeId(e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
+                  className="w-full px-3 py-2 text-sm bg-slate-800/50 border border-slate-700 text-slate-100 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
                 >
-                  <option value="">Select a team member...</option>
+                  <option value="" className="bg-slate-900 text-slate-400">
+                    Select a team member...
+                  </option>
                   {usersList.map((u) => (
-                    <option key={u._id} value={u._id}>
+                    <option key={u._id} value={u._id} className="bg-slate-900 text-slate-100">
                       {u.name}{u.employeeId ? ` (${u.employeeId})` : ''}
                     </option>
                   ))}
@@ -1433,12 +1474,12 @@ const Tasks = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                <label className="block text-xs font-semibold text-slate-300 mb-2">
                   Tasks
                 </label>
                 <div className="space-y-3">
                   {bulkCreateTasks.map((row, index) => (
-                    <div key={index} className="flex flex-col gap-2 p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-800/20">
+                    <div key={index} className="flex flex-col gap-2 p-3 border border-slate-700/80 rounded-lg bg-slate-800/30">
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1.2fr_auto] gap-2 items-center">
                         <input
                           type="text"
@@ -1447,7 +1488,7 @@ const Tasks = () => {
                           onChange={(e) =>
                             updateBulkTaskRow(index, "title", e.target.value)
                           }
-                          className="w-full min-w-0 px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                          className="w-full min-w-0 px-3 py-2 text-sm bg-slate-800/80 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
                         />
 
                         <select
@@ -1455,7 +1496,7 @@ const Tasks = () => {
                           onChange={(e) =>
                             updateBulkTaskRow(index, "priority", e.target.value)
                           }
-                          className="w-full min-w-0 px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                          className="w-full min-w-0 px-3 py-2 text-sm bg-slate-800/80 border border-slate-700 text-slate-100 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
                         >
                           <option value="Low">Low</option>
                           <option value="Medium">Medium</option>
@@ -1469,7 +1510,7 @@ const Tasks = () => {
                           onChange={(e) =>
                             updateBulkTaskRow(index, "status", e.target.value)
                           }
-                          className="w-full min-w-0 px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                          className="w-full min-w-0 px-3 py-2 text-sm bg-slate-800/80 border border-slate-700 text-slate-100 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20"
                         >
                           <option value="To Do">To Do</option>
                           <option value="In Progress">In Progress</option>
@@ -1487,44 +1528,47 @@ const Tasks = () => {
                           onChange={(e) =>
                             updateBulkTaskRow(index, "dueDate", e.target.value)
                           }
-                          className="w-full min-w-0 px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500"
+                          className="w-full min-w-0 px-3 py-2 text-sm bg-slate-800/80 border border-slate-700 text-slate-100 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20 color-scheme-dark"
                         />
 
                         {bulkCreateTasks.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeBulkTaskRow(index)}
-                            className="justify-self-end sm:justify-self-center p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                            className="justify-self-end sm:justify-self-center p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-950/40 transition-colors"
+                            aria-label="Remove task row"
                           >
                             <Trash2 size={16} />
                           </button>
                         )}
                       </div>
+
                       <textarea
                         value={row.description}
                         onChange={(e) => updateBulkTaskRow(index, 'description', e.target.value)}
                         placeholder="Task description..."
                         rows={2}
-                        className="w-full px-3 py-2 text-white placeholder:text-slate-400 text-sm bg-white/10 dark:bg-slate-800/50 border border-white/10 dark:border-slate-700 rounded-lg outline-none focus:border-indigo-500 resize-none"
+                        className="w-full px-3 py-2 text-slate-100 placeholder:text-slate-500 text-sm bg-slate-800/50 border border-slate-700 rounded-lg outline-none focus:border-[#dc9750]/60 focus:ring-2 focus:ring-[#dc9750]/20 resize-none"
                       />
                     </div>
                   ))}
                 </div>
+
                 <button
                   type="button"
                   onClick={addBulkTaskRow}
-                  className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-lg transition-colors"
+                  className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-400 hover:bg-indigo-950/40 border border-indigo-800/50 rounded-lg transition-colors"
                 >
                   <Plus size={14} /> Add Another Task
                 </button>
               </div>
             </div>
 
-            <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 shrink-0">
+            <div className="pt-4 mt-4 border-t border-slate-800 flex justify-end gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => { setIsBulkCreateOpen(false); resetBulkCreate(); }}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                className="px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
               >
                 Cancel
               </button>
@@ -1532,8 +1576,7 @@ const Tasks = () => {
                 type="button"
                 onClick={handleBulkCreateSubmit}
                 disabled={bulkCreateLoading}
-                className="px-4 py-2 text-xs font-semibold bg-[#dc9750] hover:bg-[#b97737]
-                  shadow-lg disabled:opacity-50 text-white rounded-lg transition-colors shadow-sm"
+                className="px-4 py-2 text-xs font-semibold bg-[#dc9750] hover:bg-[#b97737] disabled:opacity-50 text-white rounded-lg transition-colors shadow-sm"
               >
                 {bulkCreateLoading
                   ? 'Creating...'
@@ -1543,6 +1586,8 @@ const Tasks = () => {
           </div>
         </div>
       )}
+
+
 
       <VoiceTaskModal
         open={isVoiceModalOpen}
