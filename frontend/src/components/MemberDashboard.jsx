@@ -243,7 +243,9 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
   {/* 3. METRICS BAR */}
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     {/* Active Tasks */}
-    <div className="rounded-xl border border-[#1e2640] bg-[#1e2640]/40 p-4 hover:border-[#dc9750]/50 transition-colors">
+    <div 
+      onClick={() => navigate('/tasks?filter=active')}
+      className="rounded-xl border border-[#1e2640] bg-[#1e2640]/40 p-4 hover:border-[#dc9750]/50 transition-colors cursor-pointer">
       <div className="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase">
         <span>Active Tasks</span>
         <div className="p-2 rounded-lg bg-[#dc9750]/10 border border-[#dc9750]/20 text-[#dc9750]">
@@ -260,7 +262,9 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
     </div>
 
     {/* Due Today */}
-    <div className="rounded-xl border border-[#1e2640] bg-[#1e2640]/40 p-4 hover:border-amber-500/40 transition-colors">
+    <div 
+      onClick={() => navigate("/tasks?filter=today")}
+      className="rounded-xl border border-[#1e2640] bg-[#1e2640]/40 p-4 hover:border-amber-500/40 transition-colors cursor-pointer">
       <div className="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase">
         <span>Due Today</span>
         <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
@@ -277,7 +281,9 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
     </div>
 
     {/* In Review */}
-    <div className="rounded-xl border border-[#1e2640] bg-[#1e2640]/40 p-4 hover:border-emerald-500/40 transition-colors">
+    <div 
+      onClick={() => navigate("/tasks?filter=pendingApproval")}
+      className="rounded-xl border border-[#1e2640] bg-[#1e2640]/40 p-4 hover:border-emerald-500/40 transition-colors cursor-pointer">
       <div className="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase">
         <span>In Review</span>
         <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
@@ -294,7 +300,9 @@ const MemberDashboard = ({ user, tasks = [], handleDownloadReport }) => {
     </div>
 
     {/* Revisions */}
-    <div className="rounded-xl border border-[#1e2640] bg-[#1e2640]/40 p-4 hover:border-rose-500/40 transition-colors">
+    <div 
+      onClick={() => navigate("/tasks?filter=rejected")}
+      className="rounded-xl border border-[#1e2640] bg-[#1e2640]/40 p-4 hover:border-rose-500/40 transition-colors cursor-pointer">
       <div className="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase">
         <span>Needs Revisions</span>
         <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400">
