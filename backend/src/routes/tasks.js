@@ -6,38 +6,93 @@ const AuditLog = require('../models/AuditLog');
 const User = require('../models/User');
 const { authenticate, requireRole } = require('../middleware/auth');
 const { logAction } = require('../utils/audit');
-const { sendInAppNotification, sendAdminNotification } = require('../utils/socket');
 const { checkReminders } = require('../utils/reminders');
+const Group=require("../models/Group");
+const { parseVoiceTranscript } = require('../utils/voiceParser');
+const { upsertTaskEvent, deleteTaskEvent } = require('../utils/googleCalendar');
+const sendEmail = require('../utils/sendEmail');
+const {
+  sendInAppNotification,
+  sendTaskUpdate,
+  getIo,
+} = require("../utils/socket");
+
 
 const router = express.Router();
 
 router.use(authenticate);
 
+const isManagement = (role) => ['admin', 'manager'].includes(role);
+
+// GET /api/tasks
+// POST /api/tasks/parse-voice - Voice-to-task: parse a transcript into task fields
+// (does NOT create the task — returns suggestions for the admin/manager to review
+// and confirm in the normal create-task form)
+router.post('/parse-voice', requireRole(['admin', 'manager']), async (req, res) => {
+  const { transcript } = req.body;
+
+  if (!transcript || !transcript.trim()) {
+    return res.status(400).json({ error: 'Transcript is required.' });
+  }
+
+  try {
+    const users = await User.find({ active: true }, '_id name');
+    const parsed = parseVoiceTranscript(transcript, users);
+
+    res.json({
+      title: parsed.title,
+      priority: parsed.priority,
+      dueDate: parsed.dueDate,
+      assignedTo: parsed.assignees.map((a) => a._id),
+      assignedToNames: parsed.assignees.map((a) => a.name),
+      warnings: parsed.warnings,
+    });
+  } catch (err) {
+
+  console.error("POST /api/tasks ERROR:", err);
+
+  res.status(500).json({
+    error: err.message,
+    stack: process.env.NODE_ENV !== "production"
+      ? err.stack
+      : undefined,
+  });
+
+}
+});
+
 // GET /api/tasks - Search, Filter, Sort tasks
 router.get('/', async (req, res) => {
-  const { status, priority, dueDate, assignedTo, search, sortBy } = req.query;
-  
+  const { status, priority, dueDate, assignedTo, assignee, search, sortBy } = req.query;
   const query = {};
 
-  // Role-Based Filtering: Members only see tasks assigned to them
   if (req.user.role === 'member') {
     query.assignedTo = req.user._id;
   } else if (assignedTo) {
-    // Admin can filter by assigned user
     query.assignedTo = assignedTo;
+  } else if (assignee) {
+    // Filter by the assigned team member's name or Employee ID
+    const matchedUsers = await User.find(
+      {
+        $or: [
+          { name: { $regex: assignee, $options: 'i' } },
+          { employeeId: { $regex: assignee, $options: 'i' } },
+        ],
+      },
+      '_id'
+    );
+    query.assignedTo = { $in: matchedUsers.map((u) => u._id) };
   }
-
-  // Filter by status
-  if (status) {
+ if (status === 'pending') {
+    query.status = { $in: ['To Do', 'In Progress', 'In Review', 'Completed (Pending Approval)'] };
+  } else if (status === 'pending') {
+    query.status = { $in: ['To Do', 'In Progress', 'In Review', 'Completed (Pending Approval)'] };
+  } else if (status) {
     query.status = status;
   }
+  
+  if (priority) query.priority = priority;
 
-  // Filter by priority
-  if (priority) {
-    query.priority = priority;
-  }
-
-  // Filter by dueDate
   const now = new Date();
   if (dueDate === 'today') {
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -50,7 +105,6 @@ router.get('/', async (req, res) => {
     query.dueDate = { $gt: now };
   }
 
-  // Search in title & description
   if (search) {
     query.$or = [
       { title: { $regex: search, $options: 'i' } },
@@ -58,8 +112,7 @@ router.get('/', async (req, res) => {
     ];
   }
 
-  // Define sorting
-  let sortOptions = { createdAt: -1 }; // default
+  let sortOptions = { createdAt: -1 };
   if (sortBy) {
     const [field, order] = sortBy.split(':');
     sortOptions = { [field]: order === 'desc' ? -1 : 1 };
@@ -70,54 +123,100 @@ router.get('/', async (req, res) => {
       .populate('assignedTo', '_id name email role active')
       .populate('createdBy', '_id name email role')
       .populate('approvedBy', '_id name email role')
+      .populate("dependencies", "title status")
       .sort(sortOptions);
-      
     res.json(tasks);
   } catch (err) {
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
+  console.error("GET /api/tasks ERROR:", err);
+
+  res.status(500).json({
+    error: err.message,
+  });
+}
 });
 
-// GET /api/tasks/audit/logs - Retrieve Global Audit Logs (Admin only)
-router.get('/audit/logs', requireRole('admin'), async (req, res) => {
+// GET /api/tasks/audit/logs
+router.get('/audit/logs', requireRole(['admin', 'manager']), async (req, res) => {
   try {
-    const logs = await AuditLog.find()
-      .populate('userId', '_id name role')
-      .populate('taskId', '_id title')
-      .sort({ createdAt: -1 })
-      .limit(15);
+    const logs = await AuditLog.find().populate('userId', '_id name role').populate('taskId', '_id title').sort({ createdAt: -1 }).limit(15);
     res.json(logs);
   } catch (err) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+  
+   // GET /api/tasks/sidebar-stats
+// IMPORTANT: must be registered BEFORE '/:id' below, otherwise Express
+// matches '/:id' first (treating "sidebar-stats" as an id) and this
+// route never runs — that was the cause of the stats always showing 0.
+router.get("/sidebar-stats", async (req, res) => {
+  try {
+    const query = {};
 
-// GET /api/tasks/:id - Task Details
+    if (req.user.role === "member") {
+      query.assignedTo = req.user._id;
+    }
+
+    const tasks = await Task.find(query);
+
+    const completed = tasks.filter(task => task.status === "Approved").length;
+    const overdue = tasks.filter(task => task.status === "Overdue").length;
+    const pending = tasks.length - completed - overdue;
+
+    const productivity =
+      tasks.length > 0
+        ? Math.round((completed / tasks.length) * 100)
+        : 0;
+
+    res.json({
+      total: tasks.length,
+      completed,
+      pending,
+      overdue,
+      productivity,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/tasks/:id
 router.get('/:id', async (req, res) => {
   try {
     const task = await Task.findById(req.params.id)
       .populate('assignedTo', '_id name email role active')
       .populate('createdBy', '_id name email role')
       .populate('approvedBy', '_id name email role');
-      
-    if (!task) {
-      return res.status(404).json({ error: 'Task not found.' });
-    }
+    if (!task) return res.status(404).json({ error: 'Task not found.' });
 
-    // Role check: Members can only view if assigned
     if (req.user.role === 'member' && !task.assignedTo.some(user => user._id.toString() === req.user._id.toString())) {
       return res.status(403).json({ error: 'Forbidden. This task is not assigned to you.' });
     }
-
     res.json(task);
   } catch (err) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-// POST /api/tasks - Create Task (Admin only)
-router.post('/', requireRole('admin'), async (req, res) => {
-  const { title, description, priority, dueDate, assignedTo, attachments } = req.body;
+// POST /api/tasks - Create Task (Admin & Manager)
+router.post('/', requireRole(['admin', 'manager']), async (req, res) => {
+  const {
+    title,
+    description,
+    priority,
+    status,
+    startDate,
+    dueDate,
+    estimatedHours,
+    assignedTo,
+    attachments,
+    tags,
+    checklist,
+    dependencies,
+    isRecurring,
+    recurringType,
+    group
+  } = req.body;
 
   try {
     if (!title || !dueDate || !assignedTo || !assignedTo.length) {
@@ -125,55 +224,238 @@ router.post('/', requireRole('admin'), async (req, res) => {
     }
 
     const task = new Task({
-      title,
-      description,
-      priority,
-      dueDate,
-      assignedTo,
+      title, description, priority, status, startDate, dueDate, estimatedHours, assignedTo, group,
+      attachments: attachments || [],
+      tags: tags || [],
+      checklist: checklist || [],
+      dependencies: dependencies || [],
+      isRecurring: isRecurring || false,
+      recurringType: recurringType || null,
       createdBy: req.user._id,
-      attachments: attachments || []
+      activityLogs: [{ action: "Task Created", performedBy: req.user._id }]
     });
 
+   await task.save();
+   for (const member of task.assignedTo) {
+
+    await sendInAppNotification(member, {
+
+        title: "New Task Assigned",
+
+        message: `You have been assigned "${task.title}".`
+
+    });
+
+}
+   const io = getIo();
+
+io.to("admins").emit("taskUpdated");
+
+task.assignedTo.forEach(user => {
+
+    io.to(user.toString()).emit("taskUpdated");
+
+});
+    await logAction({ taskId: task._id, userId: req.user._id, action: 'Created' });
+
+    const calendarEvents = [];
     await task.save();
+    // checkReminders();
+    await logAction({ taskId: task._id, userId: req.user._id, action: 'Created' });
 
-    // Log action
-    await logAction({
-      taskId: task._id,
-      userId: req.user._id,
-      action: 'Created'
-    });
+    await checkReminders();
+    console.log("✅ Reminder check triggered after task creation");
 
-    // Notify assigned users
     for (const userId of assignedTo) {
-      const notification = new Notification({
-        userId,
-        message: `You have been assigned to a new task: "${task.title}".`,
-        type: 'assignment'
-      });
+      const notification = new Notification({ userId, message: `You have been assigned to a new task: "${task.title}".`, type: 'assignment' });
       await notification.save();
+
       sendInAppNotification(userId, notification);
+
+      sendTaskUpdate(userId, task._id);
+
+      const user = await User.findById(userId);
+
+      if (user?.email) {
+        await sendEmail(
+          user.email,
+          "New Task Assigned - TaskSphere",
+          `
+            <h2>Hello ${user.name},</h2>
+            <p>You have been assigned a new task.</p>
+
+            <p><strong>Task:</strong> ${task.title}</p>
+            <p><strong>Priority:</strong> ${task.priority}</p>
+            <p><strong>Due Date:</strong> ${new Date(task.dueDate).toLocaleString()}</p>
+
+            <br/>
+            <p>Please login to TaskSphere to view the task.</p>
+          `
+        );
+      }
+
+      // Google Calendar sync (spec section 15) — best-effort only. If the
+      // user hasn't connected their calendar, or the API call fails for
+      // any reason, this must never block task creation itself.
+      try {
+        if (user) {
+          const eventId = await upsertTaskEvent(user, task, null);
+          if (eventId) calendarEvents.push({ user: userId, eventId });
+        }
+      } catch (calendarErr) {
+        console.error('Calendar sync failed on task create:', calendarErr.message);
+      }
     }
 
-    const populatedTask = await Task.findById(task._id)
-      .populate('assignedTo', '_id name email role active')
-      .populate('createdBy', '_id name email role');
+    if (calendarEvents.length) {
+      task.googleCalendarEvents = calendarEvents;
+      await task.save();
+    }
 
+    const populatedTask = await Task.findById(task._id).populate('assignedTo', '_id name email role active').populate('createdBy', '_id name email role').populate('dependencies', 'title status');
     res.status(201).json(populatedTask);
   } catch (err) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-// PUT /api/tasks/:id - Full Update (Admin only)
-router.put('/:id', requireRole('admin'), async (req, res) => {
+     // POST /api/tasks/bulk-create - Create multiple different tasks for ONE employee at once
+router.post('/bulk-create', requireRole(['admin', 'manager']), async (req, res) => {
+  const { assignedTo, tasks } = req.body;
+
+  if (!assignedTo) {
+    return res.status(400).json({ error: 'assignedTo (a single user id) is required.' });
+  }
+  if (!Array.isArray(tasks) || tasks.length === 0) {
+    return res.status(400).json({ error: 'tasks (a non-empty array) is required.' });
+  }
+
+  try {
+    const user = await User.findById(assignedTo);
+    if (!user) return res.status(404).json({ error: 'Employee not found.' });
+
+    const createdTasks = [];
+
+    for (const t of tasks) {
+      if (!t.title || !t.dueDate) continue; // skip incomplete rows
+
+      const task = new Task({
+        title: t.title,
+        description: t.description || '',
+        priority: t.priority || 'Medium',
+status: t.status || "To Do",
+        startDate: t.startDate || null,
+        dueDate: t.dueDate,
+        estimatedHours: t.estimatedHours || 0,
+        assignedTo: [assignedTo],
+        tags: t.tags || [],
+        checklist: t.checklist || [],
+        dependencies: t.dependencies || [],
+        createdBy: req.user._id,
+        activityLogs: [{ action: 'Task Created', performedBy: req.user._id }],
+      });
+
+      await task.save();
+      createdTasks.push(task);
+      await logAction({ taskId: task._id, userId: req.user._id, action: 'Created' });
+    }
+
+    if (createdTasks.length === 0) {
+      return res.status(400).json({ error: 'No valid tasks to create. Each task needs a title and due date.' });
+    }
+
+    const notification = new Notification({
+      userId: assignedTo,
+      message: `You have been assigned ${createdTasks.length} new task${createdTasks.length > 1 ? 's' : ''}.`,
+      type: 'assignment',
+    });
+    await notification.save();
+    sendInAppNotification(assignedTo, notification);
+
+    const io = getIo();
+    if (io) {
+      io.to('admins').emit('taskUpdated');
+      io.to(assignedTo.toString()).emit('taskUpdated');
+    }
+
+    if (user.email) {
+      const listHtml = createdTasks
+        .map((t) => `<li>${t.title} — due ${new Date(t.dueDate).toLocaleString()}</li>`)
+        .join('');
+      await sendEmail(
+        user.email,
+        'New Tasks Assigned - TaskSphere',
+        `<h2>Hello ${user.name},</h2><p>You have been assigned ${createdTasks.length} new task(s):</p><ul>${listHtml}</ul>`
+      );
+    }
+
+    res.status(201).json({ created: createdTasks.length, tasks: createdTasks });
+  } catch (err) {
+    console.error('POST /api/tasks/bulk-create ERROR:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+    
+
+// PATCH /api/tasks/bulk-assign - assign one user to multiple tasks at once
+router.patch('/bulk-assign', requireRole(['admin', 'manager']), async (req, res) => {
+  const { taskIds, userId } = req.body;
+
+  if (!Array.isArray(taskIds) || taskIds.length === 0 || !userId) {
+    return res.status(400).json({ error: 'taskIds (a non-empty array) and userId are required.' });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    const tasks = await Task.find({ _id: { $in: taskIds } });
+    if (tasks.length === 0) {
+      return res.status(404).json({ error: 'No matching tasks found.' });
+    }
+
+    for (const task of tasks) {
+      const alreadyAssigned = task.assignedTo.some(id => id.toString() === userId);
+      if (!alreadyAssigned) {
+        task.assignedTo.push(userId);
+        await task.save();
+        await logAction({
+          taskId: task._id,
+          userId: req.user._id,
+          action: 'Bulk Assigned',
+          newValue: user.name,
+        });
+      }
+    }
+
+    const io = getIo();
+    if (io) {
+      io.to('admins').emit('taskUpdated');
+      io.to(userId.toString()).emit('taskUpdated');
+    }
+    sendInAppNotification(userId, {
+      message: `You've been assigned to ${tasks.length} task${tasks.length > 1 ? 's' : ''}.`,
+    });
+
+    const populatedTasks = await Task.find({ _id: { $in: taskIds } })
+      .populate('assignedTo', '_id name email role active');
+
+    res.json({ updated: tasks.length, tasks: populatedTasks });
+  } catch (err) {
+    console.error('PATCH /api/tasks/bulk-assign ERROR:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// PUT /api/tasks/:id
+router.put('/:id', requireRole(['admin', 'manager']), async (req, res) => {
   const { title, description, priority, dueDate, assignedTo, attachments } = req.body;
   const taskId = req.params.id;
 
   try {
     const task = await Task.findById(taskId);
-    if (!task) {
-      return res.status(404).json({ error: 'Task not found.' });
-    }
+    if (!task) return res.status(404).json({ error: 'Task not found.' });
 
     const oldAssigned = task.assignedTo.map(id => id.toString());
     const oldTitle = task.title;
@@ -187,73 +469,158 @@ router.put('/:id', requireRole('admin'), async (req, res) => {
     if (assignedTo && assignedTo.length) task.assignedTo = assignedTo;
     if (attachments) task.attachments = attachments;
 
+    task.activityLogs.push({ action: "Task Updated", performedBy: req.user._id, timestamp: new Date() });
+    task.activityLogs.push({
+    action: "Task Updated",
+    performedBy: req.user._id,
+    timestamp: new Date()
+});
+
     await task.save();
+    const io = getIo();
 
-    // Log changes to AuditLog
-    if (oldTitle !== task.title) {
-      await logAction({ taskId, userId: req.user._id, action: 'Title Updated', oldValue: oldTitle, newValue: task.title });
-    }
-    if (oldPriority !== task.priority) {
-      await logAction({ taskId, userId: req.user._id, action: 'Priority Updated', oldValue: oldPriority, newValue: task.priority });
-    }
-    if (dueDate && oldDueDate !== new Date(dueDate).toISOString()) {
-      await logAction({ taskId, userId: req.user._id, action: 'Due Date Updated', oldValue: oldDueDate, newValue: new Date(dueDate).toISOString() });
-    }
+io.to("admins").emit("taskUpdated");
 
-    // Check for newly assigned members to send notifications
+task.assignedTo.forEach(user => {
+
+    io.to(user.toString()).emit("taskUpdated");
+
+});
+
+    if (oldTitle !== task.title) await logAction({ taskId, userId: req.user._id, action: 'Title Updated', oldValue: oldTitle, newValue: task.title });
+    if (oldPriority !== task.priority) await logAction({ taskId, userId: req.user._id, action: 'Priority Updated', oldValue: oldPriority, newValue: task.priority });
+    if (dueDate && oldDueDate !== new Date(dueDate).toISOString()) await logAction({ taskId, userId: req.user._id, action: 'Due Date Updated', oldValue: oldDueDate, newValue: new Date(dueDate).toISOString() });
+
     const newAssigned = task.assignedTo.map(id => id.toString());
     const newlyAdded = newAssigned.filter(id => !oldAssigned.includes(id));
-    
+
     if (newlyAdded.length > 0) {
-      await logAction({ taskId, userId: req.user._id, action: 'Assignees Updated', newValue: `${newlyAdded.length} new members added` });
+      await logAction({
+        taskId,
+        userId: req.user._id,
+        action: 'Assignees Updated',
+        newValue: `${newlyAdded.length} new members added`
+      });
       for (const userId of newlyAdded) {
-        const notification = new Notification({
-          userId,
-          message: `You have been assigned to task: "${task.title}".`,
-          type: 'assignment'
-        });
+        const notification = new Notification({ userId, message: `You have been assigned to task: "${task.title}".`, type: 'assignment' });
         await notification.save();
         sendInAppNotification(userId, notification);
+        sendTaskUpdate(userId, task._id);
+
+        const user = await User.findById(userId);
+
+        if (user?.email) {
+          await sendEmail(
+            user.email,
+            "🎉 Task Approved - TaskSphere",
+            `
+              <div style="font-family: Arial, sans-serif; line-height:1.6;">
+                <h2 style="color:#16a34a;">🎉 Congratulations, ${user.name}!</h2>
+
+                <p>Your task has been <strong>approved</strong> by the administrator.</p>
+
+                <table style="border-collapse: collapse;">
+                  <tr>
+                    <td><strong>Task:</strong></td>
+                    <td>${task.title}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Status:</strong></td>
+                    <td style="color:green;"><b>Approved ✅</b></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Approved By:</strong></td>
+                    <td>${req.user.name}</td>
+                  </tr>
+                </table>
+
+                <br>
+
+                <p>Great work! Keep up the excellent performance.</p>
+
+                <hr>
+
+                <p>
+                  Regards,<br>
+                  <strong>TaskSphere Team</strong>
+                </p>
+              </div>
+            `
+          );
+        }
+             // Google Calendar sync for newly-added assignees — best-effort,
+        // never blocks the response.
+        try {
+          if (user) {
+            const eventId = await upsertTaskEvent(user, task, null);
+            if (eventId) {
+              task.googleCalendarEvents.push({ user: userId, eventId });
+            }
+          }
+        } catch (calendarErr) {
+          console.error('Calendar sync failed on assignee add:', calendarErr.message);
+        }
       }
     }
 
-    // Notify all assigned users about details update
-    for (const userId of task.assignedTo) {
-      // Don't duplicate if they were just newly added (they already got a notification)
-      if (newlyAdded.includes(userId.toString())) continue;
-      const notification = new Notification({
-        userId,
-        message: `Task details updated: "${task.title}".`,
-        type: 'update'
-      });
-      await notification.save();
-      sendInAppNotification(userId, notification);
+    // Google Calendar sync for assignees who were already on the task —
+    // if the title or due date changed, push that update to their
+    // existing event. Best-effort, never blocks the response.
+    if (title || dueDate) {
+      const stillAssigned = newAssigned.filter((id) => oldAssigned.includes(id));
+      for (const userIdStr of stillAssigned) {
+        const existing = task.googleCalendarEvents.find((e) => e.user.toString() === userIdStr);
+        if (!existing) continue;
+        try {
+          const user = await User.findById(userIdStr);
+          if (user) await upsertTaskEvent(user, task, existing.eventId);
+        } catch (calendarErr) {
+          console.error('Calendar sync failed on task update:', calendarErr.message);
+        }
+      }
     }
 
-    const populatedTask = await Task.findById(task._id)
-      .populate('assignedTo', '_id name email role active')
-      .populate('createdBy', '_id name email role')
-      .populate('approvedBy', '_id name email role');
+    await task.save();
 
+    const populatedTask = await Task.findById(task._id).populate('assignedTo', '_id name email role active').populate('createdBy', '_id name email role').populate('approvedBy', '_id name email role');
     res.json(populatedTask);
   } catch (err) {
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("PATCH /tasks/:id/status ERROR:", err);
+    res.status(500).json({
+      error: err.message,
+      stack: process.env.NODE_ENV !== "production" ? err.stack : undefined,
+    });
   }
-});
+})
 
-// DELETE /api/tasks/:id - Delete Task (Admin only)
-router.delete('/:id', requireRole('admin'), async (req, res) => {
+// ... (Remainder of routes remain the same)
+// DELETE /api/tasks/:id - Delete Task (Admin & Manager)
+router.delete('/:id', requireRole(['admin', 'manager']), async (req, res) => {
   try {
     const task = await Task.findByIdAndDelete(req.params.id);
+    const io = getIo();
+
+io.emit("taskUpdated");
     if (!task) {
       return res.status(404).json({ error: 'Task not found.' });
+    }
+
+    // Clean up any Google Calendar events created for this task —
+    // best-effort, never blocks the delete response.
+    for (const entry of task.googleCalendarEvents || []) {
+      try {
+        const user = await User.findById(entry.user);
+        if (user) await deleteTaskEvent(user, entry.eventId);
+      } catch (calendarErr) {
+        console.error('Calendar event cleanup failed on task delete:', calendarErr.message);
+      }
     }
 
     // Notify assigned users of deletion
     for (const userId of task.assignedTo) {
       const notification = new Notification({
         userId,
-        message: `Task "${task.title}" has been deleted by an administrator.`,
+        message: `Task "${task.title}" has been deleted.`,
         type: 'update'
       });
       await notification.save();
@@ -270,7 +637,7 @@ router.delete('/:id', requireRole('admin'), async (req, res) => {
   }
 });
 
-// PATCH /api/tasks/:id/status - Status Transition Workflows (Admins & Assignees)
+// PATCH /api/tasks/:id/status - Status Transition Workflows (Admins, Managers & Assignees)
 router.patch('/:id/status', async (req, res) => {
   const { status, feedback } = req.body;
   const taskId = req.params.id;
@@ -280,47 +647,94 @@ router.patch('/:id/status', async (req, res) => {
     if (!task) {
       return res.status(404).json({ error: 'Task not found.' });
     }
+    // ================= Dependency Validation =================
+
+if (
+  status === "In Progress" &&
+  task.dependencies &&
+  task.dependencies.length > 0
+) {
+
+  const dependencyTasks = await Task.find({
+    _id: { $in: task.dependencies }
+  });
+
+  const incomplete = dependencyTasks.filter(
+    t => t.status !== "Approved"
+  );
+
+  if (incomplete.length > 0) {
+    return res.status(400).json({
+      error:
+        "Complete all dependency tasks before starting this task."
+    });
+  }
+
+}
 
     const oldStatus = task.status;
     const isAssignee = task.assignedTo.some(userId => userId.toString() === req.user._id.toString());
-    const isAdmin = req.user.role === 'admin';
+    const hasMgmtPrivilege = isManagement(req.user.role);
 
-    if (!isAdmin && !isAssignee) {
+    if (!hasMgmtPrivilege && !isAssignee) {
       return res.status(403).json({ error: 'Forbidden. You are not authorized to update this task status.' });
     }
 
     // Validate workflow state machine:
     if (status === 'Approved' || status === 'Rejected') {
-      // Only admins can approve or reject
-      if (!isAdmin) {
-        return res.status(403).json({ error: 'Forbidden. Only administrators can approve or reject tasks.' });
+      // Admins and Managers can approve or reject
+      if (!hasMgmtPrivilege) {
+        return res.status(403).json({ error: 'Forbidden. Only managers and administrators can approve or reject tasks.' });
       }
       if (status === 'Rejected' && (!feedback || !feedback.trim())) {
         return res.status(400).json({ error: 'Feedback is required when rejecting a task.' });
       }
     }
 
-    if (status === 'Completed (Pending Approval)' && !isAssignee && !isAdmin) {
-      // Typically assigned members mark complete
+    if (status === 'Completed (Pending Approval)' && !isAssignee && !hasMgmtPrivilege) {
       return res.status(403).json({ error: 'Forbidden. Only assigned members should submit for approval.' });
     }
 
     // Update status
     task.status = status;
 
+    task.activityLogs.push({
+    action: `Status changed to ${status}`,
+    performedBy: req.user._id,
+    timestamp: new Date()
+});
+
     if (status === 'Approved') {
       task.approvedBy = req.user._id;
+      task.activityLogs.push({
+    action: "Task Approved",
+    performedBy: req.user._id,
+    timestamp: new Date()
+});
       task.feedback = '';
     } else if (status === 'Rejected') {
       task.approvedBy = null;
       task.feedback = feedback;
+      task.activityLogs.push({
+    action: "Task Rejected",
+    performedBy: req.user._id,
+    timestamp: new Date()
+});
     } else {
-      // Clear fields if returning to To Do / In Progress
       task.approvedBy = null;
       task.feedback = '';
     }
 
     await task.save();
+    const io = getIo();
+
+task.assignedTo.forEach(user => {
+
+    io.to(user.toString()).emit("taskUpdated");
+
+});
+
+io.to("admins").emit("taskUpdated");
 
     // Log to Audit Log
     await logAction({
@@ -342,16 +756,21 @@ router.patch('/:id/status', async (req, res) => {
 
     // Handle Notifications:
     if (status === 'Completed (Pending Approval)') {
-      // Notify all admins
-      const admins = await User.find({ role: 'admin', active: true });
-      for (const admin of admins) {
+      task.activityLogs.push({
+    action: "Submitted for Approval",
+    performedBy: req.user._id,
+    timestamp: new Date()
+});
+      // Notify all management roles (Admins and Managers)
+      const mgmtUsers = await User.find({ role: { $in: ['admin', 'manager'] }, active: true });
+      for (const user of mgmtUsers) {
         const notification = new Notification({
-          userId: admin._id,
+          userId: user._id,
           message: `${req.user.name} has submitted task "${task.title}" for approval.`,
           type: 'completed'
         });
         await notification.save();
-        sendInAppNotification(admin._id, notification);
+        sendInAppNotification(user._id, notification);
       }
     } else if (status === 'Approved') {
       // Notify all assigned users
@@ -375,15 +794,13 @@ router.patch('/:id/status', async (req, res) => {
         await notification.save();
         sendInAppNotification(userId, notification);
       }
-    } else if (oldStatus === 'Overdue' && (status === 'To Do' || status === 'In Progress')) {
-      // Task moved back from Overdue
-      // No special alerts needed, standard workflow
     }
 
     const populatedTask = await Task.findById(taskId)
       .populate('assignedTo', '_id name email role active')
       .populate('createdBy', '_id name email role')
-      .populate('approvedBy', '_id name email role');
+      .populate('approvedBy', '_id name email role')
+.populate('dependencies', 'title status');
 
     res.json(populatedTask);
   } catch (err) {
@@ -400,7 +817,7 @@ router.get('/:id/comments', async (req, res) => {
     }
 
     // Check visibility permissions
-    if (req.user.role === 'member' && !task.assignedTo.includes(req.user._id)) {
+    if (req.user.role === 'member' && !task.assignedTo.some(userId => userId.toString() === req.user._id.toString())) {
       return res.status(403).json({ error: 'Forbidden. You do not have access to this task.' });
     }
 
@@ -431,9 +848,9 @@ router.post('/:id/comments', async (req, res) => {
 
     // Check visibility permissions
     const isAssignee = task.assignedTo.some(userId => userId.toString() === req.user._id.toString());
-    const isAdmin = req.user.role === 'admin';
+    const hasMgmtPrivilege = isManagement(req.user.role);
 
-    if (!isAdmin && !isAssignee) {
+    if (!hasMgmtPrivilege && !isAssignee) {
       return res.status(403).json({ error: 'Forbidden. You do not have access to this task.' });
     }
 
@@ -453,13 +870,12 @@ router.post('/:id/comments', async (req, res) => {
     });
 
     // Notify other users:
-    // If Admin comments, notify all assigned users
-    if (isAdmin) {
+    if (hasMgmtPrivilege) {
       for (const userId of task.assignedTo) {
         if (userId.toString() === req.user._id.toString()) continue;
         const notification = new Notification({
           userId,
-          message: `Admin ${req.user.name} commented on task "${task.title}".`,
+          message: `${req.user.name} (${req.user.role}) commented on task "${task.title}".`,
           type: 'update'
         });
         await notification.save();
@@ -468,9 +884,9 @@ router.post('/:id/comments', async (req, res) => {
     } else {
       // If Member comments, notify creator and other assigned members
       const notifyList = new Set();
-      notifyList.add(task.createdBy.toString());
+      if (task.createdBy) notifyList.add(task.createdBy.toString());
       task.assignedTo.forEach(id => notifyList.add(id.toString()));
-      notifyList.delete(req.user._id.toString()); // don't notify self
+      notifyList.delete(req.user._id.toString());
 
       for (const userId of notifyList) {
         const notification = new Notification({
@@ -501,7 +917,7 @@ router.get('/:id/history', async (req, res) => {
     }
 
     // Check visibility permissions
-    if (req.user.role === 'member' && !task.assignedTo.includes(req.user._id)) {
+    if (req.user.role === 'member' && !task.assignedTo.some(userId => userId.toString() === req.user._id.toString())) {
       return res.status(403).json({ error: 'Forbidden. You do not have access to this task.' });
     }
 
@@ -524,5 +940,6 @@ router.post('/test-cron', async (req, res) => {
     res.status(500).json({ error: 'Failed to trigger cron action: ' + err.message });
   }
 });
+
 
 module.exports = router;
