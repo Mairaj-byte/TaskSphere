@@ -31,22 +31,22 @@ const AdminSettings = () => {
   }, [toastMsg]);
 
   return (
-    <div className="min-h-screen text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen text-slate-100 p-4 sm:p-6 lg:p-8">
       {/* Toast Message */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-[200] flex items-center gap-2 px-4 py-3 rounded-lg bg-[#1e2640] dark:bg-slate-100 text-white dark:text-[#1e2640] shadow-xl text-sm border border-[#dc9750]/30 dark:border-transparent">
-          <CheckCircle2 size={16} className="text-[#dc9750] dark:text-emerald-600" />
+        <div className="fixed bottom-6 right-6 z-[200] flex items-center gap-2 px-4 py-3 rounded-lg bg-[#1e2640] text-slate-100 shadow-xl text-sm border border-[#dc9750]/30">
+          <CheckCircle2 size={16} className="text-[#dc9750]" />
           {toastMsg}
         </div>
       )}
 
       {/* Page Header */}
       <div className="mb-6">
-        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2 text-[#1e2640] dark:text-slate-100">
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2 text-slate-100">
           <Settings size={26} className="text-[#dc9750]" />
           Admin<span className="text-[#dc9750]">Settings</span>
         </h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-sm text-slate-400 mt-1">
           Manage departments, roles, notification rules, integrations, and system-wide preferences.
         </p>
       </div>
@@ -54,7 +54,7 @@ const AdminSettings = () => {
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Tab Navigation */}
         <div className="lg:w-56 flex-shrink-0">
-          <div className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible bg-white dark:bg-[#1e2640] border border-slate-200 dark:border-[#dc9750]/20 rounded-xl p-2 shadow-sm">
+          <div className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible bg-[#1e2640] border border-[#dc9750]/20 rounded-xl p-2 shadow-sm">
             {TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.key;
@@ -63,11 +63,11 @@ const AdminSettings = () => {
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
                   className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all active:scale-[0.98] ${isActive
-                      ? "bg-[#dc9750] text-[#1e2640] shadow-sm"
-                      : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2640]/80 hover:text-[#1e2640] dark:hover:text-[#dc9750]"
+                    ? "bg-[#dc9750] text-[#1e2640] shadow-sm"
+                    : "text-slate-300 hover:bg-[#1e2640]/80 hover:text-[#dc9750]"
                     }`}
                 >
-                  <Icon size={16} className={isActive ? "text-[#1e2640]" : "text-slate-400 dark:text-slate-400"} />
+                  <Icon size={16} className={isActive ? "text-[#1e2640]" : "text-slate-400"} />
                   {tab.label}
                 </button>
               );
@@ -183,9 +183,9 @@ const DepartmentsTab = ({ token, showToast }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-[#1e2640] border border-slate-200 dark:border-[#dc9750]/20 rounded-xl p-5 shadow-sm">
+    <div className="bg-[#1e2640] border border-[#dc9750]/20 rounded-xl p-5 shadow-sm">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-[#1e2640] dark:text-slate-100">Departments / Teams</h3>
+        <h3 className="font-semibold text-slate-100">Departments / Teams</h3>
         <button
           onClick={openCreate}
           className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#dc9750] hover:bg-[#dc9750]/80 text-[#1e2640] text-xs font-bold rounded-lg transition-all active:scale-95 shadow-sm"
@@ -205,24 +205,24 @@ const DepartmentsTab = ({ token, showToast }) => {
           {departments.map((dept) => (
             <div
               key={dept._id}
-              className="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-[#1e2640] bg-slate-50/30 dark:bg-[#1e2640]/30"
+              className="flex items-center justify-between p-3 rounded-lg border border-[#dc9750]/10 bg-[#1e2640]/50"
             >
               <div>
-                <p className="text-sm font-semibold text-[#1e2640] dark:text-slate-100">{dept.name}</p>
+                <p className="text-sm font-semibold text-slate-100">{dept.name}</p>
                 {dept.description && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{dept.description}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{dept.description}</p>
                 )}
               </div>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => openEdit(dept)}
-                  className="p-1.5 text-slate-400 hover:text-[#dc9750] rounded-md hover:bg-slate-100 dark:hover:bg-[#1e2640]/80 transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-[#dc9750] rounded-md hover:bg-slate-800/60 transition-colors"
                 >
                   <Edit2 size={14} />
                 </button>
                 <button
                   onClick={() => handleDelete(dept._id)}
-                  className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-slate-100 dark:hover:bg-[#1e2640]/80 transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-rose-500 rounded-md hover:bg-slate-800/60 transition-colors"
                 >
                   <Trash2 size={14} />
                 </button>
@@ -234,22 +234,22 @@ const DepartmentsTab = ({ token, showToast }) => {
 
       {/* Modal Dialog */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#1e2640]/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-[#1e2640] border border-slate-200 dark:border-[#dc9750]/30 rounded-xl max-w-sm w-full p-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-[#1e2640]">
-              <h3 className="text-base font-bold text-[#1e2640] dark:text-slate-100">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-[#1e2640] border border-[#dc9750]/30 rounded-xl max-w-sm w-full p-6 shadow-2xl">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-700/50">
+              <h3 className="text-base font-bold text-slate-100">
                 {modalMode === 'create' ? 'Add Department' : 'Edit Department'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg transition-colors"
+                className="p-1 text-slate-400 hover:text-slate-200 rounded-lg transition-colors"
               >
                 <X size={18} />
               </button>
             </div>
 
             {formError && (
-              <div className="mt-4 p-3 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
+              <div className="mt-4 p-3 rounded-lg bg-rose-950/50 border border-rose-800 text-rose-400 text-xs flex items-center gap-2">
                 <AlertCircle size={16} />
                 <span>{formError}</span>
               </div>
@@ -257,22 +257,22 @@ const DepartmentsTab = ({ token, showToast }) => {
 
             <form onSubmit={handleSubmit} className="mt-4 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Name *</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Name *</label>
                 <input
                   type="text"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-[#1e2640]/50 border border-slate-200 dark:border-[#1e2640] rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors text-slate-800 dark:text-slate-100"
+                  className="w-full px-3 py-2 text-sm bg-slate-900/60 border border-slate-700/60 rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors text-slate-100 placeholder:text-slate-500"
                   placeholder="e.g., Engineering"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Description</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Description</label>
                 <textarea
                   rows={3}
                   value={formDescription}
                   onChange={(e) => setFormDescription(e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-[#1e2640]/50 border border-slate-200 dark:border-[#1e2640] rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors text-slate-800 dark:text-slate-100 resize-none"
+                  className="w-full px-3 py-2 text-sm bg-slate-900/60 border border-slate-700/60 rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors text-slate-100 placeholder:text-slate-500 resize-none"
                   placeholder="Optional"
                 />
               </div>
@@ -280,7 +280,7 @@ const DepartmentsTab = ({ token, showToast }) => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2640]/80 rounded-lg transition-colors"
+                  className="px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800/80 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
@@ -352,50 +352,50 @@ const RolesTab = ({ token, showToast }) => {
 
   return (
     <div className="space-y-6">
-  {/* Role Permission Reference Card */}
-  <div className="bg-white dark:bg-[#1e2640] border border-slate-200 dark:border-[#dc9750]/20 rounded-xl p-5 shadow-sm">
-    <h3 className="font-semibold text-[#1e2640] dark:text-slate-100 mb-4">Role Permission Reference</h3>
-    <div className="space-y-3">
-      {ROLE_PERMISSIONS.map((r) => (
-        <div key={r.role} className="p-3 rounded-lg border border-slate-200 dark:border-[#1e2640] bg-slate-50/50 dark:bg-[#1e2640]/40">
-          <p className="text-xs font-bold text-[#dc9750] uppercase tracking-wider">{r.role}</p>
-          <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{r.permissions}</p>
-        </div>
-      ))}
-    </div>
-  </div>
-
-  {/* Assign Roles Card */}
-  <div className="bg-white dark:bg-[#1e2640] border border-slate-200 dark:border-[#dc9750]/20 rounded-xl p-5 shadow-sm">
-    <h3 className="font-semibold text-[#1e2640] dark:text-slate-100 mb-4">Assign Roles</h3>
-    {loading ? (
-      <div className="flex justify-center py-8">
-        <Loader2 size={20} className="animate-spin text-[#dc9750]" />
-      </div>
-    ) : (
-      <div className="space-y-2">
-        {users.map((u) => (
-          <div key={u._id} className="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-[#1e2640] bg-slate-50/30 dark:bg-[#1e2640]/30">
-            <div>
-              <p className="text-sm font-semibold text-[#1e2640] dark:text-slate-100">{u.name}</p>
-              <p className="text-xs text-slate-400">{u.email}</p>
+      {/* Role Permission Reference Card */}
+      <div className="bg-[#1e2640] border border-[#dc9750]/20 rounded-xl p-5 shadow-sm">
+        <h3 className="font-semibold text-slate-100 mb-4">Role Permission Reference</h3>
+        <div className="space-y-3">
+          {ROLE_PERMISSIONS.map((r) => (
+            <div key={r.role} className="p-3 rounded-lg border border-[#dc9750]/10 bg-[#1e2640]/50">
+              <p className="text-xs font-bold text-[#dc9750] uppercase tracking-wider">{r.role}</p>
+              <p className="text-sm text-slate-300 mt-1">{r.permissions}</p>
             </div>
-            <select
-              value={u.role}
-              disabled={updatingId === u._id}
-              onChange={(e) => changeRole(u._id, e.target.value)}
-              className="text-xs font-medium px-3 py-1.5 bg-slate-50 dark:bg-[#1e2640]/50 border border-slate-200 dark:border-[#1e2640] rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors text-slate-800 dark:text-slate-200 disabled:opacity-50"
-            >
-              <option value="admin" className="bg-white dark:bg-[#1e2640]">Admin</option>
-              <option value="manager" className="bg-white dark:bg-[#1e2640]">Manager</option>
-              <option value="member" className="bg-white dark:bg-[#1e2640]">Member</option>
-            </select>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    )}
-  </div>
-</div>
+
+      {/* Assign Roles Card */}
+      <div className="bg-[#1e2640] border border-[#dc9750]/20 rounded-xl p-5 shadow-sm">
+        <h3 className="font-semibold text-slate-100 mb-4">Assign Roles</h3>
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 size={20} className="animate-spin text-[#dc9750]" />
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {users.map((u) => (
+              <div key={u._id} className="flex items-center justify-between p-3 rounded-lg border border-[#dc9750]/10 bg-[#1e2640]/50">
+                <div>
+                  <p className="text-sm font-semibold text-slate-100">{u.name}</p>
+                  <p className="text-xs text-slate-400">{u.email}</p>
+                </div>
+                <select
+                  value={u.role}
+                  disabled={updatingId === u._id}
+                  onChange={(e) => changeRole(u._id, e.target.value)}
+                  className="text-xs font-medium px-3 py-1.5 bg-slate-900/60 border border-slate-700/60 rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors text-slate-200 disabled:opacity-50 cursor-pointer"
+                >
+                  <option value="admin" className="bg-[#1e2640] text-slate-100">Admin</option>
+                  <option value="manager" className="bg-[#1e2640] text-slate-100">Manager</option>
+                  <option value="member" className="bg-[#1e2640] text-slate-100">Member</option>
+                </select>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -472,17 +472,17 @@ const NotificationRulesTab = ({ token, showToast }) => {
   if (loading) {
     return (
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex justify-center py-8">
-        <Loader2 size={20} className="animate-spin text-indigo-500" />
+        <Loader2 size={20} className="animate-spin text-[#dc9750]" />
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-[#1e2640] border border-slate-200 dark:border-[#dc9750]/20 rounded-xl p-5 shadow-sm space-y-5">
-      <h3 className="font-semibold text-[#1e2640] dark:text-slate-100">Notification Rules</h3>
+    <div className="bg-[#1e2640] border border-[#dc9750]/20 rounded-xl p-5 shadow-sm space-y-5">
+      <h3 className="font-semibold text-slate-100">Notification Rules</h3>
 
       <div>
-        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+        <label className="block text-xs font-semibold text-slate-300 mb-1">
           Send "due soon" reminder this many hours before the deadline
         </label>
         <input
@@ -490,7 +490,7 @@ const NotificationRulesTab = ({ token, showToast }) => {
           min={1}
           value={reminderHours}
           onChange={(e) => setReminderHours(e.target.value)}
-          className="w-32 px-3 py-2 text-sm bg-slate-50 dark:bg-[#1e2640]/50 border border-slate-200 dark:border-[#1e2640] rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors text-slate-800 dark:text-slate-100"
+          className="w-32 px-3 py-2 text-sm bg-slate-900/60 border border-slate-700/60 rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors text-slate-100"
         />
       </div>
 
@@ -500,9 +500,9 @@ const NotificationRulesTab = ({ token, showToast }) => {
           id="dailyOverdue"
           checked={dailyOverdue}
           onChange={(e) => setDailyOverdue(e.target.checked)}
-          className="accent-[#dc9750] w-4 h-4 rounded border-slate-300 focus:ring-[#dc9750]"
+          className="accent-[#dc9750] w-4 h-4 rounded border-slate-700 bg-slate-900/60 focus:ring-[#dc9750]"
         />
-        <label htmlFor="dailyOverdue" className="text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
+        <label htmlFor="dailyOverdue" className="text-sm text-slate-300 cursor-pointer">
           Send a daily reminder for tasks that remain overdue
         </label>
       </div>
@@ -570,13 +570,13 @@ const IntegrationsTab = ({ token, showToast }) => {
   if (loading) {
     return (
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex justify-center py-8">
-        <Loader2 size={20} className="animate-spin text-indigo-500" />
+        <Loader2 size={20} className="animate-spin text-[#dc9750]" />
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-[#1e2640] border border-slate-200 dark:border-[#dc9750]/20 rounded-xl p-5 shadow-sm space-y-6">
+    <div className="bg-[#1e2640] border border-[#dc9750]/20 rounded-xl p-5 shadow-sm space-y-6">
       {/* Information/Warning Callout */}
       <div className="flex items-start gap-2 p-3 rounded-lg bg-[#dc9750]/10 border border-[#dc9750]/30 text-[#dc9750] text-xs">
         <AlertCircle size={14} className="shrink-0 mt-0.5" />
@@ -588,16 +588,16 @@ const IntegrationsTab = ({ token, showToast }) => {
       </div>
 
       {/* Slack / Teams Section */}
-      <div className="space-y-2 pb-4 border-b border-slate-100 dark:border-[#1e2640]">
+      <div className="space-y-2 pb-4 border-b border-slate-700/50">
         <div className="flex items-center gap-2">
           <input
             type="checkbox"
             id="slackEnabled"
             checked={slackEnabled}
             onChange={(e) => setSlackEnabled(e.target.checked)}
-            className="accent-[#dc9750] w-4 h-4 rounded border-slate-300 focus:ring-[#dc9750]"
+            className="accent-[#dc9750] w-4 h-4 rounded border-slate-700 bg-slate-900/60 focus:ring-[#dc9750]"
           />
-          <label htmlFor="slackEnabled" className="text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer">
+          <label htmlFor="slackEnabled" className="text-sm font-semibold text-slate-200 cursor-pointer">
             Slack / Teams Integration
           </label>
         </div>
@@ -606,20 +606,20 @@ const IntegrationsTab = ({ token, showToast }) => {
           value={slackWebhook}
           onChange={(e) => setSlackWebhook(e.target.value)}
           placeholder="Webhook URL"
-          className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-[#1e2640]/50 border border-slate-200 dark:border-[#1e2640] rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors"
+          className="w-full px-3 py-2 text-sm bg-slate-900/60 border border-slate-700/60 rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors text-slate-100 placeholder:text-slate-500"
         />
       </div>
 
       {/* Google Calendar Section */}
-      <div className="flex items-center gap-2 pb-4 border-b border-slate-100 dark:border-[#1e2640]">
+      <div className="flex items-center gap-2 pb-4 border-b border-slate-700/50">
         <input
           type="checkbox"
           id="calendarEnabled"
           checked={calendarEnabled}
           onChange={(e) => setCalendarEnabled(e.target.checked)}
-          className="accent-[#dc9750] w-4 h-4 rounded border-slate-300 focus:ring-[#dc9750]"
+          className="accent-[#dc9750] w-4 h-4 rounded border-slate-700 bg-slate-900/60 focus:ring-[#dc9750]"
         />
-        <label htmlFor="calendarEnabled" className="text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer">
+        <label htmlFor="calendarEnabled" className="text-sm font-semibold text-slate-200 cursor-pointer">
           Google Calendar / Outlook Sync
         </label>
       </div>
@@ -632,9 +632,9 @@ const IntegrationsTab = ({ token, showToast }) => {
             id="emailEnabled"
             checked={emailEnabled}
             onChange={(e) => setEmailEnabled(e.target.checked)}
-            className="accent-[#dc9750] w-4 h-4 rounded border-slate-300 focus:ring-[#dc9750]"
+            className="accent-[#dc9750] w-4 h-4 rounded border-slate-700 bg-slate-900/60 focus:ring-[#dc9750]"
           />
-          <label htmlFor="emailEnabled" className="text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer">
+          <label htmlFor="emailEnabled" className="text-sm font-semibold text-slate-200 cursor-pointer">
             Email-to-Task
           </label>
         </div>
@@ -643,7 +643,7 @@ const IntegrationsTab = ({ token, showToast }) => {
           value={emailAddress}
           onChange={(e) => setEmailAddress(e.target.value)}
           placeholder="Inbound address (e.g., tasks@yourcompany.com)"
-          className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-[#1e2640]/50 border border-slate-200 dark:border-[#1e2640] rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors"
+          className="w-full px-3 py-2 text-sm bg-slate-900/60 border border-slate-700/60 rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors text-slate-100 placeholder:text-slate-500"
         />
       </div>
 
@@ -727,7 +727,7 @@ const SystemSettingsTab = ({ token, showToast }) => {
   if (loading) {
     return (
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex justify-center py-8">
-        <Loader2 size={20} className="animate-spin text-indigo-500" />
+        <Loader2 size={20} className="animate-spin text-[#dc9750]" />
       </div>
     );
   }
@@ -735,47 +735,47 @@ const SystemSettingsTab = ({ token, showToast }) => {
   return (
     <div className="space-y-6">
       {/* Working Hours Panel */}
-      <div className="bg-white dark:bg-[#1e2640] border border-slate-200 dark:border-[#dc9750]/20 rounded-xl p-5 shadow-sm space-y-4">
-        <h3 className="font-semibold text-[#1e2640] dark:text-slate-100">Working Hours</h3>
+      <div className="bg-[#1e2640] border border-[#dc9750]/20 rounded-xl p-5 shadow-sm space-y-4">
+        <h3 className="font-semibold text-slate-100">Working Hours</h3>
         <div className="flex items-center gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Start</label>
+            <label className="block text-xs font-semibold text-slate-300 mb-1">Start</label>
             <input
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="px-3 py-2 text-sm bg-slate-50 dark:bg-[#1e2640]/50 border border-slate-200 dark:border-[#1e2640] rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors"
+              className="px-3 py-2 text-sm bg-slate-900/60 border border-slate-700/60 rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors text-slate-100"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">End</label>
+            <label className="block text-xs font-semibold text-slate-300 mb-1">End</label>
             <input
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="px-3 py-2 text-sm bg-slate-50 dark:bg-[#1e2640]/50 border border-slate-200 dark:border-[#1e2640] rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors"
+              className="px-3 py-2 text-sm bg-slate-900/60 border border-slate-700/60 rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors text-slate-100"
             />
           </div>
         </div>
       </div>
 
       {/* Task Escalation Panel */}
-      <div className="bg-white dark:bg-[#1e2640] border border-slate-200 dark:border-[#dc9750]/20 rounded-xl p-5 shadow-sm space-y-4">
-        <h3 className="font-semibold text-[#1e2640] dark:text-slate-100">Task Escalation Rules</h3>
+      <div className="bg-[#1e2640] border border-[#dc9750]/20 rounded-xl p-5 shadow-sm space-y-4">
+        <h3 className="font-semibold text-slate-100">Task Escalation Rules</h3>
         <div className="flex items-center gap-2">
           <input
             type="checkbox"
             id="escalationEnabled"
             checked={escalationEnabled}
             onChange={(e) => setEscalationEnabled(e.target.checked)}
-            className="accent-[#dc9750] w-4 h-4 rounded border-slate-300 focus:ring-[#dc9750]"
+            className="accent-[#dc9750] w-4 h-4 rounded border-slate-700 bg-slate-900/60 focus:ring-[#dc9750]"
           />
-          <label htmlFor="escalationEnabled" className="text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
+          <label htmlFor="escalationEnabled" className="text-sm text-slate-300 cursor-pointer">
             Automatically escalate priority on overdue tasks
           </label>
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+          <label className="block text-xs font-semibold text-slate-300 mb-1">
             Escalate after this many days overdue
           </label>
           <input
@@ -784,32 +784,32 @@ const SystemSettingsTab = ({ token, showToast }) => {
             value={escalationDays}
             onChange={(e) => setEscalationDays(e.target.value)}
             disabled={!escalationEnabled}
-            className="w-32 px-3 py-2 text-sm bg-slate-50 dark:bg-[#1e2640]/50 border border-slate-200 dark:border-[#1e2640] rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 disabled:opacity-50 transition-colors"
+            className="w-32 px-3 py-2 text-sm bg-slate-900/60 border border-slate-700/60 rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 disabled:opacity-50 transition-colors text-slate-100"
           />
         </div>
       </div>
 
       {/* Holiday Calendar Panel */}
-      <div className="bg-white dark:bg-[#1e2640] border border-slate-200 dark:border-[#dc9750]/20 rounded-xl p-5 shadow-sm space-y-4">
-        <h3 className="font-semibold text-[#1e2640] dark:text-slate-100">Holiday Calendar</h3>
+      <div className="bg-[#1e2640] border border-[#dc9750]/20 rounded-xl p-5 shadow-sm space-y-4">
+        <h3 className="font-semibold text-slate-100">Holiday Calendar</h3>
         <div className="flex flex-col sm:flex-row gap-2">
           <input
             type="date"
             value={newHolidayDate}
             onChange={(e) => setNewHolidayDate(e.target.value)}
-            className="px-3 py-2 text-sm bg-slate-50 dark:bg-[#1e2640]/50 border border-slate-200 dark:border-[#1e2640] rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors"
+            className="px-3 py-2 text-sm bg-slate-900/60 border border-slate-700/60 rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors text-slate-100"
           />
           <input
             type="text"
             value={newHolidayLabel}
             onChange={(e) => setNewHolidayLabel(e.target.value)}
             placeholder="e.g., Diwali"
-            className="flex-1 px-3 py-2 text-sm bg-slate-50 dark:bg-[#1e2640]/50 border border-slate-200 dark:border-[#1e2640] rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors"
+            className="flex-1 px-3 py-2 text-sm bg-slate-900/60 border border-slate-700/60 rounded-lg outline-none focus:border-[#dc9750] focus:ring-1 focus:ring-[#dc9750]/50 transition-colors text-slate-100 placeholder:text-slate-500"
           />
           <button
             type="button"
             onClick={addHoliday}
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-100 dark:bg-[#1e2640] hover:bg-slate-200 dark:hover:bg-[#1e2640]/70 text-[#1e2640] dark:text-[#dc9750] border border-transparent dark:border-[#dc9750]/30 text-xs font-semibold rounded-lg transition-colors"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-[#dc9750]/10 hover:bg-[#dc9750]/20 text-[#dc9750] border border-[#dc9750]/30 text-xs font-semibold rounded-lg transition-colors"
           >
             <Plus size={14} /> Add
           </button>
@@ -818,9 +818,9 @@ const SystemSettingsTab = ({ token, showToast }) => {
         {holidays.length > 0 && (
           <div className="space-y-1.5">
             {holidays.map((h, i) => (
-              <div key={i} className="flex items-center justify-between p-2.5 rounded-lg border border-slate-200 dark:border-[#1e2640] bg-slate-50/50 dark:bg-[#1e2640]/30 text-sm">
-                <span className="text-slate-700 dark:text-slate-200 font-medium">{h.label} <span className="text-slate-400 mx-2">—</span> {h.date}</span>
-                <button onClick={() => removeHoliday(i)} className="text-rose-500 hover:text-rose-600 dark:hover:text-rose-400 p-1 rounded-md hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors">
+              <div key={i} className="flex items-center justify-between p-2.5 rounded-lg border border-[#dc9750]/10 bg-[#1e2640]/50 text-sm">
+                <span className="text-slate-200 font-medium">{h.label} <span className="text-slate-500 mx-2">—</span> {h.date}</span>
+                <button onClick={() => removeHoliday(i)} className="text-rose-500 hover:text-rose-400 p-1 rounded-md hover:bg-rose-500/10 transition-colors">
                   <Trash2 size={14} />
                 </button>
               </div>
