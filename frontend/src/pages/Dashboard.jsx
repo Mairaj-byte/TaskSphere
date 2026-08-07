@@ -202,9 +202,11 @@ const Dashboard = () => {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div 
+        onClick={() => navigate("/tasks?filter=active")}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1 */}
-        <div className="group rounded-2xl border border-white/10 bg-[#0d1426]/80 p-5 backdrop-blur-md hover:border-indigo-500/30 transition-all duration-300 shadow-md">
+        <div className="group rounded-2xl border border-white/10 bg-[#0d1426]/80 p-5 backdrop-blur-md hover:border-indigo-500/30 transition-all duration-300 shadow-md cursor-pointer">
           <div className="flex items-center justify-between text-xs text-gray-400 font-medium">
             <span>Total Active Tasks</span>
             <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 group-hover:scale-110 transition-transform">
@@ -225,7 +227,9 @@ const Dashboard = () => {
         </div>
 
         {/* Metric 2 */}
-        <div className="group rounded-2xl border border-white/10 bg-[#0d1426]/80 p-5 backdrop-blur-md hover:border-amber-500/30 transition-all duration-300 shadow-md">
+        <div 
+          onClick={() => navigate("/approvals?filter=pending")}
+          className="group rounded-2xl border border-white/10 bg-[#0d1426]/80 p-5 backdrop-blur-md hover:border-amber-500/30 transition-all duration-300 shadow-md cursor-pointer">
           <div className="flex items-center justify-between text-xs text-gray-400 font-medium">
             <span>Pending Approvals</span>
             <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 group-hover:scale-110 transition-transform">
@@ -246,7 +250,8 @@ const Dashboard = () => {
         </div>
 
         {/* Metric 3 */}
-        <div className="group rounded-2xl border border-white/10 bg-[#0d1426]/80 p-5 backdrop-blur-md hover:border-rose-500/30 transition-all duration-300 shadow-md">
+        <div 
+          onClick={() => navigate("/tasks?filter=overdue")}className="group rounded-2xl border border-white/10 bg-[#0d1426]/80 p-5 backdrop-blur-md hover:border-rose-500/30 transition-all duration-300 shadow-md cursor-pointer">
           <div className="flex items-center justify-between text-xs text-gray-400 font-medium">
             <span>Overdue Tasks</span>
             <div className="p-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 group-hover:scale-110 transition-transform">
@@ -267,7 +272,9 @@ const Dashboard = () => {
         </div>
 
         {/* Metric 4 */}
-        <div className="group rounded-2xl border border-white/10 bg-[#0d1426]/80 p-5 backdrop-blur-md hover:border-emerald-500/30 transition-all duration-300 shadow-md">
+        <div 
+          onClick={() => navigate("/manage-team?filter=active")}
+          className="group rounded-2xl border border-white/10 bg-[#0d1426]/80 p-5 backdrop-blur-md hover:border-emerald-500/30 transition-all duration-300 shadow-md cursor-pointer">
           <div className="flex items-center justify-between text-xs text-gray-400 font-medium">
             <span>Active Team Members</span>
             <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:scale-110 transition-transform">

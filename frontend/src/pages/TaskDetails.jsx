@@ -261,24 +261,7 @@ const TaskDetails = () => {
                 {/* Manager / Admin Actions */}
                 {isAdmin && (
                   <>
-                    {(task.status === 'To Do' || task.status === 'Overdue') && (
-                      <button
-                        onClick={() => handleStatusChange('In Progress')}
-                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-colors"
-                      >
-                        <Play size={16} />
-                        <span>Start Work</span>
-                      </button>
-                    )}
-                    {(task.status === 'To Do' || task.status === 'In Progress' || task.status === 'Rejected' || task.status === 'Overdue') && (
-                      <button
-                        onClick={() => handleStatusChange('Completed (Pending Approval)')}
-                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors"
-                      >
-                        <ArrowUpCircle size={16} />
-                        <span>Submit for Approval</span>
-                      </button>
-                    )}
+                    
                     {task.status === 'Completed (Pending Approval)' && (
                       <div className="flex items-center gap-2">
                         <button
