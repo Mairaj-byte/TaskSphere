@@ -17,6 +17,7 @@ import {
 
 import { useFileApi } from "../services/fileApi";
 import VersionHistoryModal from "./VersionHistoryModal";
+import { API_BASE } from "../context/AuthContext";
 
 // Enhanced icon picker with distinct dark-theme visual styles
 const getFileIconConfig = (mimeType) => {
@@ -51,8 +52,23 @@ const formatSize = (bytes) => {
   return `${(kb / 1024).toFixed(2)} MB`;
 };
 
+// --- FIXED HELPER: Replaces Windows backslashes ---
+const getFileUrl = (filePath) => {
+    if (!filePath) return '#';
+    
+    // If it's already a full URL or base64, return as is
+    if (filePath.startsWith('http') || filePath.startsWith('data:')) return filePath;
+    
+    // FIX: Convert Windows backslashes to forward slashes
+    const normalizedPath = filePath.replace(/\\/g, '/');
+    
+    // Attach the backend base URL (removing /api from the end if present)
+    const baseUrl = API_BASE.replace(/\/api$/, '');
+    return normalizedPath.startsWith('/') ? `${baseUrl}${normalizedPath}` : `${baseUrl}/${normalizedPath}`;
+};
+
 const FileList = ({ taskId, refresh, onDelete }) => {
-  const { getTaskFiles, deleteFile, openFile } = useFileApi();
+  const { getTaskFiles, deleteFile } = useFileApi();
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -193,8 +209,10 @@ const FileList = ({ taskId, refresh, onDelete }) => {
 
                   {/* Actions */}
                   <div className="flex items-center gap-1 flex-shrink-0">
+                    
+                    {/* --- FIXED VIEW BUTTON (Uses getFileUrl helper) --- */}
                     <button
-                      onClick={() => openFile(file.secureUrl)}
+                      onClick={() => window.open(getFileUrl(file.secureUrl), '_blank')}
                       className="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-blue-400 border border-transparent hover:border-slate-700 transition"
                       title="Open File"
                     >

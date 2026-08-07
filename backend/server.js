@@ -2,6 +2,7 @@ const http = require("http");
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const path = require("path");
 
 // Load Environment Variables
 dotenv.config();
@@ -25,15 +26,6 @@ const settingsRoutes = require("./src/routes/settings");
 const calendarRoutes = require("./src/routes/calendarRoutes");
 const fileRoutes = require("./src/routes/fileRoute");
 const loginActivityRoutes = require("./src/routes/loginActivityRoute");
-const routes = {
-  authRoutes, userRoutes, taskRoutes, announcementRoutes,
-  notificationRoutes, groupRoutes, chatRoutes, departmentRoutes,
-  settingsRoutes, calendarRoutes, fileRoutes, loginActivityRoutes,
-};
-
-for (const [name, r] of Object.entries(routes)) {
-  console.log(name, typeof r);
-}
 
 // Express App
 const app = express();
@@ -41,8 +33,16 @@ const server = http.createServer(app);
 
 const PORT = process.env.PORT || 5000;
 
+// ===============================
 // Global Middleware
+// ===============================
 setupMiddleware(app);
+
+// ===============================
+// Serve Static Files (Uploads)
+// MUST BE PLACED BEFORE API ROUTES
+// ===============================
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ===============================
 // Root Route
