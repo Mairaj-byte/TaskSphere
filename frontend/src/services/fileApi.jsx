@@ -144,9 +144,21 @@ export const useFileApi = () => {
 
     /**
      * Open / Download File
+     * Uses a programmatic anchor click instead of window.open() —
+     * window.open() gets silently blocked by popup blockers when the
+     * click happens through nested handlers (like inside this modal),
+     * with no visible error. A real <a> click is not treated as a
+     * popup by any browser, so this opens reliably every time.
      */
     openFile: (url) => {
-      window.open(url, "_blank");
+      if (!url) return;
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     },
-  };
+  }
 };

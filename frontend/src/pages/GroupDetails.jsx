@@ -671,7 +671,7 @@ const GroupDetails = () => {
                       <input
                         type="text"
                         placeholder="Type your message here..."
-                        className="w-full rounded-xl border border-slate-700 bg-[#0B101E] px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-[#5C45FD] focus:outline-none focus:ring-1 focus:ring-[#5C45FD]"
+                        className="w-full rounded-xl border border-slate-700 bg-[#0B101E] px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-[#dc9750] focus:outline-none focus:ring-1 focus:ring-[#dc9750]"
                         value={commentInput}
                         onChange={(e) => setCommentInput(e.target.value)}
                       />
@@ -901,7 +901,7 @@ const GroupDetails = () => {
 
               <button
                 onClick={createTask}
-                className="rounded-xl px-5 py-2.5 text-sm font-bold bg-[#dc9750] text-slate-950 transition-all"
+                className="rounded-xl bg-[#00E676] px-5 py-2.5 text-sm font-bold text-[#0B101E] hover:bg-[#00C853] transition-all"
               >
                 Create Task
               </button>

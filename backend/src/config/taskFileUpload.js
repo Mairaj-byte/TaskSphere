@@ -13,13 +13,16 @@ const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => ({
     folder: "tasksphere/task-files",
-    resource_type: "auto",
+    // Only true images go through Cloudinary's "image" pipeline (so
+    // thumbnails/transformations still work). Everything else — PDFs,
+    // Word/Excel/PowerPoint docs, ZIPs — goes through "raw", which is
+    // NOT subject to Cloudinary's image-delivery PDF/ZIP restriction.
+    resource_type: file.mimetype.startsWith("image/") ? "image" : "raw",
     public_id: `${Date.now()}-${file.originalname
       .replace(/\s+/g, "-")
       .replace(/\.[^/.]+$/, "")}`,
   }),
 });
-
 const upload = multer({
   storage,
   limits: {
